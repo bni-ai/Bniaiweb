@@ -52,3 +52,36 @@ Officers SHALL be able to export a published presentation as a PDF file. The PDF
 
 - **WHEN** an officer clicks "匯出 PDF" on a published presentation
 - **THEN** the system SHALL generate and download a PDF file containing all slides
+
+---
+
+### Requirement: Data-Driven Slide Editing
+
+The system SHALL use a data-driven approach for slide content. Officers SHALL NOT need to write HTML or code to edit slide content. Each slide type maps to a source table with structured form fields:
+
+| Slide Type | Source Table | Editable Fields |
+|---|---|---|
+| MemberCard | `weekly_briefs` | have_this_week, want_this_week |
+| KeynoteSlide | `keynote_talks` | topic, outline, product_images |
+| GuestSlide | `guests` | name, specialty, self_intro |
+| AwardSlide | `weekly_awards` | recipient, award_type, description |
+| VPReportSlide | `weekly_vp_reports` | all metric fields |
+
+#### Scenario: Officer edits a 短講 slide
+
+- **WHEN** an officer clicks "編輯" on the 短講 slide in the presentation builder
+- **THEN** the system SHALL open a form with: topic (text), outline (textarea), product_images (image upload gallery)
+- **AND WHEN** the officer saves
+- **THEN** the slide SHALL render the updated data immediately on next view
+
+#### Scenario: Officer edits a 會員 slide
+
+- **WHEN** an officer clicks "編輯" on a 會員 slide
+- **THEN** the system SHALL open a form showing that member's weekly brief fields (have_this_week, want_this_week)
+- **AND** allow overriding those values for this presentation only OR updating the underlying weekly_brief record
+
+---
+
+### Requirement: Award and VP Report Slides
+
+The system SHALL support `weekly_awards` and `weekly_vp_reports` tables as data sources for AwardSlide and VPReportSlide types. Officers SHALL fill in award recipients and VP metrics via admin forms. The presentation engine SHALL read these tables to render the corresponding slides.

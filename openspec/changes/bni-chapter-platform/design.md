@@ -31,19 +31,49 @@ Tables per domain:
 
 | Table | Key Columns |
 |---|---|
-| `members` | id, email, member_number, chinese_name, english_name, line_name, specialty_title, specialty_description, general_referral, ideal_referral, dream_referral, photo_url, role (`member`/`officer`/`president`), created_at, updated_at |
+| `members` | id, email, member_number, chinese_name, english_name, line_name, specialty_title, specialty_description, general_referral, ideal_referral, dream_referral, **company_name, company_address, industry_experience_years, previous_career**, **gains_goals, gains_accomplishments, gains_interests, gains_networks, gains_skills**, photo_url, role (`member`/`officer`/`president`), **position** (職掌), **committee** (委員會), created_at, updated_at |
+| `member_top_clients` | id, member_id, rank (1-10), industry, company_type, location, notes |
+| `member_contacts_circle` | id, member_id, tier (1=核心/2=中層/3=外圍), name, relationship, industry, notes |
 | `weekly_briefs` | id, member_id, week_date, have_this_week, want_this_week, status (`draft`/`submitted`), submitted_at |
 | `presentations` | id, week_date, title, status (`draft`/`published`), published_url, slide_order (jsonb), created_by |
-| `keynote_talks` | id, speaker_id, week_date, topic, outline, slides_url, product_images (jsonb[]) |
+| `keynote_talks` | id, speaker_id, week_date, topic, outline, product_images (jsonb), status (`draft`/`submitted`) |
 | `guests` | id, name, specialty, referrer_id, week_date, self_intro, feedback |
-| `one_on_ones` | id, inviter_id, invitee_id, scheduled_at, status (`pending`/`confirmed`/`completed`), notes |
+| `weekly_awards` | id, week_date, recipient_id, award_type (`top_referrer`/`visitor_award`/`bni_bucks`/`spotlight`/`other`), description |
+| `weekly_vp_reports` | id, week_date, total_referrals, total_one_on_ones, total_visitors, member_attendance, referral_value_twd, notes |
+| `member_availability` | id, member_id, day_of_week (0-6), start_time, end_time |
+| `one_on_ones` | id, inviter_id, invitee_id, scheduled_at, status (`pending`/`confirmed`/`completed`/`cancelled`), notes, jitsi_room |
 | `events` | id, title, date, description, registration_deadline, max_participants |
 | `event_registrations` | id, event_id, member_id, status |
 | `training_courses` | id, name, system_form_name, desktop_form_name, credits, first_fee, repeat_fee, provider |
 | `training_records` | id, member_id, course_id, completed_at, credits_earned |
 | `ai_settings` | id, provider (`claude`/`gemini`/`openai`), api_key_encrypted, model_name, is_active |
 
-**Rationale:** Each capability module owns its tables. Independent tables allow Phase-by-Phase schema migrations without touching earlier phases. `slide_order` as JSONB provides flexibility for presentation page reordering without a separate join table.
+**`slide_order` JSONB shape:**
+```jsonc
+[
+  { "type": "cover" },                          // 自動生成，無 id
+  { "type": "keynote",   "id": "<uuid>",  "visible": true },  // keynote_talks.id
+  { "type": "member",    "id": "<uuid>",  "visible": true },  // weekly_briefs.id
+  { "type": "guest",     "id": "<uuid>",  "visible": true },  // guests.id
+  { "type": "award",     "id": "<date>",  "visible": true },  // week_date string
+  { "type": "vp_report", "id": "<uuid>",  "visible": true },  // weekly_vp_reports.id
+  { "type": "team" }                            // 自動從 members 生成，無 id
+]
+```
+
+**Slide 資料來源對應（Admin「編輯」按鈕的目標表單）：**
+
+| 投影片類型 | 資料來源 | Admin 編輯表單 |
+|---|---|---|
+| CoverSlide | 自動生成 | 無需編輯 |
+| MemberCard | `members` + `weekly_briefs` | 編輯該週 `weekly_briefs` 記錄 |
+| KeynoteSlide | `keynote_talks` | 編輯 `keynote_talks` 記錄 |
+| GuestSlide | `guests` | 編輯 `guests` 記錄 |
+| AwardSlide | `weekly_awards` | 編輯該週所有 `weekly_awards` |
+| VPReportSlide | `weekly_vp_reports` | 編輯 `weekly_vp_reports` 記錄 |
+| TeamSlide | `members`（依 position/committee） | 自動生成，無需編輯 |
+
+**Rationale:** Each capability module owns its tables. Independent tables allow Phase-by-Phase schema migrations without touching earlier phases. `slide_order` as JSONB provides flexibility for presentation page reordering without a separate join table. The data-driven approach means officers edit structured form fields — no HTML or code editing required.
 
 ### D2 — Authentication: Supabase Auth + Google OAuth
 
