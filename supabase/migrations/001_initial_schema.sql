@@ -2,11 +2,28 @@
 -- Migration 001: Full schema including member profiles, presentations, and slide data
 
 -- ─────────────────────────────────────────────
+-- CHAPTERS（多租戶根表）
+-- ─────────────────────────────────────────────
+CREATE TABLE chapters (
+  id              uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
+  slug            text  NOT NULL UNIQUE,        -- URL 識別碼，e.g. "hua-ai", "tpe-01"
+  name            text  NOT NULL,               -- 分會名稱，e.g. "BNI 華AI分會"
+  custom_domain   text  UNIQUE,                 -- 自訂網域，e.g. "platform.bni-taipei.com"
+  logo_url        text,
+  primary_color   text  DEFAULT '#dc2626',      -- 白牌主色
+  region          text,                         -- 地區，e.g. "台北", "台中"
+  timezone        text  DEFAULT 'Asia/Taipei',
+  is_active       boolean DEFAULT true,
+  created_at      timestamptz DEFAULT now()
+);
+
+-- ─────────────────────────────────────────────
 -- MEMBERS
 -- ─────────────────────────────────────────────
 CREATE TABLE members (
   id                        uuid    DEFAULT gen_random_uuid() PRIMARY KEY,
-  email                     text    NOT NULL UNIQUE,
+  chapter_id                uuid    NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+  email                     text    NOT NULL,
   member_number             text,                         -- e.g. "027"
   chinese_name              text    NOT NULL,
   english_name              text,
@@ -52,7 +69,9 @@ CREATE TABLE members (
                               )),
 
   created_at                timestamptz DEFAULT now(),
-  updated_at                timestamptz DEFAULT now()
+  updated_at                timestamptz DEFAULT now(),
+  UNIQUE (chapter_id, email),
+  UNIQUE (chapter_id, member_number)
 );
 
 -- ─────────────────────────────────────────────
@@ -124,6 +143,7 @@ CREATE TABLE keynote_talks (
 -- 來賓「人」的資料（一人一筆，多次拜訪共用）
 CREATE TABLE guests (
   id            uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
+  chapter_id    uuid  NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
   name          text  NOT NULL,
   company       text,
   phone         text,
@@ -158,6 +178,7 @@ CREATE TABLE guest_visits (
 -- ─────────────────────────────────────────────
 CREATE TABLE weekly_awards (
   id            uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
+  chapter_id    uuid  NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
   week_date     date  NOT NULL,
   recipient_id  uuid  REFERENCES members(id),
   award_type    text  NOT NULL
@@ -178,7 +199,9 @@ CREATE TABLE weekly_awards (
 -- ─────────────────────────────────────────────
 CREATE TABLE weekly_vp_reports (
   id                  uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
-  week_date           date  NOT NULL UNIQUE,
+  chapter_id          uuid  NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+  week_date           date  NOT NULL,
+  UNIQUE (chapter_id, week_date),
   total_referrals     int   DEFAULT 0,
   total_one_on_ones   int   DEFAULT 0,
   total_visitors      int   DEFAULT 0,
@@ -205,7 +228,9 @@ CREATE TABLE weekly_vp_reports (
 -- ─────────────────────────────────────────────
 CREATE TABLE presentations (
   id            uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
-  week_date     date  NOT NULL UNIQUE,
+  chapter_id    uuid  NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
+  week_date     date  NOT NULL,
+  UNIQUE (chapter_id, week_date),
   title         text,
   status        text  NOT NULL DEFAULT 'draft'
                   CHECK (status IN ('draft', 'published')),
@@ -244,6 +269,7 @@ CREATE TABLE one_on_ones (
 -- ─────────────────────────────────────────────
 CREATE TABLE events (
   id                    uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
+  chapter_id            uuid  NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
   title                 text  NOT NULL,
   date                  date  NOT NULL,
   description           text,
@@ -286,10 +312,12 @@ CREATE TABLE training_records (
 -- ─────────────────────────────────────────────
 CREATE TABLE ai_settings (
   id                uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
+  chapter_id        uuid  NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
   provider          text  NOT NULL CHECK (provider IN ('claude', 'gemini', 'openai')),
   api_key_encrypted text,
   model_name        text,
-  is_active         boolean DEFAULT false
+  is_active         boolean DEFAULT false,
+  UNIQUE (chapter_id, provider)
 );
 
 -- ─────────────────────────────────────────────
