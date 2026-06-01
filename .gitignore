@@ -37,3 +37,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+.spectra/
+openspec/.vector-search.db*
