@@ -331,6 +331,66 @@ body {
 .btn-sm { padding: 5px 12px; font-size: 12px; }
 .btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 4px; }
 
+/* ===== 會員通訊錄 ===== */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.filter-bar .form-group { margin-bottom: 0; }
+.filter-bar .form-input,
+.filter-bar .form-select { font-size: 13px; padding: 8px 12px; }
+
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.member-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.member-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.member-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.member-card-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 15px;
+  color: #FFF;
+  flex-shrink: 0;
+}
+.member-card-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.member-card-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+.member-card-profession {
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.member-card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; min-height: 22px; }
+.member-card-actions { display: flex; gap: 6px; }
+.member-card-actions .btn { flex: 1; justify-content: center; font-size: 12px; padding: 6px 8px; }
+
 /* ===== 表單 ===== */
 .form-group { margin-bottom: 16px; }
 .form-label {
@@ -921,6 +981,14 @@ body {
       </svg>
       <span>個人資料</span>
     </div>
+    <div class="nav-item" onclick="showPage('directory')">
+      <!-- book-user icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
+      <span>會員通訊錄</span>
+    </div>
     <div class="nav-item" onclick="showPage('report')">
       <!-- file-text icon -->
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1241,6 +1309,43 @@ body {
   </div>
 
   <!-- ================================================
+       頁面 2.5：會員通訊錄
+       ================================================ -->
+  <div id="page-directory" class="page">
+    <div class="page-header">
+      <div class="page-title">會員通訊錄</div>
+      <div class="page-subtitle">華AI分會 36 位會員 · 點擊卡片可預約或視訊</div>
+    </div>
+
+    <!-- 搜尋篩選列 -->
+    <div class="filter-bar">
+      <div class="form-group" style="flex:1;min-width:200px;">
+        <input class="form-input" id="dir-search" type="text" placeholder="搜尋姓名或專業…" oninput="filterDirectory()">
+      </div>
+      <div class="form-group" style="width:150px;">
+        <select class="form-select" id="dir-filter-pos" onchange="filterDirectory()">
+          <option value="">全部職掌</option>
+          <option>主席</option><option>副主席</option><option>秘書財務</option>
+          <option>資訊組長</option><option>成長協調</option><option>活動協調</option>
+          <option>導師協調</option><option>教育協調</option><option>來賓接待</option>
+        </select>
+      </div>
+      <div class="form-group" style="width:150px;">
+        <select class="form-select" id="dir-filter-com" onchange="filterDirectory()">
+          <option value="">全部委員會</option>
+          <option>導師群</option><option>接待組員</option><option>教育組員</option>
+          <option>秘財組員</option><option>資訊組員</option><option>成長組員</option>
+          <option>活動組員</option><option>會員委員</option>
+        </select>
+      </div>
+      <div id="dir-count" style="font-size:12px;color:var(--text-tertiary);white-space:nowrap;">36 位</div>
+    </div>
+
+    <!-- 會員卡片 Grid（由 JS renderDirectory() 填充）-->
+    <div class="member-grid" id="member-grid"></div>
+  </div>
+
+  <!-- ================================================
        頁面 3：每週簡報
        ================================================ -->
   <div id="page-report" class="page">
@@ -1327,6 +1432,32 @@ body {
       <div class="sub-tab active" onclick="showSubPage('onetone', 'schedule', this)">時段設定</div>
       <div class="sub-tab" onclick="showSubPage('onetone', 'booking', this)">預約</div>
       <div class="sub-tab" onclick="showSubPage('onetone', 'records', this)">紀錄</div>
+    </div>
+
+    <!-- 即將進行一對一（Jitsi 視訊入口）-->
+    <div id="onetone-upcoming" class="sub-page active" style="display:block!important;margin-top:0;">
+      <div class="card" style="border-color:var(--success-border);background:var(--success-light);">
+        <div class="card-title" style="color:var(--success);">
+          <span style="display:flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            即將進行
+          </span>
+          <span class="badge badge-success">今日 10:30</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="invite-avatar-sm" style="background:#7C3AED;color:#FFF;">葦</div>
+            <div>
+              <div style="font-weight:500;font-size:13.5px;">019 林孟葦 — 健康顧問</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Jitsi 線上視訊 · 30 分鐘</div>
+            </div>
+          </div>
+          <button class="btn btn-video btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            開始視訊
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- 時段設定 -->
@@ -1867,6 +1998,104 @@ function toggleAccordion(headerEl) {
 document.querySelectorAll('.time-chip').forEach(chip => {
   chip.addEventListener('click', () => chip.classList.toggle('selected'));
 });
+
+// ===== 會員通訊錄 =====
+const MEMBERS = [
+  { num:'001', name:'吳文凱', prof:'AI落地師',     position:'主席',    committee:'',     color:'#DC2626' },
+  { num:'002', name:'馬驊',   prof:'AI代理人',     position:'副主席',  committee:'',     color:'#1D4ED8' },
+  { num:'003', name:'林政翰', prof:'AI企業知識庫', position:'導師協調',committee:'',     color:'#7C3AED' },
+  { num:'004', name:'林姿伶', prof:'人壽保險',     position:'',        committee:'會員委員', color:'#059669' },
+  { num:'005', name:'王可信', prof:'稅務顧問',     position:'',        committee:'會員委員', color:'#D97706' },
+  { num:'006', name:'黃郁茜', prof:'數位行銷',     position:'',        committee:'導師群',   color:'#0891B2' },
+  { num:'007', name:'張泓奕', prof:'AI專案管理',   position:'',        committee:'導師群',   color:'#BE185D' },
+  { num:'008', name:'周竹君', prof:'室內設計',     position:'',        committee:'活動組員', color:'#92400E' },
+  { num:'009', name:'李銀珍', prof:'房地產仲介',   position:'',        committee:'活動組員', color:'#DC2626' },
+  { num:'010', name:'何佳薇', prof:'會計師',       position:'秘書財務',committee:'',     color:'#1D4ED8' },
+  { num:'011', name:'鄭佑軒', prof:'網路工程師',   position:'',        committee:'資訊組員', color:'#7C3AED' },
+  { num:'012', name:'廖人達', prof:'財務顧問',     position:'',        committee:'秘財組員', color:'#059669' },
+  { num:'013', name:'黃華',   prof:'汽車銷售',     position:'',        committee:'會員委員', color:'#D97706' },
+  { num:'014', name:'石惠瑩', prof:'網站開發',     position:'成長協調',committee:'',     color:'#0891B2' },
+  { num:'015', name:'林揚軒', prof:'保險經紀',     position:'',        committee:'秘財組員', color:'#BE185D' },
+  { num:'016', name:'林翰霆', prof:'廣告設計',     position:'',        committee:'會員委員', color:'#92400E' },
+  { num:'017', name:'陳瑄筑', prof:'公關顧問',     position:'',        committee:'會員委員', color:'#DC2626' },
+  { num:'018', name:'趙文聖', prof:'商業攝影',     position:'',        committee:'秘財組員', color:'#1D4ED8' },
+  { num:'019', name:'林孟葦', prof:'健康顧問',     position:'',        committee:'接待組員', color:'#7C3AED' },
+  { num:'020', name:'許博宜', prof:'企業教育',     position:'',        committee:'教育組員', color:'#059669' },
+  { num:'021', name:'康祐禎', prof:'演講培訓師',   position:'教育協調',committee:'',     color:'#D97706' },
+  { num:'022', name:'周威武', prof:'律師',         position:'',        committee:'會員委員', color:'#0891B2' },
+  { num:'023', name:'曾亦菲', prof:'社群行銷',     position:'',        committee:'資訊組員', color:'#BE185D' },
+  { num:'024', name:'俞皓翔', prof:'UI/UX 設計',  position:'',        committee:'教育組員', color:'#92400E' },
+  { num:'025', name:'張喬閔', prof:'電商顧問',     position:'',        committee:'活動組員', color:'#DC2626' },
+  { num:'026', name:'楊梓彤', prof:'企業培訓',     position:'',        committee:'秘財組員', color:'#1D4ED8' },
+  { num:'027', name:'余啟彰', prof:'IT 顧問',      position:'資訊組長',committee:'',     color:'#7C3AED' },
+  { num:'028', name:'何鎧伃', prof:'職涯規劃師',   position:'',        committee:'會員委員', color:'#059669' },
+  { num:'029', name:'朱展宏', prof:'貿易顧問',     position:'來賓接待',committee:'',     color:'#D97706' },
+  { num:'030', name:'傅菽駗', prof:'品牌設計',     position:'',        committee:'成長組員', color:'#0891B2' },
+  { num:'031', name:'陳佾',   prof:'整合行銷',     position:'',        committee:'接待組員', color:'#BE185D' },
+  { num:'032', name:'蘇宣齊', prof:'資安顧問',     position:'',        committee:'資訊組員', color:'#92400E' },
+  { num:'033', name:'蔡晴羽', prof:'活動企劃',     position:'活動協調',committee:'',     color:'#DC2626' },
+  { num:'034', name:'王丰怡', prof:'咖啡顧問',     position:'',        committee:'活動組員', color:'#1D4ED8' },
+  { num:'035', name:'林渙恩', prof:'AI 員工建立',  position:'',        committee:'成長組員', color:'#7C3AED' },
+  { num:'036', name:'黃鈞彥', prof:'供應鏈管理',   position:'',        committee:'會員委員', color:'#059669' },
+];
+
+function positionBadge(pos) {
+  if (!pos) return '';
+  return `<span class="badge badge-gold">${pos}</span>`;
+}
+function committeeBadge(com) {
+  if (!com) return '';
+  return `<span class="badge badge-gray">${com}</span>`;
+}
+
+function renderDirectory(list) {
+  const grid = document.getElementById('member-grid');
+  if (!grid) return;
+  grid.innerHTML = list.map(m => {
+    const char = m.name[m.name.length - 1];
+    return `
+    <div class="member-card"
+         data-name="${m.name}" data-prof="${m.prof}"
+         data-position="${m.position}" data-committee="${m.committee}">
+      <div class="member-card-top">
+        <div class="member-card-avatar" style="background:${m.color}">${char}</div>
+        <div>
+          <div class="member-card-name">${m.name}</div>
+          <div class="member-card-meta">${m.num}</div>
+        </div>
+      </div>
+      <div class="member-card-profession">${m.prof}</div>
+      <div class="member-card-badges">
+        ${positionBadge(m.position)}${committeeBadge(m.committee)}
+      </div>
+      <div class="member-card-actions">
+        <button class="btn btn-outline btn-sm">預約一對一</button>
+        <button class="btn btn-video btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          視訊
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterDirectory() {
+  const q   = (document.getElementById('dir-search').value || '').toLowerCase();
+  const pos = document.getElementById('dir-filter-pos').value;
+  const com = document.getElementById('dir-filter-com').value;
+  const filtered = MEMBERS.filter(m => {
+    const matchQ   = !q   || m.name.includes(q) || m.prof.toLowerCase().includes(q);
+    const matchPos = !pos || m.position === pos;
+    const matchCom = !com || m.committee === com;
+    return matchQ && matchPos && matchCom;
+  });
+  renderDirectory(filtered);
+  const el = document.getElementById('dir-count');
+  if (el) el.textContent = filtered.length + ' 位';
+}
+
+// 初始渲染
+renderDirectory(MEMBERS);
 </script>
 </body>
 </html>
