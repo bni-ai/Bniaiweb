@@ -460,6 +460,52 @@ body {
 .referral-tier-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
 .referral-tier-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
 
+/* ===== Modal 一對一表單 ===== */
+.modal-form-divider {
+  border-top: 1px solid var(--border);
+  margin: 20px -24px 0;
+  padding: 20px 24px 0;
+}
+.modal-form-divider-label {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+}
+.gains-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.gains-item { display: flex; flex-direction: column; gap: 4px; }
+.gains-label {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.gains-value { font-size: 13.5px; color: var(--text-primary); line-height: 1.55; }
+.client-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+}
+.client-row:last-child { border-bottom: none; }
+.client-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+.profile-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end;
+}
+
 /* ===== 表單 ===== */
 .form-group { margin-bottom: 16px; }
 .form-label {
@@ -1296,30 +1342,21 @@ body {
       </div>
     </div>
 
-    <!-- 產品/服務圖片 -->
+    <!-- 產品/服務圖片 (collapsible, 2 格) -->
     <div class="card">
-      <div class="card-title">服務／產品圖片
-        <span class="badge badge-gray">4 / 8</span>
+      <div class="card-title" style="cursor:pointer;margin-bottom:0;" onclick="var b=this.nextElementSibling;b.classList.toggle('open');this.querySelector('.img-chev').style.transform=b.classList.contains('open')?'rotate(180deg)':'';">
+        <span>服務／產品圖片 <span class="badge badge-gray">1 / 2</span></span>
+        <svg class="img-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="transform:rotate(180deg);transition:transform 0.2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div class="image-grid">
-        <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <div class="accordion-body open" style="padding:16px 0 0;background:transparent;">
+        <div class="image-grid" style="grid-template-columns:repeat(2,1fr);margin-top:0;">
+          <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="image-placeholder">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
         </div>
-        <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-        <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-        <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-        <div class="image-placeholder">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </div>
-        <div class="image-placeholder"></div>
-        <div class="image-placeholder"></div>
-        <div class="image-placeholder"></div>
       </div>
     </div>
 
@@ -2088,6 +2125,230 @@ body {
         </div>
       </div>
 
+      <!-- ===== 一對一表單 ===== -->
+      <div class="modal-form-divider">
+        <div class="modal-form-divider-label">一對一表單</div>
+
+        <!-- 商業資訊 -->
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">商業資訊</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+              <div class="form-group" style="margin-bottom:0;"><label class="form-label">公司名稱</label><input class="form-input" type="text" value="知流 AI"></div>
+              <div class="form-group" style="margin-bottom:0;"><label class="form-label">職業</label><input class="form-input" type="text" value="AI 落地顧問"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">地址</label><input class="form-input" type="text" value="台南市東區"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="form-group" style="margin-bottom:0;"><label class="form-label">行業經驗（年）</label><input class="form-input" type="text" value="8 年"></div>
+              <div class="form-group" style="margin-bottom:0;"><label class="form-label">前一份工作</label><input class="form-input" type="text" value="軟體工程師"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 個人資訊 -->
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">個人資訊</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">家庭資訊</label><input class="form-input" type="text" placeholder="配偶、子女等…"></div>
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">業餘愛好</label><input class="form-input" type="text" value="登山、攝影、閱讀商業書籍"></div>
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">感興趣的活動</label><input class="form-input" type="text" value="科技創業社群、AI 應用研討"></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">居住地 / 居住多久</label><input class="form-input" type="text" value="台南 / 12 年"></div>
+          </div>
+        </div>
+
+        <!-- 綜合資訊 -->
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">綜合資訊</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">強烈願望</label><textarea class="form-textarea" placeholder="您最希望達成的目標…">在五年內幫助 200 家台灣中小企業完成 AI 轉型，建立可複製的導入方法論。</textarea></div>
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">沒有人知道的秘密（輕鬆分享）</label><textarea class="form-textarea" placeholder="可以是有趣的小事…">我每天早上五點起床，第一件事是用 AI 幫自己做一個 10 分鐘的工作規劃。</textarea></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">成功的關鍵</label><textarea class="form-textarea" placeholder="您認為讓您成功的核心因素…">持續學習 + 快速迭代，不完美但要先行動。</textarea></div>
+          </div>
+        </div>
+
+        <!-- GAINS 收穫工作表 -->
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">GAINS 收穫工作表</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">G — 目標 Goals</label><textarea class="form-textarea" placeholder="您的短中長期目標…">今年簽下 20 個企業輔導合約；明年推出線上 AI 課程；三年內出版 AI 導入專書。</textarea></div>
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">A — 成就 Accomplishments</label><textarea class="form-textarea" placeholder="您引以為豪的成就…">協助 40+ 家企業導入 AI；最快在 72 小時內幫客戶上線第一個自動化流程。</textarea></div>
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">I — 興趣 Interests</label><textarea class="form-textarea" placeholder="工作以外的興趣…">登山攝影、研究各國 AI 政策、指導大學生創業。</textarea></div>
+            <div class="form-group" style="margin-bottom:10px;"><label class="form-label">N — 人際關係 Networks</label><textarea class="form-textarea" placeholder="您所在的組織或人脈圈…">BNI 華AI分會主席；台南數位轉型協會理事；Google 台灣合作夥伴。</textarea></div>
+            <div class="form-group" style="margin-bottom:0;"><label class="form-label">S — 技巧 Skills</label><textarea class="form-textarea" placeholder="您的專業技能…">AI 工作流設計、Prompt Engineering、企業培訓演講、自動化工具整合（Make / Zapier）。</textarea></div>
+          </div>
+        </div>
+
+        <!-- 前十名客戶表 -->
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">前十名客戶表</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:10px;">列出您最希望成交的理想客戶，方便會員幫您留意引薦機會。</div>
+            <div class="client-row"><div class="client-num">1</div><div style="flex:1;"><div style="font-weight:500;">中小型製造業老闆</div><div style="font-size:12px;color:var(--text-tertiary);">有大量行政重複工作</div></div></div>
+            <div class="client-row"><div class="client-num">2</div><div style="flex:1;"><div style="font-weight:500;">餐飲連鎖品牌主管</div><div style="font-size:12px;color:var(--text-tertiary);">想自動化點餐與庫存</div></div></div>
+            <div class="client-row"><div class="client-num">3</div><div style="flex:1;"><div style="font-weight:500;">會計師事務所主任</div><div style="font-size:12px;color:var(--text-tertiary);">處理大量報表與客戶往來</div></div></div>
+            <div class="client-row"><div class="client-num">4</div><div style="flex:1;"><div style="font-weight:500;">傳統零售業負責人</div><div style="font-size:12px;color:var(--text-tertiary);">想建立線上銷售流程</div></div></div>
+            <div class="client-row"><div class="client-num">5</div><div style="flex:1;"><div style="font-weight:500;">物流公司 IT 主管</div><div style="font-size:12px;color:var(--text-tertiary);">希望降低人工追蹤成本</div></div></div>
+            <div class="client-row"><div class="client-num">6</div><div style="flex:1;"><div style="font-weight:500;">補習班教育機構</div><div style="font-size:12px;color:var(--text-tertiary);">想自動化招生與家長溝通</div></div></div>
+            <div class="client-row"><div class="client-num">7</div><div style="flex:1;"><div style="font-weight:500;">建築設計事務所</div><div style="font-size:12px;color:var(--text-tertiary);">大量文件與圖面管理需求</div></div></div>
+            <div class="client-row"><div class="client-num">8</div><div style="flex:1;"><div style="font-weight:500;">醫療診所主任</div><div style="font-size:12px;color:var(--text-tertiary);">病患紀錄與預約自動化</div></div></div>
+            <div class="client-row"><div class="client-num">9</div><div style="flex:1;"><div style="font-weight:500;">電商品牌客服主管</div><div style="font-size:12px;color:var(--text-tertiary);">高量客服自動回覆需求</div></div></div>
+            <div class="client-row"><div class="client-num">10</div><div style="flex:1;"><div style="font-weight:500;">顧問公司創辦人</div><div style="font-size:12px;color:var(--text-tertiary);">希望 AI 輔助提案與報告</div></div></div>
+          </div>
+        </div>
+
+        <!-- 業務人脈圈規劃表 -->
+        <div class="accordion-item" style="margin-bottom:0;">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">業務人脈圈規劃表</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:10px;">列出您希望深耕的人脈對象，⭐ 為前三名優先經營。</div>
+            <div class="client-row"><div class="client-num" style="background:#FEF3C7;color:#92400E;">⭐</div><div style="flex:1;"><div style="font-weight:500;">林怡如</div><div style="font-size:12px;color:var(--text-tertiary);">數位行銷</div></div></div>
+            <div class="client-row"><div class="client-num" style="background:#FEF3C7;color:#92400E;">⭐</div><div style="flex:1;"><div style="font-weight:500;">何佳薇</div><div style="font-size:12px;color:var(--text-tertiary);">會計師</div></div></div>
+            <div class="client-row"><div class="client-num" style="background:#FEF3C7;color:#92400E;">⭐</div><div style="flex:1;"><div style="font-weight:500;">余啟彰</div><div style="font-size:12px;color:var(--text-tertiary);">IT 顧問</div></div></div>
+            <div class="client-row"><div class="client-num">4</div><div style="flex:1;"><div style="font-weight:500;">馬驊</div><div style="font-size:12px;color:var(--text-tertiary);">AI 代理人</div></div></div>
+            <div class="client-row"><div class="client-num">5</div><div style="flex:1;"><div style="font-weight:500;">石惠瑩</div><div style="font-size:12px;color:var(--text-tertiary);">網站開發</div></div></div>
+            <div class="client-row"><div class="client-num">6</div><div style="flex:1;"><div style="font-weight:500;">廖人達</div><div style="font-size:12px;color:var(--text-tertiary);">財務顧問</div></div></div>
+            <div class="client-row"><div class="client-num">7</div><div style="flex:1;"><div style="font-weight:500;">鄭佑軒</div><div style="font-size:12px;color:var(--text-tertiary);">網路工程師</div></div></div>
+            <div class="client-row"><div class="client-num">8</div><div style="flex:1;"><div style="font-weight:500;">康祐禎</div><div style="font-size:12px;color:var(--text-tertiary);">演講培訓師</div></div></div>
+            <div class="client-row"><div class="client-num">9</div><div style="flex:1;"><div style="font-weight:500;">俞皓翔</div><div style="font-size:12px;color:var(--text-tertiary);">UI/UX 設計</div></div></div>
+            <div class="client-row"><div class="client-num">10</div><div style="flex:1;"><div style="font-weight:500;">周威武</div><div style="font-size:12px;color:var(--text-tertiary);">律師</div></div></div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding-bottom:4px;text-align:right;">
+          <button class="btn btn-primary">儲存一對一資料</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== Member Profile Modal (read-only) ===== -->
+<div class="profile-modal-overlay" id="memberProfileModal" onclick="if(event.target===this)closeMemberProfile()">
+  <div class="profile-modal">
+    <div class="profile-modal-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="member-card-avatar mp-avatar" style="background:#1D4ED8;width:44px;height:44px;font-size:17px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#FFF;font-weight:600;flex-shrink:0;">驊</div>
+        <div>
+          <div class="mp-name" style="font-size:16px;font-weight:600;">馬驊</div>
+          <div class="mp-meta" style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">002 · AI代理人</div>
+          <div class="mp-badges" style="margin-top:6px;"><span class="badge badge-gold">副主席</span></div>
+        </div>
+      </div>
+      <button class="profile-modal-close" onclick="closeMemberProfile()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="profile-modal-body">
+
+      <div class="profile-modal-section">
+        <div class="profile-modal-label">一分鐘介紹</div>
+        <div class="mp-intro profile-modal-text">我是 AI 代理人馬驊，專注於幫助企業建構自動化 AI 客服代理人，讓 24 小時都能提供一致且專業的客戶服務，大幅降低人力成本。</div>
+      </div>
+
+      <div class="profile-modal-section">
+        <div class="profile-modal-label">理想客戶</div>
+        <div class="mp-ideal profile-modal-text">有大量重複性客服問題的中大型企業，希望導入 AI 自動回覆但不知從何開始的業務主管或 IT 部門。</div>
+      </div>
+
+      <div class="profile-modal-section">
+        <div class="profile-modal-label">服務或產品</div>
+        <div class="mp-service profile-modal-text">• AI 客服代理人建置（Line / Web Chat）<br>• 企業知識庫整合<br>• 多語言自動回覆系統<br>• AI 代理人維護月費方案</div>
+      </div>
+
+      <div class="profile-modal-section">
+        <div class="profile-modal-label">三層引薦</div>
+        <div id="mp-referral">
+          <div class="referral-tier">
+            <div class="referral-tier-label">第一層 — 初識（冷接觸）</div>
+            <div class="referral-tier-title">24 小時都有 AI 客服幫你回覆，不怕漏單</div>
+            <div class="referral-tier-desc">馬驊幫企業建立 AI 客服代理人，讓顧客不論何時詢問都能立刻得到回應，再也不用擔心下班後漏掉重要客戶。</div>
+          </div>
+          <div class="referral-tier">
+            <div class="referral-tier-label">第二層 — 熟識（溫接觸）</div>
+            <div class="referral-tier-title">AI 客服幫一家電商省下 3 名客服人力</div>
+            <div class="referral-tier-desc">他的 AI 代理人方案讓一家百人電商的重複性客服問題降低 80%，同時客戶滿意度反而提升，值得引薦給有需求的朋友認識。</div>
+          </div>
+          <div class="referral-tier" style="margin-bottom:0;">
+            <div class="referral-tier-label">第三層 — 合作（熱接觸）</div>
+            <div class="referral-tier-title">免費 AI 客服可行性評估，30 分鐘線上診斷</div>
+            <div class="referral-tier-desc">直接預約馬驊的免費評估，他會分析對方的客服流程並提出可行的 AI 方案，讓對方決定是否導入。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 一對一表單（唯讀） -->
+      <div class="modal-form-divider">
+        <div class="modal-form-divider-label">一對一表單</div>
+
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">GAINS 收穫工作表</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div class="gains-grid">
+              <div class="gains-item"><div class="gains-label">G — 目標</div><div class="gains-value">今年完成 15 個 AI 代理人部署；明年推出 SaaS 版本。</div></div>
+              <div class="gains-item"><div class="gains-label">A — 成就</div><div class="gains-value">成功建置 20+ AI 代理人；最高單一客戶省下 60% 客服成本。</div></div>
+              <div class="gains-item"><div class="gains-label">I — 興趣</div><div class="gains-value">桌遊、NLP 技術研究、各國 AI 法規比較。</div></div>
+              <div class="gains-item"><div class="gains-label">N — 人際關係</div><div class="gains-value">BNI 華AI分會副主席；台灣 AI 開發者社群核心成員。</div></div>
+            </div>
+            <div class="gains-item" style="margin-top:10px;"><div class="gains-label">S — 技巧</div><div class="gains-value">LLM 微調、RAG 架構設計、API 串接整合、對話流程設計。</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">前十名客戶表</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:10px;">對方最希望成交的理想客戶類型。</div>
+            <div class="client-row"><div class="client-num">1</div><div style="flex:1;font-weight:500;">電商品牌（年營收 5000 萬以上）</div></div>
+            <div class="client-row"><div class="client-num">2</div><div style="flex:1;font-weight:500;">連鎖餐飲集團客服部門</div></div>
+            <div class="client-row"><div class="client-num">3</div><div style="flex:1;font-weight:500;">銀行與保險業務支援部門</div></div>
+            <div class="client-row"><div class="client-num">4</div><div style="flex:1;font-weight:500;">線上教育平台（學員 1 萬人以上）</div></div>
+            <div class="client-row"><div class="client-num">5</div><div style="flex:1;font-weight:500;">SaaS 公司客戶成功部門</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item" style="margin-bottom:0;">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);">商業 / 個人資訊</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="accordion-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div><div class="gains-label">公司名稱</div><div class="gains-value">驊智科技</div></div>
+              <div><div class="gains-label">行業經驗</div><div class="gains-value">6 年</div></div>
+              <div><div class="gains-label">業餘愛好</div><div class="gains-value">桌遊、程式馬拉松</div></div>
+              <div><div class="gains-label">居住地</div><div class="gains-value">台南 / 8 年</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="profile-modal-footer">
+      <button class="btn btn-primary" onclick="closeMemberProfile()">預約一對一</button>
     </div>
   </div>
 </div>
@@ -2187,7 +2448,7 @@ function renderDirectory(list) {
     const isSelf = m.num === SELF_NUM;
     const actionBtn = isSelf
       ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;" onclick="openSelfProfile()">查看我的資料</button>`
-      : `<button class="btn btn-outline btn-sm">預約一對一</button>`;
+      : `<button class="btn btn-outline btn-sm" onclick="openMemberProfile('${m.num}')">查看資料</button><button class="btn btn-primary btn-sm">預約一對一</button>`;
     return `
     <div class="member-card"
          data-name="${m.name}" data-prof="${m.prof}"
@@ -2213,6 +2474,26 @@ function openSelfProfile() {
 }
 function closeSelfProfile() {
   document.getElementById('selfProfileModal').classList.remove('open');
+}
+
+function openMemberProfile(num) {
+  const m = MEMBERS.find(x => x.num === num);
+  if (!m) return;
+  const modal = document.getElementById('memberProfileModal');
+  const char = m.name[m.name.length - 1];
+  const av = modal.querySelector('.mp-avatar');
+  av.style.background = m.color;
+  av.textContent = char;
+  modal.querySelector('.mp-name').textContent = m.name;
+  modal.querySelector('.mp-meta').textContent = m.num + ' · ' + m.prof;
+  const badges = modal.querySelector('.mp-badges');
+  badges.innerHTML = '';
+  if (m.position) badges.innerHTML += `<span class="badge badge-gold">${m.position}</span>`;
+  if (m.committee) badges.innerHTML += `<span class="badge badge-gray">${m.committee}</span>`;
+  modal.classList.add('open');
+}
+function closeMemberProfile() {
+  document.getElementById('memberProfileModal').classList.remove('open');
 }
 
 function filterDirectory() {
