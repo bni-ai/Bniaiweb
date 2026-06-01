@@ -379,17 +379,86 @@ body {
   color: #FFF;
   flex-shrink: 0;
 }
-.member-card-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-.member-card-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+.member-card-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.member-card-meta { font-size: 12px; color: var(--text-tertiary); margin-top: 1px; }
 .member-card-profession {
-  font-size: 13px; color: var(--text-secondary);
+  font-size: 14px; color: var(--text-secondary);
   margin-bottom: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
 .member-card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; min-height: 22px; }
 .member-card-actions { display: flex; gap: 6px; }
-.member-card-actions .btn { flex: 1; justify-content: center; font-size: 12px; padding: 6px 8px; }
+.member-card-actions .btn { flex: 1; justify-content: center; font-size: 13px; padding: 7px 8px; }
+
+/* ===== Profile Modal ===== */
+.profile-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.profile-modal-overlay.open { display: flex; }
+.profile-modal {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 560px;
+  max-width: 95vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.14);
+}
+.profile-modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.profile-modal-body { padding: 20px 24px; }
+.profile-modal-section { margin-bottom: 20px; }
+.profile-modal-section:last-child { margin-bottom: 0; }
+.profile-modal-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 6px;
+}
+.profile-modal-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.65;
+}
+.profile-modal-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-tertiary);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex; align-items: center;
+}
+.profile-modal-close:hover { color: var(--text-primary); background: var(--bg-secondary); }
+.referral-tier {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.referral-tier:last-child { margin-bottom: 0; }
+.referral-tier-label {
+  font-size: 11px; font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.referral-tier-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.referral-tier-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
 
 /* ===== 表單 ===== */
 .form-group { margin-bottom: 16px; }
@@ -1962,6 +2031,67 @@ body {
 
 </main>
 
+<!-- ===== Self Profile Modal ===== -->
+<div class="profile-modal-overlay" id="selfProfileModal" onclick="if(event.target===this)closeSelfProfile()">
+  <div class="profile-modal">
+    <div class="profile-modal-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="member-card-avatar" style="background:#DC2626;width:44px;height:44px;font-size:17px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#FFF;font-weight:600;flex-shrink:0;">凱</div>
+        <div>
+          <div style="font-size:16px;font-weight:600;">吳文凱</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">001 · AI落地師</div>
+          <div style="margin-top:6px;"><span class="badge badge-gold">主席</span></div>
+        </div>
+      </div>
+      <button class="profile-modal-close" onclick="closeSelfProfile()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="profile-modal-body">
+
+      <div class="profile-modal-section">
+        <div class="profile-modal-label">一分鐘介紹</div>
+        <div class="profile-modal-text">我是 AI 落地師吳文凱，幫助中小企業將 AI 工具實際導入日常工作流程，降低學習門檻，讓生產力真正提升。過去三年，我協助超過 40 家企業從零開始用 AI 取代繁瑣行政，讓老闆與員工把時間用在真正創造價值的事上。</div>
+      </div>
+
+      <div class="profile-modal-section">
+        <div class="profile-modal-label">理想客戶</div>
+        <div class="profile-modal-text">中小企業主或部門主管，有數位轉型需求，但不知道從哪個 AI 工具開始導入的決策者。特別適合 5–50 人規模、有大量重複性行政工作的傳統產業。</div>
+      </div>
+
+      <div class="profile-modal-section">
+        <div class="profile-modal-label">服務或產品</div>
+        <div class="profile-modal-text">
+          • AI 工作流程診斷（免費 30 分鐘）<br>
+          • AI 落地導入顧問計劃（3 個月）<br>
+          • 企業 AI 工具客製化培訓<br>
+          • 自動化流程建置（ChatGPT、Make、Zapier）
+        </div>
+      </div>
+
+      <div class="profile-modal-section">
+        <div class="profile-modal-label">三層引薦</div>
+        <div class="referral-tier">
+          <div class="referral-tier-label">第一層 — 初識（冷接觸）</div>
+          <div class="referral-tier-title">AI 工具不知道怎麼用？我來幫你落地</div>
+          <div class="referral-tier-desc">他用 AI 工具幫中小企業省掉繁瑣行政，半天工作 15 分鐘搞定。如果你有朋友的老闆還在手動處理 Excel，介紹文凱去聊聊。</div>
+        </div>
+        <div class="referral-tier">
+          <div class="referral-tier-label">第二層 — 熟識（溫接觸）</div>
+          <div class="referral-tier-title">導入 AI 三個月，他讓客戶節省 40% 工時</div>
+          <div class="referral-tier-desc">文凱的 AI 落地服務幫一家 20 人傳統製造商，從零到會用 ChatGPT 處理客服、報價與庫存追蹤，老闆說是近三年最值得的投資。</div>
+        </div>
+        <div class="referral-tier">
+          <div class="referral-tier-label">第三層 — 合作（熱接觸）</div>
+          <div class="referral-tier-title">可直接預約 AI 導入評估，免費 30 分鐘診斷</div>
+          <div class="referral-tier-desc">你知道文凱，也知道 AI，現在直接幫你對象預約免費診斷，文凱會分析他的工作流程，給出可執行的 AI 導入路線圖。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- ===== JavaScript ===== -->
 <script>
 function showPage(name) {
@@ -2051,8 +2181,13 @@ function committeeBadge(com) {
 function renderDirectory(list) {
   const grid = document.getElementById('member-grid');
   if (!grid) return;
+  const SELF_NUM = '001';
   grid.innerHTML = list.map(m => {
     const char = m.name[m.name.length - 1];
+    const isSelf = m.num === SELF_NUM;
+    const actionBtn = isSelf
+      ? `<button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;" onclick="openSelfProfile()">查看我的資料</button>`
+      : `<button class="btn btn-outline btn-sm">預約一對一</button>`;
     return `
     <div class="member-card"
          data-name="${m.name}" data-prof="${m.prof}"
@@ -2068,15 +2203,16 @@ function renderDirectory(list) {
       <div class="member-card-badges">
         ${positionBadge(m.position)}${committeeBadge(m.committee)}
       </div>
-      <div class="member-card-actions">
-        <button class="btn btn-outline btn-sm">預約一對一</button>
-        <button class="btn btn-video btn-sm">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-          視訊
-        </button>
-      </div>
+      <div class="member-card-actions">${actionBtn}</div>
     </div>`;
   }).join('');
+}
+
+function openSelfProfile() {
+  document.getElementById('selfProfileModal').classList.add('open');
+}
+function closeSelfProfile() {
+  document.getElementById('selfProfileModal').classList.remove('open');
 }
 
 function filterDirectory() {
