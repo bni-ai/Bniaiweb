@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BNI 華AI分會 — 會員管理平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Reset ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== 設計系統 token ===== */
+:root {
+  --bg-primary:   #FFFFFF;
+  --bg-secondary: #FAFAFA;
+  --bg-tertiary:  #F5F5F5;
+  --border:       #EAEAEA;
+  --border-hover: #DBDBDB;
+
+  --text-primary:   #171717;
+  --text-secondary: #666666;
+  --text-tertiary:  #999999;
+
+  --accent:       #DC2626;
+  --accent-light: #FEF2F2;
+  --accent-hover: #B91C1C;
+
+  --success:      #16A34A;
+  --success-light: #F0FDF4;
+  --success-border: #BBF7D0;
+  --warning:      #A16207;
+  --warning-light: #FEF9C3;
+  --warning-border: #FDE68A;
+  --danger:       #DC2626;
+  --danger-light: #FEF2F2;
+  --danger-border: #FECACA;
+
+  --gold:         #B8860B;
+  --gold-light:   #FEFCE8;
+  --gold-border:  #FDE68A;
+
+  --sidebar-w: 240px;
+  --radius: 8px;
+  --radius-sm: 6px;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans TC', -apple-system, sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+/* Sidebar 頂部 2px 品牌紅線 */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+.sidebar-brand {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+.brand-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+  margin-top: 1px;
+}
+
+.sidebar-user {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+.user-info-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.user-info-role {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 1px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 8px 12px;
+  overflow-y: auto;
+}
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 12px 8px 4px;
+}
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 10px 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 400;
+  transition: background 0.12s, color 0.12s;
+  margin-bottom: 2px;
+  user-select: none;
+}
+.nav-item:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+.nav-item.active {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+/* 左側 2px 紅色豎線 for active */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 2px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+.nav-item svg { flex-shrink: 0; opacity: 0.5; }
+.nav-item:hover svg, .nav-item.active svg { opacity: 0.8; }
+
+.sidebar-footer {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+}
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  background: none;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.12s;
+}
+.logout-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+
+/* ===== 主內容 ===== */
+.main-content {
+  margin-left: var(--sidebar-w);
+  padding: 32px 36px;
+  min-height: 100vh;
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* ===== 頁面標頭 ===== */
+.page-header { margin-bottom: 28px; }
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* ===== 卡片 ===== */
+.card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: border-color 0.12s;
+}
+.card:hover { border-color: var(--border-hover); }
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.card-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ===== Badge/Pill ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid;
+}
+.badge-success { background: var(--success-light); color: var(--success); border-color: var(--success-border); }
+.badge-warning { background: var(--warning-light); color: var(--warning); border-color: var(--warning-border); }
+.badge-danger  { background: var(--danger-light);  color: var(--danger);  border-color: var(--danger-border); }
+.badge-gold    { background: var(--gold-light);    color: var(--gold);    border-color: var(--gold-border); }
+.badge-gray    { background: var(--bg-secondary);  color: var(--text-secondary); border-color: var(--border); }
+
+/* ===== 按鈕 ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.12s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+/* 主按鈕：黑底白字 */
+.btn-primary {
+  background: var(--text-primary);
+  color: #FFFFFF;
+  border-color: var(--text-primary);
+}
+.btn-primary:hover { background: #333333; border-color: #333333; }
+
+/* 次要按鈕：白底邊框 */
+.btn-outline {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.btn-outline:hover { background: var(--bg-secondary); border-color: var(--border-hover); }
+
+/* 危險按鈕 */
+.btn-danger {
+  background: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
+}
+.btn-danger:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+/* 視訊按鈕：綠色 */
+.btn-video {
+  background: var(--success);
+  color: #FFFFFF;
+  border-color: var(--success);
+}
+.btn-video:hover { background: #15803d; border-color: #15803d; }
+
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 4px; }
+
+/* ===== 表單 ===== */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.form-input::placeholder, .form-textarea::placeholder { color: #BBBBBB; }
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+  background: var(--bg-primary);
+}
+.form-input.readonly { color: var(--text-tertiary); cursor: not-allowed; background: var(--bg-tertiary); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-textarea.large { min-height: 120px; }
+
+/* ===== 進度條（細長橫條）===== */
+.progress-wrap { margin-top: 10px; }
+.progress-bar {
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+.progress-fill-red     { background: var(--accent); }
+.progress-fill-green   { background: var(--success); }
+.progress-fill-gold    { background: var(--gold); }
+.progress-fill-gray    { background: #D0D0D0; }
+
+/* ===== 格線 ===== */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
+/* ===== 統計卡（Dashboard）===== */
+.stat-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.stat-card-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stat-card-value {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin: 8px 0 4px;
+  letter-spacing: -0.02em;
+}
+.stat-card-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.stat-card-value.gold { color: var(--gold); }
+.stat-card-value.green { color: var(--success); }
+
+/* ===== 待辦列表 ===== */
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.todo-item:last-child { border-bottom: none; }
+.todo-check {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--border-hover);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.todo-check.done { background: var(--success); border-color: var(--success); }
+.todo-text { font-size: 13.5px; color: var(--text-primary); flex: 1; }
+.todo-text.done-text { color: var(--text-tertiary); text-decoration: line-through; }
+
+/* ===== 活動列 ===== */
+.event-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.event-row:last-child { border-bottom: none; }
+.event-date-chip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  min-width: 48px;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+.event-date-chip .day { font-size: 20px; color: var(--text-primary); font-weight: 600; letter-spacing: -0.02em; display: block; }
+
+/* ===== Sub Tabs ===== */
+.sub-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.sub-tab {
+  padding: 9px 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.12s;
+}
+.sub-tab:hover { color: var(--text-primary); }
+.sub-tab.active { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+.sub-page { display: none; }
+.sub-page.active { display: block; }
+
+/* ===== 表格 ===== */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--bg-secondary); }
+
+/* ===== 個人資料 ===== */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+.avatar-section { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.avatar-large {
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.avatar-large-initials {
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+.avatar-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.45);
+  color: white;
+  font-size: 11px;
+  text-align: center;
+  padding: 8px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.avatar-large:hover .avatar-overlay { opacity: 1; }
+
+/* 產品圖片格 */
+.image-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 8px; }
+.image-placeholder {
+  aspect-ratio: 1;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.12s;
+  font-size: 12px;
+}
+.image-placeholder:hover { border-color: var(--text-secondary); color: var(--text-secondary); }
+
+/* Accordion */
+.accordion-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: var(--bg-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.12s;
+}
+.accordion-header:hover { background: var(--bg-tertiary); }
+.accordion-body { padding: 14px 16px; background: var(--bg-primary); display: none; font-size: 13px; }
+.accordion-body.open { display: block; }
+
+/* ===== 時段設定 ===== */
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.time-chip {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  transition: all 0.12s;
+  background: var(--bg-primary);
+}
+.time-chip:hover { border-color: var(--text-primary); color: var(--text-primary); }
+.time-chip.selected { background: var(--text-primary); color: #FFFFFF; border-color: var(--text-primary); }
+
+/* 邀約卡片 */
+.invite-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  transition: border-color 0.12s;
+}
+.invite-card:hover { border-color: var(--border-hover); }
+.invite-card-left { display: flex; align-items: center; gap: 12px; }
+.invite-avatar-sm {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* ===== 活動卡片（頁面 5）===== */
+.event-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  transition: border-color 0.12s;
+}
+.event-card:hover { border-color: var(--border-hover); }
+.event-card-date {
+  text-align: center;
+  min-width: 52px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.event-date-day {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.event-date-month {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+.event-card-body { flex: 1; }
+.event-card-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+.event-card-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
+.event-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* ===== 培訓紀錄 ===== */
+.credit-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.credit-big {
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.credit-unit { font-size: 16px; color: var(--text-tertiary); }
+
+.training-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.training-row:last-child { border-bottom: none; }
+.training-icon-box {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--gold-light);
+  border: 1px solid var(--gold-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.training-name { font-size: 13.5px; font-weight: 500; color: var(--text-primary); }
+.training-date { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+/* ===== AI 助手 ===== */
+.chat-wrap {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  min-height: 500px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.chat-topbar {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+}
+.chat-topbar-left { display: flex; align-items: center; gap: 10px; }
+.ai-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.chat-msg { display: flex; gap: 12px; max-width: 78%; }
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+/* AI 訊息：左邊 2px 灰線，無底色 */
+.chat-msg.ai .msg-body {
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  border-left: 2px solid var(--border);
+  padding-left: 14px;
+  color: var(--text-primary);
+}
+/* 用戶訊息：右對齊 #F5F5F5 底 */
+.chat-msg.user .msg-body {
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+.msg-avatar-sm {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+.msg-avatar-sm.ai { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); }
+.msg-avatar-sm.user { background: var(--text-primary); color: #FFFFFF; }
+
+.chat-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  background: var(--bg-primary);
+}
+.chat-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: var(--bg-primary);
+  font-family: inherit;
+  transition: all 0.12s;
+}
+.chip:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--bg-secondary); }
+.chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+.chat-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-family: inherit;
+  outline: none;
+  resize: none;
+  max-height: 100px;
+  min-height: 40px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  transition: border-color 0.12s;
+}
+.chat-input:focus { border-color: var(--text-primary); background: var(--bg-primary); }
+.send-btn {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--text-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+.send-btn:hover { background: #333333; }
+
+/* ===== 各種小元件 ===== */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.referral-preview {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+}
+.referral-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 6px;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+}
+.referral-type { color: var(--text-tertiary); }
+
+.toggle-on  { color: var(--success); font-size: 12px; }
+.toggle-off { color: var(--text-tertiary); font-size: 12px; text-decoration: line-through; }
+
+/* 品牌弧形裝飾（右下）*/
+.brand-arc {
+  position: fixed;
+  bottom: 0; right: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 56px; }
+  .sidebar-brand .brand-text, .sidebar-user .user-info, .nav-item span, .sidebar-footer .logout-label { display: none; }
+  .nav-item { justify-content: center; padding: 10px; }
+  .main-content { padding: 20px 16px; }
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .profile-layout { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- 品牌弧形裝飾（右下角，opacity 極低）-->
+<svg class="brand-arc" width="320" height="260" viewBox="0 0 320 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="280" cy="220" rx="200" ry="160" fill="#DC2626" opacity="0.06"/>
+</svg>
+
+<!-- ===== Sidebar ===== -->
+<aside class="sidebar">
+
+  <!-- 品牌 -->
+  <div class="sidebar-brand">
+    <!-- BNI Logo（紅色小方塊）-->
+    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="24" height="24" rx="5" fill="#DC2626"/>
+      <text x="50%" y="16.5" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700" font-size="9" fill="white" letter-spacing="0.5">BNI</text>
+    </svg>
+    <div class="brand-text">
+      <div class="brand-name">華AI分會</div>
+      <div class="brand-sub">ACCELERATE</div>
+    </div>
+  </div>
+
+  <!-- 使用者 -->
+  <div class="sidebar-user">
+    <div class="user-avatar">凱</div>
+    <div class="user-info">
+      <div class="user-info-name">吳文凱</div>
+      <div class="user-info-role">AI落地師 · 001</div>
+    </div>
+  </div>
+
+  <!-- 導航 -->
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <!-- grid icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      <span>總覽</span>
+    </div>
+    <div class="nav-item" onclick="showPage('profile')">
+      <!-- user icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.582-7 8-7s8 3 8 7"/>
+      </svg>
+      <span>個人資料</span>
+    </div>
+    <div class="nav-item" onclick="showPage('report')">
+      <!-- file-text icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>
+      </svg>
+      <span>每週簡報</span>
+    </div>
+    <div class="nav-item" onclick="showPage('onetone')">
+      <!-- users icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <span>一對一</span>
+    </div>
+    <div class="nav-item" onclick="showPage('events')">
+      <!-- calendar icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span>活動</span>
+    </div>
+    <div class="nav-item" onclick="showPage('training')">
+      <!-- graduation icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+      </svg>
+      <span>培訓紀錄</span>
+    </div>
+    <div class="nav-item" onclick="showPage('ai')">
+      <!-- message-circle icon -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span>AI 助手</span>
+    </div>
+  </nav>
+
+  <!-- 登出 -->
+  <div class="sidebar-footer">
+    <button class="logout-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span class="logout-label">登出</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ===== 主內容區 ===== -->
+<main class="main-content">
+
+  <!-- ================================================
+       頁面 1：總覽 Dashboard
+       ================================================ -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div class="page-title">早安，文凱</div>
+      <div class="page-subtitle">2026 年 6 月 2 日（一）· 第 23 週</div>
+    </div>
+
+    <!-- 4 格統計卡 -->
+    <div class="grid-4" style="margin-bottom:24px;">
+      <div class="stat-card">
+        <div class="stat-card-label">本週簡報</div>
+        <div style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;">
+          <span class="badge badge-success">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            已提交
+          </span>
+        </div>
+        <div class="stat-card-desc">週四 23:59 截止</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">本月引薦</div>
+        <div class="stat-card-value gold">3</div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill progress-fill-gold" style="width:75%"></div></div>
+        </div>
+        <div class="stat-card-desc" style="margin-top:6px;">目標 4 · 剩 1</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">累積培訓學分</div>
+        <div class="stat-card-value">12</div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill progress-fill-green" style="width:80%"></div></div>
+        </div>
+        <div class="stat-card-desc" style="margin-top:6px;">目標 15 · 已達 80%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">一對一預約</div>
+        <div class="stat-card-value green">5</div>
+        <div class="stat-card-desc">本月已完成</div>
+      </div>
+    </div>
+
+    <!-- 下方兩欄 -->
+    <div class="grid-2">
+      <!-- 待辦 -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">
+          <span>本週待辦</span>
+          <span class="badge badge-warning">2 待處理</span>
+        </div>
+        <div class="todo-item">
+          <div class="todo-check done">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="todo-text done-text">提交每週簡報</span>
+          <span class="badge badge-success" style="font-size:11px;">完成</span>
+        </div>
+        <div class="todo-item">
+          <div class="todo-check"></div>
+          <span class="todo-text">與陳明志安排一對一</span>
+          <span class="badge badge-warning" style="font-size:11px;">待處理</span>
+        </div>
+        <div class="todo-item">
+          <div class="todo-check"></div>
+          <span class="todo-text">完成 BNI 核心課程</span>
+          <span class="badge badge-warning" style="font-size:11px;">待處理</span>
+        </div>
+        <div class="todo-item">
+          <div class="todo-check done">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="todo-text done-text">更新個人資料照片</span>
+          <span class="badge badge-success" style="font-size:11px;">完成</span>
+        </div>
+      </div>
+
+      <!-- 近期活動 -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">近期活動</div>
+        <div class="event-row">
+          <div class="event-date-chip"><span class="day">06</span>JUN</div>
+          <div style="flex:1;">
+            <div style="font-size:13.5px;font-weight:500;">週例會 — 第 23 週</div>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">週四 07:30 · 台南晶英酒店</div>
+          </div>
+          <span class="badge badge-success">已報名</span>
+        </div>
+        <div class="event-row">
+          <div class="event-date-chip"><span class="day">14</span>JUN</div>
+          <div style="flex:1;">
+            <div style="font-size:13.5px;font-weight:500;">BNI AI 應用工作坊</div>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">週六 09:00 · 線上</div>
+          </div>
+          <span class="badge badge-warning">待確認</span>
+        </div>
+        <div class="event-row">
+          <div class="event-date-chip"><span class="day">21</span>JUN</div>
+          <div style="flex:1;">
+            <div style="font-size:13.5px;font-weight:500;">會員成就表揚晚宴</div>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">週六 18:30 · 台南大員皇冠</div>
+          </div>
+          <span class="badge badge-gray">報名中</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       頁面 2：個人資料
+       ================================================ -->
+  <div id="page-profile" class="page">
+    <div class="page-header">
+      <div class="page-title">個人資料</div>
+      <div class="page-subtitle">管理您的公開名片與引薦素材</div>
+    </div>
+
+    <div class="card">
+      <div class="profile-layout">
+        <!-- 大頭照 -->
+        <div class="avatar-section">
+          <div class="avatar-large">
+            <div class="avatar-large-initials">凱</div>
+            <div class="avatar-overlay">更換照片</div>
+          </div>
+          <button class="btn btn-outline btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            上傳照片
+          </button>
+          <div style="font-size:11px;color:var(--text-tertiary);text-align:center;">建議 400×400，JPG/PNG</div>
+        </div>
+
+        <!-- 表單 -->
+        <div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">姓名</label>
+              <input class="form-input" type="text" value="吳文凱">
+            </div>
+            <div class="form-group">
+              <label class="form-label">會員編號</label>
+              <input class="form-input readonly" type="text" value="001" readonly>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">職業類別</label>
+              <input class="form-input" type="text" value="AI落地師">
+            </div>
+            <div class="form-group">
+              <label class="form-label">公司名稱</label>
+              <input class="form-input" type="text" value="智流數位顧問">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">手機</label>
+              <input class="form-input" type="tel" value="0912-345-678">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" value="kai@zhiliu.ai">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">一分鐘自我介紹</label>
+            <textarea class="form-textarea large" placeholder="簡述您的服務、專業與目標客群...">我是 AI 落地師吳文凱，幫助中小企業將 AI 工具實際導入日常工作流程，降低學習門檻，讓生產力真正提升...</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">理想客戶描述</label>
+            <textarea class="form-textarea" placeholder="描述您最希望獲得哪種引薦...">希望引薦對象為中小企業主或部門主管，有數位轉型需求，但不知道從哪個 AI 工具開始導入的決策者。</textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <button class="btn btn-outline">取消</button>
+            <button class="btn btn-primary">儲存變更</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 產品/服務圖片 -->
+    <div class="card">
+      <div class="card-title">服務／產品圖片
+        <span class="badge badge-gray">4 / 8</span>
+      </div>
+      <div class="image-grid">
+        <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="image-placeholder" style="background:var(--bg-tertiary);border-style:solid;color:var(--text-tertiary);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="image-placeholder">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div class="image-placeholder"></div>
+        <div class="image-placeholder"></div>
+        <div class="image-placeholder"></div>
+      </div>
+    </div>
+
+    <!-- 三層引薦 Accordion -->
+    <div class="card">
+      <div class="card-title">三層引薦素材</div>
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);letter-spacing:0.04em;">第一層 — 初識（冷接觸）</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="accordion-body open">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label class="form-label">標題</label>
+            <input class="form-input" type="text" value="AI 工具不知道怎麼用？我來幫你落地">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">說明文字</label>
+            <textarea class="form-textarea">他用 AI 工具幫中小企業省掉繁瑣行政，半天工作 15 分鐘搞定。如果你有朋友的老闆還在手動處理 Excel，介紹文凱去聊聊。</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);letter-spacing:0.04em;">第二層 — 熟識（溫接觸）</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="accordion-body">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label class="form-label">標題</label>
+            <input class="form-input" type="text" value="導入 AI 三個月，他讓客戶節省 40% 工時">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">說明文字</label>
+            <textarea class="form-textarea">文凱的 AI 落地服務幫一家 20 人傳統製造商，從零到會用 ChatGPT 處理客服、報價與庫存追蹤，老闆說是近三年最值得的投資。</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span style="font-size:12px;font-weight:500;color:var(--text-tertiary);letter-spacing:0.04em;">第三層 — 合作（熱接觸）</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="accordion-body">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label class="form-label">標題</label>
+            <input class="form-input" type="text" value="可直接預約 AI 導入評估，免費 30 分鐘診斷">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">說明文字</label>
+            <textarea class="form-textarea">你知道文凱，也知道 AI，現在直接幫你對象預約免費診斷，文凱會分析他的工作流程，給出可執行的 AI 導入路線圖。</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       頁面 3：每週簡報
+       ================================================ -->
+  <div id="page-report" class="page">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div class="page-title">每週簡報</div>
+        <div class="page-subtitle">第 23 週 · 截止 2026/06/05（四）23:59</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="badge badge-success">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          已提交
+        </span>
+        <button class="btn btn-outline btn-sm">查看提交紀錄</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- 本週我有 -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">本週我有</div>
+        <div class="form-group">
+          <label class="form-label">引薦 Referral</label>
+          <textarea class="form-textarea">本週引薦陳建宏（建宏建築設計）給王麗芳（數位行銷）。陳建宏需要整合社群媒體行銷，相信雙方能互補合作。</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">感謝報告 TYFCB</label>
+          <textarea class="form-textarea" placeholder="感謝哪位成員帶來的業務或合作...">感謝林怡如介紹台南三家中小企業，其中一家已正式簽約 AI 導入顧問服務，合約金額 12 萬元。</textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">業務分享（選填）</label>
+          <textarea class="form-textarea" placeholder="分享本週的客戶成果、商業洞察..."></textarea>
+        </div>
+      </div>
+
+      <!-- 本週我要 -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">本週我要</div>
+        <div class="form-group">
+          <label class="form-label">我能提供的資源</label>
+          <textarea class="form-textarea">我有一套 AI 工具評估框架，可幫任何行業分析哪些流程值得優先自動化，願意免費分享給有需要的成員或其轉介對象。</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">本週我需要的引薦</label>
+          <textarea class="form-textarea large">希望獲得引薦：傳統製造業、餐飲業或零售業的業主或營運主管，有意願了解 AI 如何降低日常行政成本。尤其歡迎員工 10-50 人的中小企業。</textarea>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:12px;color:var(--text-tertiary);">已自動儲存 10:42</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 引薦預覽 -->
+    <div class="card">
+      <div class="card-title">本週引薦預覽</div>
+      <div class="referral-preview">
+        <div class="section-label" style="margin-bottom:8px;">引薦對象</div>
+        <div class="referral-row">
+          <span class="referral-type">被引薦人</span>
+          <span>陳建宏（建宏建築設計）</span>
+        </div>
+        <div class="referral-row">
+          <span class="referral-type">引薦給</span>
+          <span>王麗芳（數位行銷顧問）</span>
+        </div>
+        <div class="referral-row" style="margin-bottom:0;">
+          <span class="referral-type">需求簡述</span>
+          <span>整合社群媒體行銷策略，擴大品牌曝光</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       頁面 4：一對一預約
+       ================================================ -->
+  <div id="page-onetone" class="page">
+    <div class="page-header">
+      <div class="page-title">一對一預約</div>
+      <div class="page-subtitle">深度認識成員，建立互信與引薦關係</div>
+    </div>
+
+    <div class="sub-tabs">
+      <div class="sub-tab active" onclick="showSubPage('onetone', 'schedule', this)">時段設定</div>
+      <div class="sub-tab" onclick="showSubPage('onetone', 'booking', this)">預約</div>
+      <div class="sub-tab" onclick="showSubPage('onetone', 'records', this)">紀錄</div>
+    </div>
+
+    <!-- 時段設定 -->
+    <div id="onetone-schedule" class="sub-page active">
+      <div class="card">
+        <div class="card-title">可用時段設定</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>星期</th>
+              <th>時段</th>
+              <th>狀態</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:500;">週一</td>
+              <td><span class="toggle-on">10:00 – 12:00</span></td>
+              <td><span class="badge badge-success">開放</span></td>
+              <td><button class="btn btn-outline btn-xs">編輯</button></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500;">週二</td>
+              <td><span class="toggle-off">不可用</span></td>
+              <td><span class="badge badge-gray">關閉</span></td>
+              <td><button class="btn btn-outline btn-xs">開啟</button></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500;">週三</td>
+              <td><span class="toggle-on">14:00 – 17:00</span></td>
+              <td><span class="badge badge-success">開放</span></td>
+              <td><button class="btn btn-outline btn-xs">編輯</button></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500;">週四</td>
+              <td><span class="toggle-on">09:00 – 11:00</span></td>
+              <td><span class="badge badge-success">開放</span></td>
+              <td><button class="btn btn-outline btn-xs">編輯</button></td>
+            </tr>
+            <tr>
+              <td style="font-weight:500;">週五</td>
+              <td><span class="toggle-off">不可用</span></td>
+              <td><span class="badge badge-gray">關閉</span></td>
+              <td><button class="btn btn-outline btn-xs">開啟</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px;">
+          <button class="btn btn-primary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            新增時段
+          </button>
+        </div>
+      </div>
+
+      <!-- 時間選擇示意 -->
+      <div class="card">
+        <div class="card-title">快速選取可用時段</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">週一（06/08）</div>
+        <div class="time-grid">
+          <div class="time-chip">09:00</div>
+          <div class="time-chip selected">10:00</div>
+          <div class="time-chip selected">10:30</div>
+          <div class="time-chip">11:00</div>
+          <div class="time-chip selected">11:30</div>
+          <div class="time-chip">14:00</div>
+          <div class="time-chip">14:30</div>
+          <div class="time-chip">15:00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 預約 -->
+    <div id="onetone-booking" class="sub-page">
+      <div class="card">
+        <div class="card-title">向成員發起預約</div>
+        <div class="form-group">
+          <label class="form-label">選擇對象</label>
+          <select class="form-select">
+            <option>請選擇...</option>
+            <option>陳明志 — 保險顧問</option>
+            <option>林怡如 — 數位行銷</option>
+            <option>王麗芳 — 行銷策略</option>
+            <option>黃建文 — 不動產</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">偏好日期</label>
+          <input class="form-input" type="date" value="2026-06-10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">地點</label>
+          <input class="form-input" type="text" placeholder="咖啡廳、線上 Zoom...">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">備註（選填）</label>
+          <textarea class="form-textarea" placeholder="想討論的主題或期待..."></textarea>
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary">送出邀約</button>
+        </div>
+      </div>
+
+      <!-- 待確認邀約 -->
+      <div class="card">
+        <div class="card-title">待確認邀約
+          <span class="badge badge-warning">2 待回應</span>
+        </div>
+        <div class="invite-card">
+          <div class="invite-card-left">
+            <div class="invite-avatar-sm">陳</div>
+            <div>
+              <div style="font-size:13.5px;font-weight:500;">陳明志</div>
+              <div style="font-size:12px;color:var(--text-tertiary);">06/10（三）10:00 · 星巴克台南成功店</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-danger btn-sm">拒絕</button>
+            <button class="btn btn-primary btn-sm">確認</button>
+          </div>
+        </div>
+        <div class="invite-card">
+          <div class="invite-card-left">
+            <div class="invite-avatar-sm">林</div>
+            <div>
+              <div style="font-size:13.5px;font-weight:500;">林怡如</div>
+              <div style="font-size:12px;color:var(--text-tertiary);">06/12（五）14:30 · 線上 Zoom</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-danger btn-sm">拒絕</button>
+            <button class="btn btn-primary btn-sm">確認</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 紀錄 -->
+    <div id="onetone-records" class="sub-page">
+      <div class="card">
+        <div class="card-title">一對一紀錄</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>對象</th>
+              <th>地點</th>
+              <th>狀態</th>
+              <th>視訊</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--text-tertiary);">05/28</td>
+              <td style="font-weight:500;">王麗芳</td>
+              <td style="color:var(--text-secondary);">線上 Zoom</td>
+              <td><span class="badge badge-success">已完成</span></td>
+              <td>
+                <button class="btn btn-video btn-xs">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                  查看
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-tertiary);">05/21</td>
+              <td style="font-weight:500;">黃建文</td>
+              <td style="color:var(--text-secondary);">星巴克台南成功店</td>
+              <td><span class="badge badge-success">已完成</span></td>
+              <td><span style="color:var(--text-tertiary);font-size:12px;">—</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-tertiary);">05/15</td>
+              <td style="font-weight:500;">陳明志</td>
+              <td style="color:var(--text-secondary);">線上 Google Meet</td>
+              <td><span class="badge badge-success">已完成</span></td>
+              <td>
+                <button class="btn btn-video btn-xs">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                  查看
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-tertiary);">06/10</td>
+              <td style="font-weight:500;">陳明志</td>
+              <td style="color:var(--text-secondary);">星巴克台南成功店</td>
+              <td><span class="badge badge-warning">待確認</span></td>
+              <td><span style="color:var(--text-tertiary);font-size:12px;">—</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       頁面 5：活動
+       ================================================ -->
+  <div id="page-events" class="page">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div class="page-title">活動</div>
+        <div class="page-subtitle">2026 年 6 月</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          月曆檢視
+        </button>
+      </div>
+    </div>
+
+    <div class="event-card">
+      <div class="event-card-date">
+        <div class="event-date-day">06</div>
+        <div class="event-date-month">JUN</div>
+      </div>
+      <div class="event-card-body">
+        <div class="event-card-name">週例會 — 第 23 週</div>
+        <div class="event-card-desc">每週固定例會，含成員簡報、引薦、TYFCB 報告。</div>
+        <div class="event-card-meta">
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            07:30 – 09:30
+          </span>
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align:middle;margin-right:3px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            台南晶英酒店 B1
+          </span>
+          <span>已報名 18 / 25 人</span>
+        </div>
+        <span class="badge badge-success">已報名</span>
+      </div>
+      <div>
+        <button class="btn btn-outline btn-sm">詳情</button>
+      </div>
+    </div>
+
+    <div class="event-card">
+      <div class="event-card-date">
+        <div class="event-date-day">14</div>
+        <div class="event-date-month">JUN</div>
+      </div>
+      <div class="event-card-body">
+        <div class="event-card-name">BNI AI 應用工作坊</div>
+        <div class="event-card-desc">探索 AI 工具如何強化成員業務能力，實作演練 ChatGPT、Midjourney 等工具應用。</div>
+        <div class="event-card-meta">
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            09:00 – 17:00
+          </span>
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align:middle;margin-right:3px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            線上 Zoom
+          </span>
+          <span>已報名 9 / 20 人</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+          <span class="badge badge-warning">待確認</span>
+          <span style="font-size:12px;color:var(--text-tertiary);">截止報名：06/12</span>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-primary btn-sm">立即報名</button>
+      </div>
+    </div>
+
+    <div class="event-card">
+      <div class="event-card-date">
+        <div class="event-date-day">21</div>
+        <div class="event-date-month">JUN</div>
+      </div>
+      <div class="event-card-body">
+        <div class="event-card-name">會員成就表揚晚宴</div>
+        <div class="event-card-desc">表揚本學期傑出成員、引薦王、培訓達人，共同慶祝分會成長里程碑。</div>
+        <div class="event-card-meta">
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            18:30 – 21:30
+          </span>
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align:middle;margin-right:3px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            台南大員皇冠假日酒店
+          </span>
+          <span>已報名 22 / 40 人</span>
+        </div>
+        <div style="margin-top:8px;">
+          <span class="badge badge-gray">報名中</span>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-primary btn-sm">立即報名</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       頁面 6：培訓紀錄
+       ================================================ -->
+  <div id="page-training" class="page">
+    <div class="page-header">
+      <div class="page-title">培訓紀錄</div>
+      <div class="page-subtitle">2026 上半年度</div>
+    </div>
+
+    <!-- 學分統計 -->
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div class="card" style="margin-bottom:0;text-align:center;">
+        <div class="stat-card-label">累積學分</div>
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;margin:12px 0 4px;">
+          <span class="credit-big">12</span>
+          <span class="credit-unit">分</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill progress-fill-green" style="width:80%"></div></div>
+        </div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-top:6px;">目標 15 · 剩 3</div>
+      </div>
+      <div class="card" style="margin-bottom:0;text-align:center;">
+        <div class="stat-card-label">已完成課程</div>
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;margin:12px 0 4px;">
+          <span class="credit-big" style="font-size:40px;">5</span>
+          <span class="credit-unit">堂</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-top:6px;">本學期共 8 堂必修</div>
+      </div>
+      <div class="card" style="margin-bottom:0;text-align:center;">
+        <div class="stat-card-label">完成率</div>
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;margin:12px 0 4px;">
+          <span class="credit-big" style="font-size:40px;color:var(--success);">80%</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill progress-fill-green" style="width:80%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 課程紀錄 -->
+    <div class="card">
+      <div class="card-title">已完成課程</div>
+      <div class="training-row">
+        <div class="training-icon-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div class="training-name">BNI 成員核心課程</div>
+          <div class="training-date">2026/03/15 · 台南</div>
+        </div>
+        <span class="badge badge-gold">3 學分</span>
+        <span class="badge badge-success">已完成</span>
+      </div>
+      <div class="training-row">
+        <div class="training-icon-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div class="training-name">引薦技巧進階班</div>
+          <div class="training-date">2026/04/02 · 線上</div>
+        </div>
+        <span class="badge badge-gold">2 學分</span>
+        <span class="badge badge-success">已完成</span>
+      </div>
+      <div class="training-row">
+        <div class="training-icon-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div class="training-name">一分鐘簡報工作坊</div>
+          <div class="training-date">2026/04/20 · 台南</div>
+        </div>
+        <span class="badge badge-gold">2 學分</span>
+        <span class="badge badge-success">已完成</span>
+      </div>
+      <div class="training-row">
+        <div class="training-icon-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div class="training-name">BNI PALMS 大使訓練</div>
+          <div class="training-date">2026/05/10 · 線上</div>
+        </div>
+        <span class="badge badge-gold">3 學分</span>
+        <span class="badge badge-success">已完成</span>
+      </div>
+      <div class="training-row" style="border-bottom:none;">
+        <div class="training-icon-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div class="training-name">成員分享文化工作坊</div>
+          <div class="training-date">2026/05/25 · 台南</div>
+        </div>
+        <span class="badge badge-gold">2 學分</span>
+        <span class="badge badge-success">已完成</span>
+      </div>
+    </div>
+
+    <!-- 即將開始 -->
+    <div class="card">
+      <div class="card-title">即將開始課程</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:13.5px;font-weight:500;">引薦力提升：從陌生到合作</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">06/18（三）09:00 · 線上 · 3 學分</div>
+        </div>
+        <button class="btn btn-primary btn-sm">報名</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">
+        <div>
+          <div style="font-size:13.5px;font-weight:500;">BNI 領導力學院 — 入門班</div>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">07/05（日）13:00 · 台南 · 4 學分</div>
+        </div>
+        <button class="btn btn-outline btn-sm">了解更多</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================
+       頁面 7：AI 助手
+       ================================================ -->
+  <div id="page-ai" class="page">
+    <div class="page-header">
+      <div class="page-title">AI 助手</div>
+      <div class="page-subtitle">由 BNI 華AI分會專屬知識庫驅動</div>
+    </div>
+
+    <div class="chat-wrap">
+      <div class="chat-topbar">
+        <div class="chat-topbar-left">
+          <div style="width:30px;height:30px;border-radius:6px;background:var(--bg-tertiary);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary);">BNI AI 助手</div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <div class="ai-status-dot"></div>
+              <span style="font-size:11px;color:var(--text-tertiary);">線上運作中</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm">清除對話</button>
+      </div>
+
+      <div class="chat-messages">
+        <!-- AI 訊息 -->
+        <div class="chat-msg ai">
+          <div class="msg-avatar-sm ai">AI</div>
+          <div>
+            <div class="msg-body">
+              您好，文凱！我是您的 BNI AI 助手。我可以幫助您：
+              <ul style="margin-top:8px;padding-left:16px;">
+                <li style="margin-bottom:4px;">準備本週簡報內容與引薦話術</li>
+                <li style="margin-bottom:4px;">搜尋適合引薦的成員資料</li>
+                <li style="margin-bottom:4px;">分析您的一對一效益與建議</li>
+                <li>回答 BNI 規則與流程問題</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 使用者訊息 -->
+        <div class="chat-msg user">
+          <div class="msg-avatar-sm user">凱</div>
+          <div class="msg-body">
+            我想為林怡如準備一段引薦詞，她的服務是數位行銷，主要幫助餐飲業增加 IG 粉絲與訂位轉換率。
+          </div>
+        </div>
+
+        <!-- AI 回覆 -->
+        <div class="chat-msg ai">
+          <div class="msg-avatar-sm ai">AI</div>
+          <div>
+            <div class="msg-body">
+              好的，以下是針對林怡如的引薦詞草稿，您可以直接在週例會使用：<br><br>
+              「我今天要介紹的是我們的成員林怡如，她是餐飲業社群行銷的專家。上個月她幫一家台南小館子，兩週內把 IG 粉絲從 2000 增長到 8000，更重要的是週末訂位率提升了 60%。如果您認識需要提升網路曝光的餐廳老闆，請一定要介紹他們和怡如談談。」<br><br>
+              需要我調整語氣或加入更具體的數據嗎？
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-footer">
+        <div class="chat-chips">
+          <button class="chip">幫我準備引薦詞</button>
+          <button class="chip">本週簡報建議</button>
+          <button class="chip">查詢成員資料</button>
+          <button class="chip">BNI 規則說明</button>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" placeholder="輸入訊息..." rows="1"></textarea>
+          <button class="send-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===== JavaScript ===== -->
+<script>
+function showPage(name) {
+  // 隱藏所有頁面
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // 顯示目標頁面
+  const target = document.getElementById('page-' + name);
+  if (target) target.classList.add('active');
+
+  // 更新 sidebar nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function showSubPage(parentName, subName, tabEl) {
+  // 切換 sub-tab 狀態
+  tabEl.closest('.sub-tabs').querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+
+  // 切換 sub-page
+  document.querySelectorAll('#page-' + parentName + ' .sub-page').forEach(p => p.classList.remove('active'));
+  const subTarget = document.getElementById(parentName + '-' + subName);
+  if (subTarget) subTarget.classList.add('active');
+}
+
+function toggleAccordion(headerEl) {
+  const body = headerEl.nextElementSibling;
+  body.classList.toggle('open');
+  const icon = headerEl.querySelector('svg');
+  icon.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+// Time chip toggle
+document.querySelectorAll('.time-chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('selected'));
+});
+</script>
+</body>
+</html>
