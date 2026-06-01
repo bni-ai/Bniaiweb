@@ -85,3 +85,38 @@ The system SHALL use a data-driven approach for slide content. Officers SHALL NO
 ### Requirement: Award and VP Report Slides
 
 The system SHALL support `weekly_awards` and `weekly_vp_reports` tables as data sources for AwardSlide and VPReportSlide types. Officers SHALL fill in award recipients and VP metrics via admin forms. The presentation engine SHALL read these tables to render the corresponding slides.
+
+---
+
+### Requirement: Guest Slide - New vs Returning Guest
+
+The system SHALL distinguish between new guests (`visit_number = 1`) and returning guests (`visit_number > 1`) when rendering GuestSlide.
+
+- **New guest** slide SHALL display a "首次來訪" badge
+- **Returning guest** slide SHALL display the visit count ("第 N 次來訪")
+
+The slide source data is `guest_visits` (joined with `guests`), NOT the `guests` table directly.
+
+| Slide Field | Source |
+|---|---|
+| name | `guests.name` |
+| company | `guests.company` |
+| specialty | `guests.specialty` |
+| self_intro | `guest_visits.self_intro` |
+| visit_number | `guest_visits.visit_number` (auto-calculated) |
+| referrer | `guests.referrer_id` → member name |
+
+### Requirement: Guest Scheduling (This Week / Next Week)
+
+Officers SHALL be able to schedule guests for the current week or upcoming weeks via `guest_visits.week_date`.
+
+- The presentation builder SHALL filter `guest_visits` by `week_date = current_meeting_date`
+- The admin guest list SHALL show guests grouped by week: 本週來賓 / 下週來賓 / 未來
+- Status transitions: `invited` → `confirmed` → `attended` / `no_show` / `joined_member`
+
+### Requirement: Guest History
+
+All past `guest_visits` records SHALL be preserved and queryable. Officers SHALL be able to:
+- View a guest's full visit history (all `guest_visits` for a given `guest_id`)
+- Re-invite a previous guest (create a new `guest_visits` row with incremented `visit_number`)
+- See if a guest has previously become a member (`status = 'joined_member'`)

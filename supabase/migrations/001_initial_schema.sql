@@ -121,15 +121,36 @@ CREATE TABLE keynote_talks (
 -- ─────────────────────────────────────────────
 -- GUESTS（來賓 → 來賓投影片資料來源）
 -- ─────────────────────────────────────────────
+-- 來賓「人」的資料（一人一筆，多次拜訪共用）
 CREATE TABLE guests (
   id            uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
   name          text  NOT NULL,
+  company       text,
+  phone         text,
+  email         text,
   specialty     text,
-  referrer_id   uuid  REFERENCES members(id),
-  week_date     date  NOT NULL,
-  self_intro    text,
-  feedback      text,
+  referrer_id   uuid  REFERENCES members(id),   -- 邀請人
   created_at    timestamptz DEFAULT now()
+);
+
+-- 來賓每次拜訪記錄
+CREATE TABLE guest_visits (
+  id            uuid  DEFAULT gen_random_uuid() PRIMARY KEY,
+  guest_id      uuid  NOT NULL REFERENCES guests(id) ON DELETE CASCADE,
+  week_date     date  NOT NULL,                  -- 哪週的會議（本週/下週 用此欄位）
+  visit_number  int   NOT NULL DEFAULT 1,        -- 第幾次來訪（系統自動計算）
+  status        text  NOT NULL DEFAULT 'invited'
+                  CHECK (status IN (
+                    'invited',          -- 已邀請，未確認
+                    'confirmed',        -- 已確認出席
+                    'attended',         -- 實際出席
+                    'no_show',          -- 未出席
+                    'joined_member'     -- 已成為會員
+                  )),
+  self_intro    text,                            -- 自我介紹（投影片用）
+  feedback      text,                            -- 來訪後備注
+  created_at    timestamptz DEFAULT now(),
+  UNIQUE (guest_id, week_date)                   -- 同一人同一週只有一筆
 );
 
 -- ─────────────────────────────────────────────
