@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export const slideCanvasClass = "flex h-full w-full flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,_rgba(220,38,38,0.16),_transparent_36%),linear-gradient(180deg,_#fffdf9_0%,_#fff7f1_100%)]";
+export const slideCanvasClass = "flex h-[1080px] w-[1920px] flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,_rgba(220,38,38,0.16),_transparent_36%),linear-gradient(180deg,_#fffdf9_0%,_#fff7f1_100%)]";
 
 function Avatar({ name, photoUrl, size = "h-20 w-20" }: { name: string; photoUrl: string | null; size?: string }) {
   if (photoUrl) {

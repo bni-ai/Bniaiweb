@@ -22,8 +22,12 @@ export function parseSlideOrder(raw: Json): SlideEntry[] {
     switch (entry.type) {
       case "cover":
         return { type: "cover" };
+      case "agenda":
+        return { type: "agenda" };
       case "team":
         return { type: "team" };
+      case "closing":
+        return { type: "closing" };
       case "keynote":
       case "member":
       case "guest":

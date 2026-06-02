@@ -102,5 +102,18 @@ export async function publishPresentationAction(formData: FormData) {
     .update({ status: "published", published_url: `/presentation/${weekDate}`, updated_at: new Date().toISOString() } as never)
     .eq("id", id);
   if (error) throw error;
+  revalidatePath("/admin/presentation");
+  revalidatePath(`/admin/presentations/${id}`);
+}
+
+export async function unpublishPresentationAction(formData: FormData) {
+  const supabase = createAdminClient();
+  const id = requireText(formData, "id");
+  const { error } = await supabase
+    .from("presentations" as never)
+    .update({ status: "draft", published_url: null, updated_at: new Date().toISOString() } as never)
+    .eq("id", id);
+  if (error) throw error;
+  revalidatePath("/admin/presentation");
   revalidatePath(`/admin/presentations/${id}`);
 }

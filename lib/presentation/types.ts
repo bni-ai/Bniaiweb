@@ -1,11 +1,32 @@
 export type SlideEntry =
   | { type: "cover" }
+  | { type: "agenda" }
   | { type: "keynote"; id: string; visible: boolean }
   | { type: "member"; id: string; visible: boolean }
   | { type: "guest"; id: string; visible: boolean }
   | { type: "award"; id: string; visible: boolean }
   | { type: "vp_report"; id: string; visible: boolean }
-  | { type: "team" };
+  | { type: "team" }
+  | { type: "closing" };
+
+export type RuntimeSlideType = SlideEntry["type"];
+
+export type PresentationRuntimeSlide = {
+  id: string;
+  type: RuntimeSlideType;
+  label: string;
+  title: string;
+  subtitle: string;
+  summary: string;
+  notes: string;
+  payload: Record<string, unknown>;
+};
+
+export type PresentationRuntimeDeck = {
+  weekDate: string;
+  chapterName: string;
+  slides: PresentationRuntimeSlide[];
+};
 
 export type PresentationMember = {
   id: string;
@@ -85,4 +106,14 @@ export type VPReportSlideProps = {
 export type TeamSlideProps = {
   chapterName: string;
   members: PresentationMember[];
+};
+
+export type AgendaSlideProps = {
+  chapterName: string;
+  weekDate: string;
+};
+
+export type ClosingSlideProps = {
+  chapterName: string;
+  weekDate: string;
 };

@@ -608,12 +608,14 @@ async function seedPresentationScenario(weekDate: string, mode: "published" | "d
       ? [{ type: "unknown", id: "bad-entry" }]
       : [
           { type: "cover" },
+          { type: "agenda" },
           { type: "keynote", id: keynote.id, visible: true },
           { type: "member", id: brief.id, visible: true },
           { type: "guest", id: visit.id, visible: true },
           { type: "award", id: award.id, visible: true },
           { type: "vp_report", id: vpReport.id, visible: true },
           { type: "team" },
+          { type: "closing" },
         ];
 
   const { data: presentation, error: presentationError } = await supabase
@@ -1000,14 +1002,39 @@ test.describe("admin backend", () => {
     const seeded = await seedPresentationScenario(futureWeekDate(120), "published");
 
     await page.goto(`/presentation/${seeded.weekDate}`);
+    await expect(page.getByTestId("presentation-runtime")).toBeVisible();
+    await expect(page.getByTestId("active-slide")).toHaveCount(1);
+    await expect(page.getByTestId("page-label")).toHaveText("1 / 9");
+    await expect(page.getByTestId("active-slide").getByRole("heading", { name: "BNI 華 AI 分會" })).toBeVisible();
+
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByTestId("page-label")).toHaveText("2 / 9");
+    await expect(page.getByTestId("active-slide").getByText("本週例會議程")).toBeVisible();
+
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
     await expect(page.getByText("如何把例會資料變成可分享簡報")).toBeVisible();
+
+    await page.keyboard.press("ArrowLeft");
+    await expect(page.getByTestId("page-label")).toHaveText("2 / 9");
+
+    await page.getByRole("button", { name: "下一張" }).click();
+    await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
+    await page.getByRole("button", { name: "上一張" }).click();
+    await expect(page.getByTestId("page-label")).toHaveText("2 / 9");
+
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
     await expect(page.getByText("簡報驗收來賓")).toBeVisible();
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
     await expect(page.getByText("本週績效摘要")).toBeVisible();
-    await expect(page.locator(".aspect-video").first()).toBeVisible();
 
     await page.goto(`/presentation/${seeded.id}`);
     await expect(page).toHaveURL(new RegExp(`/presentation/${seeded.weekDate}$`));
-    await expect(page.getByText("如何把例會資料變成可分享簡報")).toBeVisible();
+    await expect(page.getByTestId("presentation-runtime")).toBeVisible();
+    await expect(page.getByTestId("page-label")).toHaveText("1 / 9");
   });
 
   test("admin presentation workbench hides raw JSON editor and exposes preview publishing controls", async ({ page }) => {
@@ -1025,6 +1052,31 @@ test.describe("admin backend", () => {
     await expect(page.getByRole("heading", { name: "簡報工作台" })).toBeVisible();
   });
 
+  test("admin presentation surface shows thumbnails and toggles publish state", async ({ page }) => {
+    test.setTimeout(60_000);
+    const seeded = await seedPresentationScenario(futureWeekDate(143), "draft");
+    await setRole(page, "admin");
+
+    await page.goto(`/admin/presentation?week=${seeded.weekDate}`);
+    const card = page.getByTestId(`presentation-card-${seeded.weekDate}`);
+    await expect(card).toBeVisible();
+    await expect(card.getByTestId("presentation-status")).toHaveText("草稿");
+    await expect(card.getByTestId("presentation-slide-count")).toHaveText("9");
+    await expect(card.getByTestId("presentation-public-link")).toHaveText("尚未發布公開網址");
+    await expect(card.getByTestId("presentation-thumbnail-grid").getByText("首頁", { exact: true })).toBeVisible();
+    await expect(card.getByTestId("presentation-thumbnail-grid").getByText("演講", { exact: true })).toBeVisible();
+    await expect(card.getByTestId("presentation-thumbnail-grid").getByText("會員", { exact: true })).toBeVisible();
+    await expect(card.getByRole("link", { name: "Preview" })).toHaveAttribute("href", `/presentation/${seeded.weekDate}`);
+
+    await card.getByRole("button", { name: "發布簡報" }).click();
+    await expect(card.getByTestId("presentation-status")).toHaveText("已發布");
+    await expect(card.getByTestId("presentation-public-link")).toContainText(`/presentation/${seeded.weekDate}`);
+
+    await card.getByRole("button", { name: "取消發布" }).click();
+    await expect(card.getByTestId("presentation-status")).toHaveText("草稿");
+    await expect(card.getByTestId("presentation-public-link")).toHaveText("尚未發布公開網址");
+  });
+
   test("presentation viewer blocks missing, draft, and malformed decks", async ({ page }) => {
     test.setTimeout(60_000);
     const missingWeek = futureWeekDate(127);
@@ -1039,6 +1091,31 @@ test.describe("admin backend", () => {
 
     const malformedResponse = await page.goto(`/presentation/${malformedDeck.weekDate}`);
     expect(malformedResponse?.status()).toBe(404);
+  });
+
+  test("presentation present mode shows current next timer and speaker notes", async ({ page }) => {
+    test.setTimeout(60_000);
+    const seeded = await seedPresentationScenario(futureWeekDate(150), "published");
+
+    await page.goto(`/presentation/${seeded.weekDate}/present`);
+    await expect(page.getByTestId("present-mode")).toBeVisible();
+    await expect(page.getByTestId("active-slide")).toHaveCount(1);
+    await expect(page.getByTestId("page-label")).toHaveText("1 / 9");
+    await expect(page.getByTestId("present-timer")).toHaveText("00:00");
+    await expect(page.getByTestId("next-slide-preview").getByText("本週例會議程")).toBeVisible();
+    await expect(page.locator("nav, aside").filter({ hasText: "會員管理平台" })).toHaveCount(0);
+
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
+    await expect(page.getByTestId("speaker-notes")).toContainText("演講");
+    await expect(page.getByTestId("speaker-notes")).toContainText("如何把例會資料變成可分享簡報");
+
+    for (let i = 0; i < 6; i += 1) {
+      await page.keyboard.press("ArrowRight");
+    }
+    await expect(page.getByTestId("page-label")).toHaveText("9 / 9");
+    await expect(page.getByTestId("next-slide-preview")).toContainText("簡報結束");
   });
 });
 

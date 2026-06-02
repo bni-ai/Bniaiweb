@@ -1,5 +1,7 @@
 import type {
+  AgendaSlideProps,
   AwardSlideProps,
+  ClosingSlideProps,
   CoverSlideProps,
   GuestSlideProps,
   KeynoteSlideProps,
@@ -11,7 +13,7 @@ import { Avatar, BulletList, InfoCard, Label, SectionTitle, StatCard, TwoColumn,
 
 export function CoverSlide({ chapterName, weekDate, meetingTime }: CoverSlideProps) {
   return (
-    <section className={slideCanvasClass} data-slide-type="cover">
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="cover">
       <div className="flex h-full flex-col justify-between px-10 py-10">
         <div className="space-y-6">
           <Label>BNI PRESENTATION</Label>
@@ -31,9 +33,25 @@ export function CoverSlide({ chapterName, weekDate, meetingTime }: CoverSlidePro
   );
 }
 
+export function AgendaSlide({ chapterName, weekDate }: AgendaSlideProps) {
+  return (
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="agenda">
+      <SectionTitle eyebrow="例會流程" title="本週例會議程" subtitle={`${chapterName}｜${weekDate}`} />
+      <div className="grid flex-1 gap-6 px-10 py-8 md:grid-cols-2">
+        <InfoCard title="上半場">
+          <BulletList items={["開場與分會公告", "會員每週 Brief", "來賓介紹與 15 秒內容", "8 分鐘短講"]} />
+        </InfoCard>
+        <InfoCard title="下半場">
+          <BulletList items={["表揚與成果回顧", "VP 報告與營運指標", "幹部提醒與後續行動", "開放交流與一對一安排"]} />
+        </InfoCard>
+      </div>
+    </section>
+  );
+}
+
 export function MemberSlide({ member, brief }: MemberSlideProps) {
   return (
-    <section className={slideCanvasClass} data-slide-type="member">
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="member">
       <SectionTitle eyebrow="會員簡報" title={member.chinese_name} subtitle={member.specialty_title || member.company_name || "本週商務焦點"} />
       <TwoColumn
         left={
@@ -75,7 +93,7 @@ export function MemberSlide({ member, brief }: MemberSlideProps) {
 export function KeynoteSlide({ speaker, keynote }: KeynoteSlideProps) {
   const outlineItems = (keynote.outline || "").split(/\n+/).map((item) => item.trim()).filter(Boolean);
   return (
-    <section className={slideCanvasClass} data-slide-type="keynote">
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="keynote">
       <SectionTitle eyebrow="8 分鐘短講" title={keynote.topic} subtitle={speaker.chinese_name} />
       <TwoColumn
         left={
@@ -117,7 +135,7 @@ export function KeynoteSlide({ speaker, keynote }: KeynoteSlideProps) {
 
 export function GuestSlide({ guest, visit, referrer }: GuestSlideProps) {
   return (
-    <section className={slideCanvasClass} data-slide-type="guest">
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="guest">
       <SectionTitle eyebrow="來賓介紹" title={guest.name} subtitle={guest.specialty || guest.company || "本週來賓"} />
       <TwoColumn
         left={
@@ -159,7 +177,7 @@ export function GuestSlide({ guest, visit, referrer }: GuestSlideProps) {
 
 export function AwardSlide({ award, recipient }: AwardSlideProps) {
   return (
-    <section className={slideCanvasClass} data-slide-type="award">
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="award">
       <SectionTitle eyebrow="本週獎項" title={award.award_type} subtitle={recipient?.chinese_name || "待指定得獎者"} />
       <TwoColumn
         left={
@@ -183,7 +201,7 @@ export function AwardSlide({ award, recipient }: AwardSlideProps) {
 
 export function VPReportSlide({ report }: VPReportSlideProps) {
   return (
-    <section className={slideCanvasClass} data-slide-type="vp_report">
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="vp_report">
       <SectionTitle eyebrow="VP 報告" title="本週績效摘要" subtitle="例會營運指標" />
       <div className="grid flex-1 gap-5 px-10 py-8 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="總引薦數" value={String(report.total_referrals)} />
@@ -203,7 +221,7 @@ export function VPReportSlide({ report }: VPReportSlideProps) {
 
 export function TeamSlide({ chapterName, members }: TeamSlideProps) {
   return (
-    <section className={slideCanvasClass} data-slide-type="team">
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="team">
       <SectionTitle eyebrow="幹部團隊" title={`${chapterName} 幹部`} subtitle="例會運作與會員支持窗口" />
       <div className="grid flex-1 gap-5 overflow-auto px-10 py-8 md:grid-cols-2 xl:grid-cols-3">
         {members.map((member) => (
@@ -216,6 +234,28 @@ export function TeamSlide({ chapterName, members }: TeamSlideProps) {
             </div>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+export function ClosingSlide({ chapterName, weekDate }: ClosingSlideProps) {
+  return (
+    <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="closing">
+      <div className="flex h-full flex-col justify-between px-10 py-10">
+        <div className="space-y-6">
+          <Label>BNI HUA AI</Label>
+          <div className="space-y-5">
+            <h2 className="text-6xl font-black tracking-tight text-slate-900">簡報結束</h2>
+            <p className="max-w-4xl text-2xl font-semibold leading-10 text-[#dc2626]">{chapterName}｜{weekDate}</p>
+            <p className="max-w-4xl text-xl leading-9 text-slate-600">感謝本週參與。請把今天的引薦、來賓追蹤與一對一後續行動完成，讓例會資料真正轉成商務成果。</p>
+          </div>
+        </div>
+        <div className="grid gap-5 md:grid-cols-3">
+          <StatCard label="Next" value="一對一" helper="約定後續會談" />
+          <StatCard label="Follow Up" value="引薦" helper="確認轉介對象" />
+          <StatCard label="Guest" value="追蹤" helper="協助來賓加入流程" />
+        </div>
       </div>
     </section>
   );

@@ -24,6 +24,7 @@ describe("presentation slide builder", () => {
 
     expect(slides).toEqual([
       { type: "cover" },
+      { type: "agenda" },
       { type: "keynote", id: "keynote-1", visible: true },
       { type: "member", id: "brief-1", visible: true },
       { type: "member", id: "brief-2", visible: true },
@@ -33,10 +34,11 @@ describe("presentation slide builder", () => {
       { type: "award", id: "award-2", visible: true },
       { type: "vp_report", id: "vp-1", visible: true },
       { type: "team" },
+      { type: "closing" },
     ]);
   });
 
-  it("skips missing datasets while keeping cover and team", () => {
+  it("skips missing datasets while keeping fixed meeting-flow slides", () => {
     const slides = buildSlideOrderFromData({
       keynote: null,
       briefs: [],
@@ -45,7 +47,7 @@ describe("presentation slide builder", () => {
       vpReport: null,
     });
 
-    expect(slides).toEqual([{ type: "cover" }, { type: "team" }]);
+    expect(slides).toEqual([{ type: "cover" }, { type: "agenda" }, { type: "team" }, { type: "closing" }]);
   });
 });
 
@@ -54,13 +56,17 @@ describe("presentation slide order validation", () => {
     expect(
       parseSlideOrder([
         { type: "cover" },
+        { type: "agenda" },
         { type: "member", id: "brief-1", visible: true },
         { type: "team" },
+        { type: "closing" },
       ]),
     ).toEqual([
       { type: "cover" },
+      { type: "agenda" },
       { type: "member", id: "brief-1", visible: true },
       { type: "team" },
+      { type: "closing" },
     ]);
   });
 

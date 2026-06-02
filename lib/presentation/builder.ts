@@ -36,7 +36,7 @@ function compareNullableDate(left: string | null, right: string | null) {
 }
 
 export function buildSlideOrderFromData(input: BuilderInput): SlideEntry[] {
-  const slides: SlideEntry[] = [{ type: "cover" }];
+  const slides: SlideEntry[] = [{ type: "cover" }, { type: "agenda" }];
 
   if (input.keynote?.id) {
     slides.push({ type: "keynote", id: input.keynote.id, visible: true });
@@ -61,7 +61,7 @@ export function buildSlideOrderFromData(input: BuilderInput): SlideEntry[] {
     slides.push({ type: "vp_report", id: input.vpReport.id, visible: true });
   }
 
-  slides.push({ type: "team" });
+  slides.push({ type: "team" }, { type: "closing" });
   return slides;
 }
 

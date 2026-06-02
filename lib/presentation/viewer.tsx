@@ -15,7 +15,7 @@ import type {
   TeamSlideProps,
   VPReportSlideProps,
 } from "./types";
-import { AwardSlide, CoverSlide, GuestSlide, KeynoteSlide, MemberSlide, TeamSlide, VPReportSlide } from "../../components/slides";
+import { AgendaSlide, AwardSlide, ClosingSlide, CoverSlide, GuestSlide, KeynoteSlide, MemberSlide, TeamSlide, VPReportSlide } from "../../components/slides";
 
 const PRESENTATION_FRAME_CLASS =
   "mx-auto flex aspect-video w-full max-h-screen max-w-[177.78vh] items-stretch overflow-hidden rounded-[28px] border border-white/10 bg-[#fffdf9] text-slate-900 shadow-[0_30px_120px_rgba(0,0,0,0.35)]";
@@ -68,7 +68,7 @@ export async function getPublishedPresentationDeck(
   if (presentation.status !== "published") return null;
 
   const slideOrder = parseSlideOrder(presentation.slide_order);
-  const visibleEntries = slideOrder.filter((entry) => entry.type === "cover" || entry.type === "team" || entry.visible);
+  const visibleEntries = slideOrder.filter((entry) => entry.type === "cover" || entry.type === "agenda" || entry.type === "team" || entry.type === "closing" || entry.visible);
   const memberSlideIds = visibleEntries.filter((entry): entry is Extract<SlideEntry, { type: "member" }> => entry.type === "member").map((entry) => entry.id);
   const keynoteSlideIds = visibleEntries.filter((entry): entry is Extract<SlideEntry, { type: "keynote" }> => entry.type === "keynote").map((entry) => entry.id);
   const guestSlideIds = visibleEntries.filter((entry): entry is Extract<SlideEntry, { type: "guest" }> => entry.type === "guest").map((entry) => entry.id);
@@ -241,8 +241,12 @@ export function renderPresentationSlides(deck: PresentationDeck): ReactNode[] {
     switch (entry.type) {
       case "cover":
         return [wrapSlide(key, <CoverSlide {...deck.cover} />)];
+      case "agenda":
+        return [wrapSlide(key, <AgendaSlide chapterName={deck.chapterName} weekDate={deck.weekDate} />)];
       case "team":
         return [wrapSlide(key, <TeamSlide {...deck.teamSlide} />)];
+      case "closing":
+        return [wrapSlide(key, <ClosingSlide chapterName={deck.chapterName} weekDate={deck.weekDate} />)];
       case "member": {
         const slide = deck.memberSlides.get(entry.id);
         return slide ? [wrapSlide(key, <MemberSlide {...slide} />)] : [];
