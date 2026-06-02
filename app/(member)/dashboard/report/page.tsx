@@ -60,8 +60,8 @@ export default async function MemberReportPage({ searchParams }: { searchParams?
               <p className="mt-2">用一句話講清楚你這週能幫誰，以及你最希望被轉介紹給誰。</p>
             </div>
             <div className="rounded-2xl border border-dashed border-border p-4">
-              <p className="font-semibold text-text-1">後續模組</p>
-              <p className="mt-2">逾期提醒、自動同步、進階引薦欄位會在後續主線補齊，這頁目前先確保提交鏈路穩定。</p>
+              <p className="font-semibold text-text-1">提交後流程</p>
+              <p className="mt-2">提交後幹部可在後台查看、修訂與核准，簡報系統會讀取這批資料產生本週內容。</p>
             </div>
           </div>
         </Card>

@@ -31,7 +31,7 @@ export default async function PresentationEditPage({ params }: { params: Promise
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <Card className="rounded-lg p-5">
+        <Card className="rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold">投影片順序</h2>
@@ -49,7 +49,7 @@ export default async function PresentationEditPage({ params }: { params: Promise
             {slideOrder.map((entry, index) => {
               const meta = describeSlideEntry(entry);
               return (
-                <div key={`${entry.type}-${"id" in entry ? entry.id : index}`} className="grid gap-3 rounded-lg border border-border p-3 md:grid-cols-[72px_1fr_112px] md:items-center">
+                <div key={`${entry.type}-${"id" in entry ? entry.id : index}`} className="grid gap-3 rounded-2xl border border-border p-3 md:grid-cols-[72px_1fr_112px] md:items-center">
                   <input type="hidden" name={`slide_payload_${index}`} value={JSON.stringify(entry)} />
                   <label className="grid gap-1 text-xs text-text-2">
                     順序
@@ -74,7 +74,7 @@ export default async function PresentationEditPage({ params }: { params: Promise
         </Card>
 
         <div className="space-y-4">
-          <Card className="rounded-lg p-5">
+          <Card className="rounded-2xl p-5">
             <h2 className="text-xl font-semibold">簡報資訊</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex justify-between gap-3"><dt className="text-text-2">發布狀態</dt><dd className="font-medium">{presentation.status === "published" ? "已發布" : "草稿"}</dd></div>
@@ -82,15 +82,15 @@ export default async function PresentationEditPage({ params }: { params: Promise
               <div className="flex justify-between gap-3"><dt className="text-text-2">週次</dt><dd className="font-medium">{presentation.week_date}</dd></div>
             </dl>
           </Card>
-          <Card className="rounded-lg p-5">
+          <Card className="rounded-2xl p-5">
             <h2 className="text-xl font-semibold">快速操作</h2>
             <div className="mt-4 grid gap-3">
-              <a className="rounded-lg border border-border px-4 py-3 text-sm font-medium" href={`/presentation/${presentation.week_date}`} target="_blank">在新分頁預覽</a>
+              <a className="rounded-2xl border border-border px-4 py-3 text-sm font-medium" href={`/presentation/${presentation.week_date}`} target="_blank">在新分頁預覽</a>
               <form action={publishPresentationAction}>
                 <input type="hidden" name="id" value={presentation.id} />
                 <input type="hidden" name="week_date" value={presentation.week_date} />
                 <input type="hidden" name="slide_order" value={JSON.stringify(slideOrder)} />
-                <Button type="submit" className="w-full rounded-lg">發布簡報</Button>
+                <Button type="submit" className="w-full rounded-2xl">發布簡報</Button>
               </form>
             </div>
           </Card>

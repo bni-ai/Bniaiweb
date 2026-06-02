@@ -7,19 +7,39 @@ import { logout } from "../../lib/actions/auth";
 import { getShellIdentity, type ShellIdentity } from "../../lib/auth/shell-identity";
 import { getSessionRole } from "../../lib/auth/session-role";
 
-const navItems = [
-  { href: "/dashboard", label: "儀表板" },
-  { href: "/dashboard/report", label: "每週簡報" },
-  { href: "/dashboard/profile", label: "個人資料" },
-  { href: "/dashboard/gains", label: "GAINS" },
-  { href: "/dashboard/top-clients", label: "前十名客戶" },
-  { href: "/dashboard/contacts-circle", label: "人脈圈" },
-  { href: "/dashboard/directory", label: "會員通訊錄" },
-  { href: "/dashboard/one-on-one", label: "一對一預約" },
-  { href: "/dashboard/events", label: "活動" },
-  { href: "/dashboard/training", label: "培訓紀錄" },
-  { href: "/dashboard/ai", label: "AI 助手" },
+const navGroups = [
+  {
+    label: "核心任務",
+    items: [
+      { href: "/dashboard", label: "儀表板" },
+      { href: "/dashboard/report", label: "每週簡報" },
+      { href: "/dashboard/one-on-one", label: "一對一預約" },
+    ],
+  },
+  {
+    label: "個人網絡",
+    items: [
+      { href: "/dashboard/profile", label: "個人資料" },
+      { href: "/dashboard/gains", label: "GAINS" },
+      { href: "/dashboard/top-clients", label: "前十名客戶" },
+      { href: "/dashboard/contacts-circle", label: "人脈圈" },
+      { href: "/dashboard/directory", label: "會員通訊錄" },
+    ],
+  },
+  {
+    label: "分會資源",
+    items: [
+      { href: "/dashboard/events", label: "活動" },
+      { href: "/dashboard/training", label: "培訓紀錄" },
+      { href: "/dashboard/ai", label: "AI 助手" },
+    ],
+  },
 ];
+
+function isActivePath(currentPath: string, href: string) {
+  if (href === "/dashboard") return currentPath === href;
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
 
 function UserCard({ identity }: { identity: ShellIdentity }) {
   return (
@@ -44,25 +64,34 @@ export default async function MemberLayout({ children }: { children: ReactNode }
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(220,38,38,0.08),_transparent_30%),linear-gradient(180deg,#fffaf8_0%,#f7f4ef_100%)]">
       <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 md:grid-cols-[260px_1fr]">
-        <aside className="flex min-h-screen flex-col border-r border-[#ead9cc] bg-white/70 p-4 backdrop-blur">
+        <aside className="flex min-h-screen flex-col border-r border-[#ead9cc] bg-white/80 p-4 backdrop-blur" data-testid="member-sidebar">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary/80">BNI Hua AI</p>
             <p className="text-lg font-semibold text-text-1">會員管理平台</p>
           </div>
           <UserCard identity={identity} />
-          <nav className="mt-6 space-y-1 text-sm">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`block rounded-2xl px-3 py-2.5 transition ${
-                  currentPath === item.href
-                    ? "bg-white font-semibold text-text-1 shadow-[0_8px_24px_rgba(17,24,39,0.05)]"
-                    : "text-text-2 hover:border-[#ead9cc] hover:bg-white hover:text-text-1"
-                }`}
-              >
-                {item.label}
-              </Link>
+          <nav className="mt-6 space-y-5 text-sm">
+            {navGroups.map((group) => (
+              <section key={group.label} className="space-y-1.5">
+                <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-text-2">{group.label}</p>
+                {group.items.map((item) => {
+                  const active = isActivePath(currentPath, item.href);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`block rounded-2xl px-3 py-2.5 transition ${
+                        active
+                          ? "border border-primary/20 bg-white font-semibold text-text-1 shadow-[0_10px_28px_rgba(17,24,39,0.07)]"
+                          : "border border-transparent text-text-2 hover:border-[#ead9cc] hover:bg-white hover:text-text-1"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </section>
             ))}
           </nav>
           <div className="mt-auto space-y-3 pt-6">

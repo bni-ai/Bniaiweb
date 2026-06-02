@@ -18,7 +18,7 @@ export default async function MemberDirectoryPage({ searchParams }: { searchPara
         {members.map((m) => (
           <details key={m.id}>
             <summary className="list-none">
-              <Card className="cursor-pointer rounded-lg p-5 shadow-[0_10px_30px_rgba(17,24,39,0.04)] transition hover:-translate-y-0.5 hover:border-primary/30">
+              <Card className="cursor-pointer rounded-2xl p-5 shadow-[0_10px_30px_rgba(17,24,39,0.04)] transition hover:-translate-y-0.5 hover:border-primary/30">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 gap-3">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-white">
@@ -35,7 +35,7 @@ export default async function MemberDirectoryPage({ searchParams }: { searchPara
                 <p className="mt-4 line-clamp-3 text-sm text-text-2">{m.specialty_description || "尚未填寫詳細介紹"}</p>
               </Card>
             </summary>
-            <Card className="mt-3 rounded-lg border-primary/15 bg-[#fffdfb] p-5">
+            <Card className="mt-3 rounded-2xl border-primary/15 bg-[#fffdfb] p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-base font-semibold text-white">
                   {m.photo_url ? <img src={m.photo_url} alt={m.chinese_name} className="h-full w-full object-cover" /> : m.chinese_name.slice(-1)}

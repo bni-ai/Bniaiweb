@@ -4,13 +4,13 @@
   --primary: #dc2626;
   --primary-fg: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f9fafb;
-  --border: #e5e7eb;
+  --surface-2: #faf7f3;
+  --border: #e8ded3;
   --text-1: #111827;
   --text-2: #6b7280;
-  --radius-card: 8px;
-  --radius-input: 6px;
-  --radius-badge: 4px;
+  --radius-card: 24px;
+  --radius-input: 14px;
+  --radius-badge: 999px;
 }
 
 @theme inline {

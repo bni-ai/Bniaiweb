@@ -742,6 +742,10 @@ test.describe("admin backend", () => {
     await page.goto("/admin");
     await expect(page.getByTestId("shell-user-card")).toContainText("余啟彰");
     await expect(page.getByTestId("shell-user-card")).toContainText(/管理員|主席|president/i);
+    await expect(page.getByTestId("admin-sidebar")).toContainText("概覽");
+    await expect(page.getByTestId("admin-sidebar")).toContainText("每週例會");
+    await expect(page.getByTestId("admin-sidebar")).toContainText("成員");
+    await expect(page.getByTestId("admin-sidebar")).toContainText("系統");
   });
 
   test("VP report rejects negative values and can save valid metrics", async ({ page }) => {
@@ -1139,6 +1143,10 @@ test.describe("member portal", () => {
     await page.goto("/dashboard");
     await expect(page.getByTestId("shell-user-card")).toContainText("余啟銘");
     await expect(page.getByTestId("shell-user-card")).toContainText(/會員|資訊|member/i);
+    await expect(page.getByTestId("member-sidebar")).toContainText("核心任務");
+    await expect(page.getByTestId("member-sidebar")).toContainText("個人網絡");
+    await expect(page.getByTestId("member-sidebar")).toContainText("分會資源");
+    await expect(page.getByRole("link", { name: "安排一對一", exact: true })).toBeVisible();
   });
 
   test("locked weekly report is read-only", async ({ page }) => {
@@ -1276,12 +1284,12 @@ test.describe("member portal", () => {
     await expect(await getBookingByNotes(`E2E conflict ${stamp}`)).toBeNull();
 
     await page.goto("/dashboard/one-on-one");
-    const bookingCard = page.locator("div.rounded-2xl.border").filter({ hasText: `E2E one-on-one ${stamp}` }).first();
+    const bookingCard = page.getByTestId("one-on-one-booking-card").filter({ hasText: `E2E one-on-one ${stamp}` }).first();
     await bookingCard.getByRole("button", { name: "confirmed" }).click();
     await expect.poll(async () => (await getBookingByNotes(`E2E one-on-one ${stamp}`))?.status).toBe("confirmed");
 
     await page.goto("/dashboard/one-on-one");
-    const confirmedCard = page.locator("div.rounded-2xl.border").filter({ hasText: `E2E one-on-one ${stamp}` }).first();
+    const confirmedCard = page.getByTestId("one-on-one-booking-card").filter({ hasText: `E2E one-on-one ${stamp}` }).first();
     await confirmedCard.getByRole("button", { name: "completed" }).click();
     await expect.poll(async () => (await getBookingByNotes(`E2E one-on-one ${stamp}`))?.status).toBe("completed");
   });
@@ -1362,6 +1370,11 @@ test.describe("member portal", () => {
     test.setTimeout(60_000);
     const bookingId = await createConfirmedBookingWithinWindow("fish.myfb@gmail.com", "fish@fishot.com", `video-check-${Date.now()}`);
     await signInWithGeneratedLink(page, "fish.myfb@gmail.com");
+    await page.goto("/dashboard/one-on-one");
+    await expect(page.getByTestId("jitsi-upcoming-panel")).toBeVisible();
+    await expect(page.getByTestId("jitsi-upcoming-panel")).toContainText("Jitsi 線上視訊");
+    await expect(page.getByTestId("jitsi-upcoming-panel").getByRole("link", { name: "進入站內視訊入口" })).toHaveAttribute("href", /\/dashboard\/one-on-one\/[0-9a-f-]+\/video/);
+
     await page.goto(`/dashboard/one-on-one/${bookingId}/video`);
     await expect(page.getByRole("heading", { name: "一對一視訊入口" })).toBeVisible();
     await expect(page.getByRole("link", { name: "進入 Jitsi 視訊會議" })).toBeVisible();

@@ -50,7 +50,7 @@ export default async function KeynotePage({ searchParams }: { searchParams?: Pro
           </div>
           <div className="mt-4 space-y-3 text-sm text-text-2">
             <div className="rounded-2xl border border-border p-4">實體上傳後，檔案會進 Supabase Storage，公開簡報會直接顯示這批圖片。</div>
-            <div className="rounded-2xl border border-dashed border-border p-4">完整講者自助與 6 週排程分工仍留在下一段 Phase B，不混進這輪驗收。</div>
+            <div className="rounded-2xl border border-dashed border-border p-4">目前可管理本週短講講者、主題、大綱與素材；排程延伸可在後續獨立 SR 擴充。</div>
           </div>
         </Card>
       </div>

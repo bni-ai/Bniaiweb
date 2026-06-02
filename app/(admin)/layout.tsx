@@ -7,18 +7,45 @@ import { logout } from "../../lib/actions/auth";
 import { getShellIdentity, type ShellIdentity } from "../../lib/auth/shell-identity";
 import { getSessionRole } from "../../lib/auth/session-role";
 
-const navItems = [
-  { href: "/admin", label: "總覽" },
-  { href: "/admin/submission", label: "提交狀況" },
-  { href: "/admin/presentation", label: "簡報管理" },
-  { href: "/admin/keynote", label: "8 分鐘短講" },
-  { href: "/admin/guests", label: "來賓管理" },
-  { href: "/admin/members", label: "會員管理" },
-  { href: "/admin/events", label: "活動管理" },
-  { href: "/admin/training", label: "培訓管理" },
-  { href: "/admin/import", label: "資料匯入" },
-  { href: "/admin/settings", label: "系統設定" },
+const navGroups = [
+  {
+    label: "概覽",
+    items: [
+      { href: "/admin", label: "總覽" },
+    ],
+  },
+  {
+    label: "每週例會",
+    items: [
+      { href: "/admin/submission", label: "提交狀況" },
+      { href: "/admin/presentation", label: "簡報管理" },
+      { href: "/admin/keynote", label: "8 分鐘短講" },
+      { href: "/admin/vp-report", label: "VP 報告" },
+      { href: "/admin/awards", label: "獎項" },
+      { href: "/admin/guests", label: "來賓管理" },
+    ],
+  },
+  {
+    label: "成員",
+    items: [
+      { href: "/admin/members", label: "會員管理" },
+      { href: "/admin/events", label: "活動管理" },
+      { href: "/admin/training", label: "培訓管理" },
+      { href: "/admin/import", label: "資料匯入" },
+    ],
+  },
+  {
+    label: "系統",
+    items: [
+      { href: "/admin/settings", label: "系統設定" },
+    ],
+  },
 ];
+
+function isActivePath(currentPath: string, href: string) {
+  if (href === "/admin") return currentPath === href;
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
 
 function UserCard({ identity }: { identity: ShellIdentity }) {
   return (
@@ -43,23 +70,32 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(212,168,75,0.08),_transparent_28%),linear-gradient(180deg,#f7f5f1_0%,#efebe4_100%)]">
       <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 md:grid-cols-[260px_1fr]">
-        <aside className="flex min-h-screen flex-col border-r border-[#dbd1c2] bg-[#f9f6f0] p-4">
+        <aside className="flex min-h-screen flex-col border-r border-[#dbd1c2] bg-[#f9f6f0] p-4" data-testid="admin-sidebar">
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">BNI Hua AI</p>
           <p className="mb-4 text-sm text-text-2">幹部管理後台</p>
           <UserCard identity={identity} />
-          <nav className="space-y-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`block rounded-2xl px-3 py-2.5 text-sm transition ${
-                  currentPath === item.href
-                    ? "bg-white font-semibold text-text-1 shadow-[0_8px_24px_rgba(17,24,39,0.05)]"
-                    : "text-text-1 hover:bg-white"
-                }`}
-              >
-                {item.label}
-              </Link>
+          <nav className="space-y-5">
+            {navGroups.map((group) => (
+              <section key={group.label} className="space-y-1.5">
+                <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-text-2">{group.label}</p>
+                {group.items.map((item) => {
+                  const active = isActivePath(currentPath, item.href);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`block rounded-2xl border px-3 py-2.5 text-sm transition ${
+                        active
+                          ? "border-primary/20 bg-white font-semibold text-text-1 shadow-[0_10px_28px_rgba(17,24,39,0.07)]"
+                          : "border-transparent text-text-1 hover:border-[#dbd1c2] hover:bg-white"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </section>
             ))}
           </nav>
           <div className="mt-auto space-y-3 pt-6">
