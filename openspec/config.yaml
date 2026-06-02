@@ -1,20 +1,20 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# 專案上下文（可選）
+# 這段內容會在 AI 建立 artifacts 時一併提供。
+# 可放技術棧、慣例、風格指南、領域知識等。
+context: |
+  技術棧：Next.js 15、TypeScript、Tailwind CSS、Supabase
+  部署：Vercel
+  語言：繁體中文（spec 檔依 Spectra 規範維持英文）
+  提交規範：Conventional Commits
+  專案領域：BNI 華AI分會會員管理與例會簡報自動化
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+# 各 artifact 的客製規則（可選）
+rules:
+  proposal:
+    - 先寫「為什麼做」，再寫「要改什麼」
+    - 必須包含「不在本次範圍（Non-Goals）」
+  tasks:
+    - 每個任務都要可驗證，需寫出驗證方式或預期結果
+    - 優先拆成 1 小時內可完成的最小任務

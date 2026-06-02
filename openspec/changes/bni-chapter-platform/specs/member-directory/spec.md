@@ -14,10 +14,22 @@ The system SHALL display a `/dashboard/directory` page accessible to all authent
 - **WHEN** a user types a name substring in the search input
 - **THEN** the system SHALL filter cards to show only members whose chinese_name contains the search string, without page reload
 
+##### Example: 搜尋姓名子字串
+
+- **GIVEN** members 包含「吳文凱」、「馬驊」
+- **WHEN** user 輸入 `文凱`
+- **THEN** directory 僅顯示「吳文凱」
+
 #### Scenario: Filter by position
 
 - **WHEN** a user selects a position value from the position dropdown
 - **THEN** the system SHALL show only cards where members.position equals the selected value
+
+##### Example: 篩選副主席
+
+- **GIVEN** position dropdown 選項含 `副主席`
+- **WHEN** user 選擇 `副主席`
+- **THEN** directory 僅顯示 `members.position='副主席'` 的卡片
 
 ---
 
@@ -31,10 +43,22 @@ The system SHALL distinguish the current user's own card from other members' car
 - **THEN** the card SHALL display a [查看我的資料] button instead of [預約一對一]
 - **AND** clicking [查看我的資料] SHALL open the profile modal with no booking action available
 
+##### Example: 本人卡片按鈕
+
+- **GIVEN** current user `member_id=002`
+- **WHEN** grid 渲染 `member_id=002` 的卡片
+- **THEN**卡片操作按鈕為 [查看我的資料]
+
 #### Scenario: Viewing another member's card
 
 - **WHEN** the current user views any card that is not their own
 - **THEN** the card SHALL display a [預約一對一] button
+
+##### Example: 他人卡片按鈕
+
+- **GIVEN** current user `member_id=002`，目標卡片 `member_id=010`
+- **WHEN** card 渲染完成
+- **THEN**卡片操作按鈕為 [預約一對一]
 
 ---
 
@@ -47,6 +71,12 @@ The system SHALL display a read-only profile modal when a member card is clicked
 - **WHEN** a user clicks any member card or the card's action button
 - **THEN** the system SHALL display a modal containing: head photo, chinese_name, member_number, position badge, committee badge, specialty_description (一分鐘介紹), ideal_referral (理想客戶), general_referral (服務或產品), dream_referral (三層引薦)
 
+##### Example: Modal 欄位完整性
+
+- **GIVEN** 目標會員有 `member_number=001`、`position=主席`、`committee=無`
+- **WHEN** user 點擊該卡片
+- **THEN** modal 內可見 member_number、職掌 badge、委員會 badge 與三層引薦欄位
+
 #### Scenario: Profile modal booking action for other members
 
 - **WHEN** a user opens the profile modal of a member who is NOT the current user
@@ -57,3 +87,9 @@ The system SHALL display a read-only profile modal when a member card is clicked
 
 - **WHEN** a user opens the profile modal of their own card
 - **THEN** the modal SHALL NOT display any [預約一對一] or booking button
+
+##### Example: 本人 modal 無預約按鈕
+
+- **GIVEN** current user `member_id=002`
+- **WHEN**開啟 `member_id=002` 的 modal
+- **THEN**頁尾不顯示 [預約一對一]

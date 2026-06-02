@@ -9,10 +9,22 @@ The system SHALL support three AI providers: Claude (Anthropic), Gemini (Google)
 - **WHEN** an AI request is made and Claude is the active provider
 - **THEN** the system SHALL route the request to the Claude API using the configured model and API key
 
+##### Example: active provider = claude
+
+- **GIVEN** `ai_settings.is_active=true` 且 `provider='claude'`
+- **WHEN** member 發送「誰的專業是 AI落地」
+- **THEN** request 發送至 Claude adapter，不呼叫 Gemini/OpenAI adapter
+
 #### Scenario: Active provider fails with fallback
 
 - **WHEN** the active provider returns an error and another provider is enabled
 - **THEN** the system SHALL retry with the next enabled provider and log the fallback event
+
+##### Example: claude 失敗 fallback 到 gemini
+
+- **GIVEN** active provider=Claude，備援 provider=Gemini
+- **WHEN** Claude 回傳 500
+- **THEN**系統在同次請求改呼叫 Gemini 並寫入 fallback log
 
 ---
 
@@ -24,6 +36,12 @@ Officers SHALL be able to switch the active AI provider via the admin settings p
 
 - **WHEN** an officer changes the active provider from Claude to Gemini in admin settings
 - **THEN** all subsequent AI requests SHALL use the Gemini API
+
+##### Example: 切換後立即生效
+
+- **GIVEN** 10:00 切換 active provider 為 Gemini
+- **WHEN** 10:01 送出下一筆 AI 查詢
+- **THEN**該查詢使用 Gemini adapter 且不需重新部署
 
 ---
 

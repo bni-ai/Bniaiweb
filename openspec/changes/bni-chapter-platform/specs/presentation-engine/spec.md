@@ -86,6 +86,11 @@ The system SHALL use a data-driven approach for slide content. Officers SHALL NO
 
 The system SHALL support `weekly_awards` and `weekly_vp_reports` tables as data sources for AwardSlide and VPReportSlide types. Officers SHALL fill in award recipients and VP metrics via admin forms. The presentation engine SHALL read these tables to render the corresponding slides.
 
+#### Scenario: Award and VP slides render from weekly data
+
+- **WHEN** week `2026-06-07` has 3 award records and 1 vp report record
+- **THEN** the generated slide deck SHALL include AwardSlide entries for each award and one VPReportSlide with the stored metrics
+
 ---
 
 ### Requirement: Guest Slide - New vs Returning Guest
@@ -106,6 +111,16 @@ The slide source data is `guest_visits` (joined with `guests`), NOT the `guests`
 | visit_number | `guest_visits.visit_number` (auto-calculated) |
 | referrer | `guests.referrer_id` → member name |
 
+#### Scenario: New guest badge rendering
+
+- **WHEN** `guest_visits.visit_number = 1` for a guest in the current week
+- **THEN** the GuestSlide SHALL show the "首次來訪" badge and SHALL NOT show "第 N 次來訪"
+
+#### Scenario: Returning guest count rendering
+
+- **WHEN** `guest_visits.visit_number = 3` for a guest in the current week
+- **THEN** the GuestSlide SHALL show "第 3 次來訪"
+
 ### Requirement: Guest Scheduling (This Week / Next Week)
 
 Officers SHALL be able to schedule guests for the current week or upcoming weeks via `guest_visits.week_date`.
@@ -114,9 +129,24 @@ Officers SHALL be able to schedule guests for the current week or upcoming weeks
 - The admin guest list SHALL show guests grouped by week: 本週來賓 / 下週來賓 / 未來
 - Status transitions: `invited` → `confirmed` → `attended` / `no_show` / `joined_member`
 
+#### Scenario: Guest list grouped by week
+
+- **WHEN** one guest has `week_date=2026-06-07` and another has `week_date=2026-06-14`
+- **THEN** admin guest list SHALL place them under 本週來賓 and 下週來賓 respectively
+
 ### Requirement: Guest History
 
 All past `guest_visits` records SHALL be preserved and queryable. Officers SHALL be able to:
 - View a guest's full visit history (all `guest_visits` for a given `guest_id`)
 - Re-invite a previous guest (create a new `guest_visits` row with incremented `visit_number`)
 - See if a guest has previously become a member (`status = 'joined_member'`)
+
+#### Scenario: Officer views full guest visit history
+
+- **WHEN** officer opens guest `g-001` history with existing visits #1 and #2
+- **THEN** the system SHALL show both historical rows with status and week_date
+
+#### Scenario: Re-invite increments visit number
+
+- **WHEN** officer re-invites a guest whose latest `visit_number` is 2
+- **THEN** the system SHALL create a new `guest_visits` row with `visit_number = 3`

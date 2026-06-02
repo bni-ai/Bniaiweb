@@ -27,7 +27,7 @@ The Next.js `middleware.ts` SHALL enforce role-based access on every request usi
 
 #### Scenario: Presentation route is public
 
-- **WHEN** a request matches `/presentation/abc123` with no session cookie
+- **WHEN** a request matches `/presentation/2026-06-07` with no session cookie
 - **THEN** the middleware SHALL allow the request through without redirection
 
 ### Requirement: Middleware Performance
@@ -38,3 +38,9 @@ The middleware SHALL read role from the session JWT without making any database 
 
 - **WHEN** middleware evaluates an incoming request
 - **THEN** no Supabase database queries SHALL be made; only JWT decoding is performed
+
+##### Example: Member request to dashboard with JWT claim
+
+- **GIVEN** request path `/dashboard`, cookie `sb-access-token=<jwt(app_role='member')>`
+- **WHEN** middleware decodes JWT and checks access rule
+- **THEN** middleware returns `NextResponse.next()` and query count remains `0`

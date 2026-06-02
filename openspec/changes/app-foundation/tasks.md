@@ -1,57 +1,59 @@
 ## 1. 專案初始化
 
-- [ ] 1.1 Initialize Next.js 15 app with TypeScript and Tailwind in `Bniaiweb/app/` using `npx create-next-app@latest --typescript --tailwind --app --no-src-dir`; verify `app/layout.tsx` and `app/page.tsx` exist and `npm run dev` starts without error
+- [x] 1.1 在 `Bniaiweb/app/` 用 `npx create-next-app@latest --typescript --tailwind --app --no-src-dir` 初始化 Next.js 15（TypeScript + Tailwind）；驗證 `app/layout.tsx`、`app/page.tsx` 已建立，且 `npm run dev` 可無錯啟動
 
-- [ ] 1.2 Install Supabase SDK and auth helpers (`@supabase/supabase-js`, `@supabase/ssr`); verify `package.json` contains both packages and `npm install` succeeds
+- [x] 1.2 安裝 Supabase SDK 與 auth helpers（`@supabase/supabase-js`、`@supabase/ssr`）；驗證 `package.json` 含兩個套件且 `npm install` 成功
 
-- [ ] 1.3 Configure `next.config.ts` with strict mode and image domain for Supabase Storage (`*.supabase.co`); verify `npm run build` completes with no warnings
+- [x] 1.3 設定 `next.config.ts`：開啟 strict mode，並加入 Supabase Storage 圖片網域（`*.supabase.co`）；驗證 `npm run build` 無警告完成
 
 ## 2. 設計系統
 
-- [ ] 2.1 Add CSS custom properties and Noto Sans TC to `app/globals.css` per the Tailwind Design Tokens requirement and **d5 — design tokens (tailwind)** in design.md; verify that a test page rendering `var(--primary)` shows `#dc2626` and the document font is Noto Sans TC (visible in DevTools Computed styles)
+- [x] 2.1 在 `app/globals.css` 加入 CSS custom properties 與 Noto Sans TC（對齊 Tailwind Design Tokens 與 design.md 的 **d5 — 設計 tokens（tailwind）**）；驗證測試頁渲染 `var(--primary)` 會顯示 `#dc2626`，且文件字型在 DevTools Computed styles 顯示為 Noto Sans TC
 
-- [ ] 2.2 Create `components/ui/button.tsx` implementing `Button` component with `variant: 'primary' | 'secondary' | 'ghost'` per the Shared UI Primitives requirement; verify each variant applies correct bg/text/border styles by rendering `<Button variant="primary">`, `<Button variant="secondary">`, `<Button variant="ghost">` in a test page
+- [x] 2.2 建立 `components/ui/button.tsx` 的 `Button` 元件，支援 `variant: 'primary' | 'secondary' | 'ghost'`（對齊 Shared UI Primitives）；驗證測試頁渲染 `<Button variant="primary">`、`<Button variant="secondary">`、`<Button variant="ghost">` 時，背景/文字/邊框樣式正確
 
-- [ ] 2.3 Create `components/ui/card.tsx` implementing `Card` component per the Shared UI Primitives requirement; verify Card renders with `var(--radius-card)` corner radius and `1px solid var(--border)` border visible in DevTools
+- [x] 2.3 建立 `components/ui/card.tsx` 的 `Card` 元件（對齊 Shared UI Primitives）；驗證 Card 在 DevTools 可見 `var(--radius-card)` 圓角與 `1px solid var(--border)` 邊框
 
 ## 3. Route Group 結構
 
-- [ ] 3.1 Create `app/(auth)/layout.tsx` with centered card layout (no sidebar, no nav) per the Route Group Structure requirement and **d1 — route group structure** in design.md; verify visiting `/login` renders the auth layout by confirming no sidebar element is present in DOM
+- [x] 3.1 建立 `app/(auth)/layout.tsx`，採置中卡片版型（無 sidebar、無 nav），對齊 Route Group Structure 與 design.md 的 **d1 — route group 結構**；驗證進入 `/login` 時 DOM 不存在 sidebar 元素
 
-- [ ] 3.2 Create `app/(auth)/login/page.tsx` with a "使用 Google 帳號登入" button (non-functional placeholder for now) inside the auth card layout; verify page renders without error at `npm run dev`
+- [x] 3.2 建立 `app/(auth)/login/page.tsx`，在 auth card 內放置「使用 Google 帳號登入」按鈕（先做非功能 placeholder）；驗證 `npm run dev` 下頁面可正常渲染
 
-- [ ] 3.3 Create `app/(auth)/error/page.tsx` displaying "您尚未加入華AI分會" message, officer contact info placeholder, and a "返回登入頁" link per the Non-member email logs in scenario; verify static content renders at `/error`
+- [x] 3.3 建立 `app/(auth)/error/page.tsx`，顯示「您尚未加入華AI分會」、幹部聯絡資訊 placeholder 與「返回登入頁」連結（對齊 Non-member email logs in 情境）；驗證 `/error` 靜態內容顯示正確
 
-- [ ] 3.4 Create `app/(member)/layout.tsx` with a top navigation bar per the Route Group Structure requirement; verify visiting `/dashboard` renders the member layout with nav visible in DOM
+- [x] 3.4 建立 `app/(member)/layout.tsx`，提供頂部導覽列（對齊 Route Group Structure）；驗證進入 `/dashboard` 時 DOM 可見 nav
 
-- [ ] 3.5 Create `app/(member)/dashboard/page.tsx` as a placeholder page showing "儀表板 (coming soon)"; verify it renders at `/dashboard` using the member layout
+- [x] 3.5 建立 `app/(member)/dashboard/page.tsx` placeholder，顯示「儀表板（coming soon）」；驗證 `/dashboard` 可透過 member layout 正常顯示
 
-- [ ] 3.6 Create `app/(admin)/layout.tsx` with a left sidebar matching `ui-mockup-admin-v3.html` nav items per the Route Group Structure requirement; verify visiting `/admin` renders the admin layout with sidebar visible
+- [x] 3.6 建立 `app/(admin)/layout.tsx`，左側 sidebar 導覽項目對齊 `ui-mockup-admin-v3.html`；驗證進入 `/admin` 時可見 sidebar
 
-- [ ] 3.7 Create `app/(admin)/admin/page.tsx` as a placeholder redirecting to `/admin/members`; verify `/admin` redirects correctly
+- [x] 3.7 建立 `app/(admin)/admin/page.tsx` placeholder，導向 `/admin/members`；驗證 `/admin` 導向正確
 
-- [ ] 3.8 Create `app/presentation/[id]/page.tsx` as a fullscreen placeholder (no nav chrome) per the Route Group Structure requirement; verify `/presentation/test` renders without any navigation elements in DOM
+- [x] 3.8 建立 `app/presentation/[week-date]/page.tsx` 全螢幕 placeholder（無 nav chrome），對齊 Route Group Structure；驗證 `/presentation/2026-06-07` DOM 不含任何導覽元素
+
+- [x] 3.9 在 `app/presentation/[week-date]/page.tsx` 內支援相容轉址（非日期參數視為 legacy id，lookup 後導向 `/presentation/[week-date]`）；驗證舊 ID 連結可正確到 canonical 路由
 
 ## 4. Supabase Client 工具
 
-- [ ] 4.1 Create `lib/supabase/client.ts` exporting `createBrowserClient()` per the Supabase Client Utilities requirement and **d4 — supabase client pattern** in design.md; include startup validation that throws `"Missing Supabase env var: NEXT_PUBLIC_SUPABASE_URL"` if the env var is absent per the Environment Variable Validation requirement; verify the error message appears in CI when env var is unset
+- [x] 4.1 建立 `lib/supabase/client.ts`，匯出 `createBrowserClient()`（對齊 Supabase Client Utilities 與 design.md 的 **d4 — supabase client pattern**）；並實作 **Environment Variable Validation**：若缺少 env var 則拋出 `"Missing Supabase env var: NEXT_PUBLIC_SUPABASE_URL"`；驗證在未設定 env var 的 CI 可看到對應錯誤訊息
 
-- [ ] 4.2 Create `lib/supabase/server.ts` exporting `createServerClient()` (using `@supabase/ssr` cookie store) per the Supabase Client Utilities requirement; verify a Server Component can call it and receive a Supabase client without TypeScript errors
+- [x] 4.2 建立 `lib/supabase/server.ts`，匯出 `createServerClient()`（使用 `@supabase/ssr` cookie store）；驗證 Server Component 可呼叫且取得 Supabase client，TypeScript 無錯
 
 ## 5. 認證流程
 
-- [ ] 5.1 Create Supabase Auth hook SQL function `custom_access_token_hook` in `supabase/migrations/002_auth_hook.sql` per the Role Injection into Session JWT requirement: queries `members` by `auth.uid()`, adds `app_role` claim to JWT; verify the migration applies cleanly with `supabase db push`
+- [x] 5.1 在 `supabase/migrations/002_auth_hook.sql` 建立 Supabase Auth hook SQL function `custom_access_token_hook`（對齊 Role Injection into Session JWT）：以 `auth.uid()` 查 `members`，將 `app_role` 加入 JWT；驗證 `supabase db push` migration 可順利套用
 
-- [ ] 5.2 Enable the `custom_access_token_hook` in Supabase Dashboard → Auth → Hooks and configure Google OAuth provider (Client ID + Secret from Google Console); verify a test login returns a JWT containing `app_role` by decoding via `supabase.auth.getSession().data.session.access_token` at `jwt.io`
+- [x] 5.2 在 Supabase Dashboard → Auth → Hooks 啟用 `custom_access_token_hook`，並設定 Google OAuth provider（Google Console 的 Client ID + Secret）；驗證測試登入後，以 `supabase.auth.getSession().data.session.access_token` 取 token 並在 `jwt.io` 解碼可看到 `app_role`（已透過 Supabase CLI/Management config 推送，OAuth authorize 302 導向 Google；臨時 Auth 使用者登入後 JWT 解碼得到 `app_role=member` 並已刪除測試使用者）
 
-- [ ] 5.3 Create `app/(auth)/login/page.tsx` Google OAuth button wired to `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: '/auth/callback' } })` per the Google OAuth Login requirement and **d2 — supabase auth: google oauth only** in design.md; verify clicking the button redirects to Google consent screen
+- [x] 5.3 在 `app/(auth)/login/page.tsx` 實作 Google OAuth 按鈕，呼叫 `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: '/auth/callback' } })`（對齊 Google OAuth Login 與 design.md 的 **d2 — supabase auth（僅 google oauth）**）；驗證點擊後會導向 Google 同意頁
 
-- [ ] 5.4 Create `app/auth/callback/route.ts` (Route Handler) that exchanges the OAuth code for a session and redirects: to `/admin` if `app_role='admin'`, to `/dashboard` if `app_role='member'`, to `/error` if email not found in `members` per the Existing member logs in and Non-member email logs in scenarios; verify each redirect path with three test accounts
+- [x] 5.4 建立 `app/auth/callback/route.ts`（Route Handler）：兌換 OAuth code 後依角色導向（`app_role='admin'` → `/admin`、`app_role='member'` → `/dashboard`、`members` 查無 email → `/error`，對齊 Existing member logs in / Non-member email logs in）；驗證三種帳號路徑導向皆正確
 
-- [ ] 5.5 Implement logout Server Action in `lib/actions/auth.ts` calling `supabase.auth.signOut()` and redirecting to `/login` per the Logout requirement; wire a logout button in `(admin)/layout.tsx` and `(member)/layout.tsx`; verify clicking logout clears the session cookie and lands on `/login`
+- [x] 5.5 在 `lib/actions/auth.ts` 實作 logout Server Action（呼叫 `supabase.auth.signOut()` 並導向 `/login`），並在 `(admin)/layout.tsx`、`(member)/layout.tsx` 接上登出按鈕；驗證點擊後 session cookie 被清除並回到 `/login`
 
 ## 6. RBAC Middleware
 
-- [ ] 6.1 Create `middleware.ts` at project root implementing route access control table per the Route Access Control requirement and **d3 — rbac middleware** in design.md (admin→redirect dashboard, member visiting admin→redirect dashboard, unauthenticated→redirect login, authenticated visiting login→redirect by role, presentation routes→no-op); verify each scenario by manually navigating with different session states or using `next test` integration tests
+- [x] 6.1 在專案根目錄建立 `middleware.ts`，依 Route Access Control 規格與 design.md 的 **d3 — rbac middleware** 實作路由存取表（admin 存取限制、member 存取 admin 時導向 dashboard、未登入導向 login、已登入進 login 時依角色導向、presentation 路由不處理）；驗證各情境可透過手動導頁或 `next test` 整合測試通過
 
-- [ ] 6.2 Verify middleware reads only JWT claims with zero DB queries per the Middleware Performance requirement; confirm by adding a Supabase query counter spy test — middleware function SHALL invoke 0 Supabase client calls during a request lifecycle
+- [x] 6.2 驗證 middleware 僅讀 JWT claims、零 DB 查詢（對齊 Middleware Performance）；以 Supabase query counter spy test 確認 middleware 在單次 request lifecycle 內對 Supabase client 呼叫次數為 0（`lib/auth/access-control.test.ts`）。

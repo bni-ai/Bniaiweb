@@ -12,9 +12,9 @@ BNI ACCELERATE 華AI分會的會員管理與簡報自動化系統。
 - 培訓追蹤
 - AI 助手
 
-## Tech Stack
+## 技術棧
 
 - Next.js
-- Supabase (DB + Auth)
+- Supabase（資料庫 + 認證）
 - Tailwind CSS
-- Vercel (Deploy)
+- Vercel（部署）

@@ -20,6 +20,12 @@ Guests SHALL have fields for self-introduction (15-second intro content) and pos
 - **WHEN** an officer enters feedback for a guest after the meeting
 - **THEN** the system SHALL save the feedback and make it visible in the guest history
 
+##### Example: 會後回饋保存
+
+- **GIVEN** guest `陳駿翰` 當週參與例會
+- **WHEN** officer 填入 `feedback='認識到三位潛在合作夥伴'` 並儲存
+- **THEN**該 feedback 會出現在該 guest 的歷史紀錄頁
+
 ---
 
 ### Requirement: Guest Slide Auto-Generation

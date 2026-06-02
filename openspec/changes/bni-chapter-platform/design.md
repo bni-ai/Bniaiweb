@@ -31,13 +31,14 @@ Tables per domain:
 
 | Table | Key Columns |
 |---|---|
-| `members` | id, email, member_number, chinese_name, english_name, line_name, specialty_title, specialty_description, general_referral, ideal_referral, dream_referral, **company_name, company_address, industry_experience_years, previous_career**, **gains_goals, gains_accomplishments, gains_interests, gains_networks, gains_skills**, photo_url, role (`member`/`officer`/`president`), **position** (職掌), **committee** (委員會), created_at, updated_at |
+| `members` | id, email, member_number, chinese_name, english_name, line_name, specialty_title, specialty_description, general_referral, ideal_referral, dream_referral, **company_name, company_address, industry_experience_years, previous_career**, **gains_goals, gains_accomplishments, gains_interests, gains_networks, gains_skills**, photo_url, role (`admin`/`member`), **position** (職掌), **committee** (委員會), created_at, updated_at |
 | `member_top_clients` | id, member_id, rank (1-10), industry, company_type, location, notes |
 | `member_contacts_circle` | id, member_id, tier (1=核心/2=中層/3=外圍), name, relationship, industry, notes |
 | `weekly_briefs` | id, member_id, week_date, have_this_week, want_this_week, status (`draft`/`submitted`), submitted_at |
 | `presentations` | id, week_date, title, status (`draft`/`published`), published_url, slide_order (jsonb), created_by |
 | `keynote_talks` | id, speaker_id, week_date, topic, outline, product_images (jsonb), status (`draft`/`submitted`) |
-| `guests` | id, name, specialty, referrer_id, week_date, self_intro, feedback |
+| `guests` | id, name, specialty, referrer_id, created_at, updated_at |
+| `guest_visits` | id, guest_id, week_date, visit_number, self_intro, feedback, status (`invited`/`confirmed`/`attended`/`no_show`/`joined_member`) |
 | `weekly_awards` | id, week_date, recipient_id, award_type (`top_referrer`/`visitor_award`/`bni_bucks`/`spotlight`/`other`), description |
 | `weekly_vp_reports` | id, week_date, total_referrals, total_one_on_ones, total_visitors, member_attendance, referral_value_twd, notes |
 | `member_availability` | id, member_id, day_of_week (0-6), start_time, end_time |
@@ -147,7 +148,7 @@ Each phase is independently deployable. Phase N does not depend on Phase N+1 bei
 
 **Behavior:**
 
-- Member visits `/` → redirected to `/login` if not authenticated
+- Visitor visits `/` → sees public landing page（含「會員登入」入口）
 - Member logs in with Gmail → if email in `members` → land on `/dashboard` showing: this week's brief status, personal profile summary, upcoming one-on-ones
 - Officer logs in → land on `/admin` showing: submission progress for current week, member list, pending presentation for publish
 - `/presentation/[week-date]` is publicly accessible; keyboard left/right arrow navigation; fullscreen button supported

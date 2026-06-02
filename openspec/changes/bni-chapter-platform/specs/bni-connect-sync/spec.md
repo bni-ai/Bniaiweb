@@ -14,6 +14,12 @@ The system SHALL allow an admin with position='主席' to store BNI Connect Glob
 - **WHEN** a user whose role is not 'admin' or whose position is not '主席' attempts to read or write admin_settings
 - **THEN** Supabase RLS SHALL reject the request with a permission error
 
+##### Example: member 嘗試讀取帳密
+
+- **GIVEN** user role=`member`, position=`無`
+- **WHEN**呼叫 `/api/admin/settings/bni-connect` 嘗試讀取帳號密碼
+- **THEN** API 回傳 403，且不返回任何明文或遮罩前的密碼內容
+
 ---
 
 ### Requirement: Playwright Auto-Fill Job

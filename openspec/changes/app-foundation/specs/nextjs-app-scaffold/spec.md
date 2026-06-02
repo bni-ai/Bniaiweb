@@ -21,7 +21,7 @@ The application SHALL use Next.js 15 App Router with four route groups: `(auth)`
 
 #### Scenario: Presentation route is layout-free
 
-- **WHEN** a request matches `/presentation/[id]`
+- **WHEN** a request matches `/presentation/[week-date]`
 - **THEN** the system SHALL render the page fullscreen with no navigation chrome and no authentication requirement
 
 ### Requirement: Tailwind Design Tokens

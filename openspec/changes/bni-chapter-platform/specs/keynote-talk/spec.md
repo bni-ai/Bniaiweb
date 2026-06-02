@@ -30,3 +30,9 @@ The presentation engine SHALL auto-generate a KeynoteSlide from the `keynote_tal
 
 - **WHEN** a presentation is generated for a week with a keynote talk
 - **THEN** the KeynoteSlide SHALL display the speaker's photo, name, topic, outline, and product images
+
+##### Example: 週簡報渲染 keynote
+
+- **GIVEN** week `2026-06-14` 有 keynote 記錄與 3 張產品圖
+- **WHEN** officer 產生該週簡報
+- **THEN** slide deck 中包含 1 張 KeynoteSlide，並顯示 3 張圖

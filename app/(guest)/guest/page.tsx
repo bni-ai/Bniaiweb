@@ -1,0 +1,56 @@
+import Link from "next/link";
+
+import { Card } from "../../../components/ui/card";
+import { getCurrentGuestContext } from "../../../lib/actions/guest-portal";
+
+function VisitBadge({ visitNumber }: { visitNumber?: number }) {
+  if (!visitNumber) return <span className="rounded-full bg-surface-2 px-3 py-1 text-xs">尚未排定</span>;
+  return <span className="rounded-full bg-primary px-3 py-1 text-xs text-white">{visitNumber > 1 ? "回訪來賓" : "新來賓"}</span>;
+}
+
+export default async function GuestHomePage() {
+  const context = await getCurrentGuestContext();
+  const inviter = context?.guest?.members?.chinese_name || "邀約會員尚未指定";
+  const visit = context?.visit;
+
+  return (
+    <div className="space-y-8">
+      <section className="grid gap-6 rounded-[32px] bg-[#231f20] p-8 text-white md:grid-cols-[1.3fr_0.7fr] md:p-12">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[#ffcf99]">Guest Orientation</p>
+          <h1 className="mt-4 text-4xl font-black leading-tight md:text-6xl">第一次來 BNI，也能知道怎麼準備。</h1>
+          <p className="mt-5 max-w-2xl text-lg text-white/75">
+            這裡是 BNI 華 AI 分會的來賓專區。你可以先了解 BNI 的推薦文化、分會節奏、來賓注意事項，以及登入後查看邀約資訊。
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/guest/prepare" className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white">準備 15 秒介紹</Link>
+            <Link href="/guest/content" className="rounded-full border border-white/25 px-5 py-3 text-sm font-semibold">看文章與影片</Link>
+          </div>
+        </div>
+        <Card className="border-white/15 bg-white/10 p-6 text-white">
+          <p className="text-sm text-white/65">登入後個人化資訊</p>
+          <h2 className="mt-2 text-2xl font-bold">{context?.guest?.name || "尚未登入來賓身份"}</h2>
+          <div className="mt-5 space-y-3 text-sm text-white/80">
+            <p>邀約人：{inviter}</p>
+            <p>拜訪週次：{visit?.week_date || "登入後依邀約資料顯示"}</p>
+            <p>狀態：{visit?.status || "未登入或尚未排定"}</p>
+            <VisitBadge visitNumber={visit?.visit_number} />
+          </div>
+        </Card>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        {[
+          ["BNI 是什麼", "以 Givers Gain 為核心的商業引薦組織，透過固定例會建立信任、交換商機。"],
+          ["華 AI 分會", "聚焦 AI 應用、專業服務與跨產業合作，讓會員用系統化方式創造可追蹤的推薦價值。"],
+          ["來賓須知", "請準備 15 秒自我介紹、名片或聯絡方式，並想清楚你希望被引薦給誰。"],
+        ].map(([title, text]) => (
+          <Card key={title} className="p-6">
+            <h2 className="text-xl font-bold">{title}</h2>
+            <p className="mt-3 text-sm leading-6 text-text-2">{text}</p>
+          </Card>
+        ))}
+      </section>
+    </div>
+  );
+}

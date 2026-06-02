@@ -20,6 +20,12 @@ The system SHALL automatically save form content as a draft every 30 seconds whi
 - **WHEN** a member has typed content but not submitted, then returns later
 - **THEN** the system SHALL restore the draft content in the form fields
 
+##### Example: 關閉後重開仍有草稿
+
+- **GIVEN** member 已輸入 120 字 `have_this_week` 並停留超過 30 秒
+- **WHEN**關閉瀏覽器後 10 分鐘重新登入
+- **THEN**草稿內容自動回填到兩個 textarea
+
 ---
 
 ### Requirement: Submission Status Tracking
@@ -30,6 +36,12 @@ The system SHALL track each member's submission status for the current week: `no
 
 - **WHEN** an officer opens the admin dashboard
 - **THEN** the system SHALL display the count and list of members in each status category
+
+##### Example: 進度統計顯示
+
+- **GIVEN** 本週狀態為 submitted=20、draft=8、not_started=8
+- **WHEN** officer 進入 `/admin`
+- **THEN** dashboard 顯示三類別統計與對應會員名單
 
 ---
 
