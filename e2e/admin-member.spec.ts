@@ -96,7 +96,7 @@ test.describe("auth shell", () => {
   });
 
   test("callback routes member, guest, and unknown emails correctly", async ({ page }) => {
-    await signInWithGeneratedLink(page, "fish@fishto.com");
+    await signInWithGeneratedLink(page, "fish@fishot.com");
     await expect(page).toHaveURL(/\/admin$/);
 
     await page.context().clearCookies();
@@ -157,7 +157,7 @@ test.describe("admin backend", () => {
 
   test("admin dashboard and operational pages render", async ({ page }) => {
     const cases = [
-      ["/admin", "後台總覽"],
+      ["/admin", "總覽儀表板"],
       ["/admin/members", "會員管理"],
       ["/admin/submission", "提交狀況"],
       ["/admin/guests", "來賓管理"],
@@ -165,6 +165,8 @@ test.describe("admin backend", () => {
       ["/admin/vp-report", "VP 報告"],
       ["/admin/awards", "獎項管理"],
       ["/admin/presentation", "簡報管理"],
+      ["/admin/import", "資料匯入"],
+      ["/admin/settings", "系統設定"],
     ] as const;
 
     for (const [path, heading] of cases) {
@@ -204,6 +206,14 @@ test.describe("admin backend", () => {
     await page.goto("/admin/presentations");
     await expect(page).toHaveURL(/\/admin\/presentation$/);
   });
+
+  test("admin placeholder pages are safe and explicit", async ({ page }) => {
+    await page.goto("/admin/import");
+    await expect(page.getByText("正式匯入流程會包含欄位對應")).toBeVisible();
+
+    await page.goto("/admin/settings");
+    await expect(page.getByText("分會資訊：coming soon")).toBeVisible();
+  });
 });
 
 test.describe("member portal", () => {
@@ -213,12 +223,12 @@ test.describe("member portal", () => {
 
   test("member dashboard, report, and directory render", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(page.getByText("會員儀表板")).toBeVisible();
+    await expect(page.getByText(/Member Dashboard|早安/)).toBeVisible();
     await page.goto("/dashboard/report");
     await expect(page.getByText("每週 Brief")).toBeVisible();
     await page.goto("/dashboard/directory");
-    await expect(page.getByRole("heading", { name: "成員名冊" })).toBeVisible();
-    await expect(page.getByText("王小明")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "會員通訊錄" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "王小明" }).first()).toBeVisible();
   });
 
   test("locked weekly report is read-only", async ({ page }) => {
@@ -235,5 +245,20 @@ test.describe("member portal", () => {
     await expect(page).toHaveURL(/\/dashboard\/report$/);
     await page.goto("/dashboard/weekly");
     await expect(page).toHaveURL(/\/dashboard\/report$/);
+  });
+
+  test("member v3 placeholder routes are reachable", async ({ page }) => {
+    const cases = [
+      ["/dashboard/profile", "個人資料"],
+      ["/dashboard/one-on-one", "一對一預約"],
+      ["/dashboard/events", "活動"],
+      ["/dashboard/training", "培訓紀錄"],
+      ["/dashboard/ai", "AI 助手"],
+    ] as const;
+
+    for (const [path, heading] of cases) {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    }
   });
 });

@@ -17,23 +17,24 @@ const navItems = [
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-surface-2">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(212,168,75,0.08),_transparent_28%),linear-gradient(180deg,#f7f5f1_0%,#efebe4_100%)]">
       <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 md:grid-cols-[260px_1fr]">
-        <aside className="border-r border-border bg-surface p-4">
-          <p className="mb-4 text-sm text-text-2">Admin Console</p>
+        <aside className="border-r border-[#dbd1c2] bg-[#f9f6f0] p-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">BNI Hua AI</p>
+          <p className="mb-4 text-sm text-text-2">幹部管理後台</p>
           <nav className="space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="block rounded-md px-3 py-2 text-sm text-text-1 hover:bg-surface-2"
+                className="block rounded-2xl px-3 py-2.5 text-sm text-text-1 transition hover:bg-white"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
           <form action={logout} className="mt-6">
-            <Button type="submit" variant="ghost" className="w-full justify-center">
+            <Button type="submit" variant="ghost" className="w-full justify-center rounded-full border border-[#dbd1c2] bg-white">
               登出
             </Button>
           </form>

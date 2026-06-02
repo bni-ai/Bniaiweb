@@ -10,7 +10,12 @@ export default async function SubmissionPage({ searchParams }: { searchParams?: 
   const data = await getWeeklyBriefRows(weekDate);
   return (
     <div className="space-y-4">
-      <div><p className="text-sm text-text-2">{weekDate}</p><h1 className="text-2xl font-semibold">提交狀況 <span className="text-primary">{data.submittedCount}/{data.totalCount} 已提交</span></h1></div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><div><p className="text-sm text-text-2">{weekDate}</p><h1 className="text-3xl font-black">簡報提交狀況</h1><p className="mt-2 text-sm text-text-2">目前已接 `weekly_briefs`，幹部可直接修訂與核准內容。</p></div><div className="rounded-full bg-[#fff1ea] px-4 py-2 text-sm text-primary">{data.submittedCount}/{data.totalCount} 已提交</div></div>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="rounded-[22px] p-4"><p className="text-sm text-text-2">已提交</p><p className="mt-3 text-3xl font-bold text-emerald-700">{data.submittedCount}</p></Card>
+        <Card className="rounded-[22px] p-4"><p className="text-sm text-text-2">未提交</p><p className="mt-3 text-3xl font-bold text-primary">{data.totalCount - data.submittedCount}</p></Card>
+        <Card className="rounded-[22px] p-4"><p className="text-sm text-text-2">提醒狀態</p><p className="mt-3 text-lg font-semibold">提醒功能待後續模組</p></Card>
+      </div>
       <Card className="overflow-hidden">
         <table className="w-full text-sm"><thead className="bg-surface-2 text-left"><tr><th className="p-3">會員</th><th className="p-3">狀態</th><th className="p-3">本週可提供</th><th className="p-3">本週需求</th><th className="p-3">操作</th></tr></thead><tbody>
           {data.rows.map(({ member, brief }: any) => (

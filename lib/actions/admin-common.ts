@@ -80,7 +80,7 @@ export async function getMembers() {
   const chapter = await getChapter();
   const { data, error } = await supabase
     .from("members")
-    .select("id, email, chinese_name, role, specialty_title, company_name")
+    .select("id, email, chinese_name, role, position, committee, specialty_title, company_name")
     .eq("chapter_id", chapter.id)
     .order("member_number", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
@@ -91,6 +91,8 @@ export async function getMembers() {
     email: string;
     chinese_name: string;
     role: string;
+    position: string | null;
+    committee: string | null;
     specialty_title: string | null;
     company_name: string | null;
   }>;

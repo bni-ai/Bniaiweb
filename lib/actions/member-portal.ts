@@ -119,3 +119,45 @@ export async function getMemberDirectory(query = "") {
     line_name: string | null;
   }>;
 }
+
+export async function getMemberMonthlySignals() {
+  const member = await getCurrentMember();
+  if (!member) {
+    return {
+      monthlyReferrals: 0,
+      trainingCredits: null,
+      oneOnOnesCompleted: null,
+    };
+  }
+
+  const supabase = createAdminClient();
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+
+  const [trainingRecords, guestReferrals] = await Promise.all([
+    supabase
+      .from("training_records" as never)
+      .select("credits_earned")
+      .eq("member_id", member.id as never),
+    supabase
+      .from("guests" as never)
+      .select("id", { count: "exact", head: true })
+      .eq("referrer_id", member.id as never)
+      .gte("created_at", monthStart.toISOString() as never),
+  ]);
+
+  if (trainingRecords.error) throw trainingRecords.error;
+  if (guestReferrals.error) throw guestReferrals.error;
+
+  const trainingCredits = ((trainingRecords.data || []) as Array<{ credits_earned: number | null }>).reduce(
+    (total, row) => total + (row.credits_earned || 0),
+    0,
+  );
+
+  return {
+    monthlyReferrals: guestReferrals.count || 0,
+    trainingCredits,
+    oneOnOnesCompleted: null,
+  };
+}
