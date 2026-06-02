@@ -46,12 +46,12 @@ export default async function MemberLayout({ children }: { children: ReactNode }
           </nav>
           <div className="mt-auto space-y-3 pt-6">
             {role === "admin" ? (
-              <Link
+              <a
                 href="/admin"
                 className="block rounded-2xl border border-[#ead9cc] bg-white px-3 py-3 text-center text-sm font-medium text-text-1 transition hover:border-primary/30 hover:text-primary"
               >
                 返回管理後台
-              </Link>
+              </a>
             ) : null}
             <form action={logout} className="shrink-0">
               <Button type="submit" variant="ghost" className="w-full rounded-full border border-[#ead9cc] bg-white px-4">

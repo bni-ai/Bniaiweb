@@ -44,12 +44,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           </nav>
           <div className="mt-auto space-y-3 pt-6">
             {role === "admin" ? (
-              <Link
+              <a
                 href="/dashboard"
                 className="block rounded-2xl border border-[#dbd1c2] bg-white px-3 py-3 text-center text-sm font-medium text-text-1 transition hover:border-primary/30 hover:text-primary"
               >
                 切換到會員視角
-              </Link>
+              </a>
             ) : null}
             <form action={logout}>
               <Button type="submit" variant="ghost" className="w-full justify-center rounded-full border border-[#dbd1c2] bg-white">
