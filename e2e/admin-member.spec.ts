@@ -175,6 +175,11 @@ test.describe("admin backend", () => {
     }
   });
 
+  test("admin can see the member-view switch entry", async ({ page }) => {
+    await page.goto("/admin");
+    await expect(page.getByRole("link", { name: "切換到會員視角" })).toBeVisible();
+  });
+
   test("VP report rejects negative values and can save valid metrics", async ({ page }) => {
     await page.goto("/admin/vp-report?week=2026-06-01");
     const referrals = page.locator('input[name="total_referrals"]');
@@ -260,5 +265,11 @@ test.describe("member portal", () => {
       await page.goto(path);
       await expect(page.getByRole("heading", { name: heading })).toBeVisible();
     }
+  });
+
+  test("admin entering member area can return to admin backend", async ({ page }) => {
+    await setRole(page, "admin");
+    await page.goto("/dashboard");
+    await expect(page.getByRole("link", { name: "返回管理後台" })).toBeVisible();
   });
 });

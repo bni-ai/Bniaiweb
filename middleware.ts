@@ -13,7 +13,15 @@ export function middleware(request: NextRequest) {
   const role = getRole(request);
   const { pathname } = request.nextUrl;
   const decision = resolveAccessDecision(pathname, role);
-  if (decision.allow) return NextResponse.next();
+  if (decision.allow) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-current-path", pathname);
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
   return NextResponse.redirect(new URL(decision.redirectTo ?? "/login", request.url));
 }
 
