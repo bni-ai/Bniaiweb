@@ -7,12 +7,47 @@ TBD - created by archiving change 'presentation-engine'. Update Purpose after ar
 ## Requirements
 
 ### Requirement: Slide viewer
-
-The system SHALL expose a public presentation route that renders published slide decks in fullscreen without application chrome.
+The system SHALL expose a public presentation route that renders published slide decks in fullscreen without application chrome. The viewer MUST render one active slide at a time inside a fixed 1920x1080 canvas and provide keyboard and button navigation.
 
 #### Scenario: Viewer opens a published presentation
 - **WHEN** a browser requests `/presentation/[week-date]` for a published presentation record
 - **THEN** the system MUST render the stored visible slides in order inside the fullscreen presentation frame
+
+#### Scenario: Viewer renders a single active slide
+- **WHEN** a browser opens `/presentation/2026-06-01` for a deck with three visible slides
+- **THEN** the viewer MUST show slide `1 / 3` and MUST NOT render all three slides as a vertical long page
+
+##### Example: active slide state
+- **GIVEN** runtime deck slides are `[cover, keynote, team]`
+- **WHEN** the viewer first loads
+- **THEN** active index is `0`, displayed page label is `1 / 3`, and only the cover slide is active
+
+#### Scenario: Viewer supports keyboard navigation
+- **WHEN** a viewer presses ArrowRight or Space
+- **THEN** the viewer MUST advance to the next slide until the final slide
+
+##### Example:
+- **GIVEN** active page label is `1 / 3`
+- **WHEN** the viewer presses ArrowRight
+- **THEN** active page label becomes `2 / 3`
+
+#### Scenario: Viewer supports previous navigation
+- **WHEN** a viewer presses ArrowLeft
+- **THEN** the viewer MUST move to the previous slide until the first slide
+
+##### Example:
+- **GIVEN** active page label is `2 / 3`
+- **WHEN** the viewer presses ArrowLeft
+- **THEN** active page label becomes `1 / 3`
+
+#### Scenario: Viewer requests fullscreen
+- **WHEN** a viewer clicks the fullscreen control
+- **THEN** the viewer MUST request fullscreen on the presentation runtime root without blocking slide navigation if fullscreen is unavailable
+
+##### Example:
+- **GIVEN** fullscreen API is unavailable in the browser
+- **WHEN** the viewer clicks `全螢幕`
+- **THEN** the viewer remains on the active slide and navigation controls remain usable
 
 #### Scenario: Viewer requests a missing presentation
 - **WHEN** a browser requests a week-date route that has no published presentation
@@ -37,178 +72,33 @@ The system SHALL expose a public presentation route that renders published slide
 - **THEN** the system MUST block rendering and reject the malformed presentation data before any slide component is rendered
 
 ##### Example:
-- **GIVEN** `slide_order` contains `{ \"type\": \"unknown\", \"id\": \"x\" }`
+- **GIVEN** `slide_order` contains `{ "type": "unknown", "id": "x" }`
 - **WHEN** viewer tries to render the deck
 - **THEN** render is rejected and no slide component mounts
 
 <!-- @trace
-source: presentation-engine
-updated: 2026-06-02
+source: presentation-slide-engine-redesign
+updated: 2026-06-03
 code:
-  - middleware.ts
-  - .github/prompts/spectra-propose.prompt.md
-  - components/landing/features.tsx
-  - components/landing/cta.tsx
-  - lib/supabase/types.ts
-  - .spectra.yaml
-  - app/(admin)/admin/page.tsx
-  - tmp-admin-switch-check.png
-  - app/auth/callback/route.ts
-  - .opencode/commands/spectra-propose.md
-  - .github/prompts/spectra-commit.prompt.md
-  - supabase/config.toml
-  - .github/skills/spectra-audit/SKILL.md
-  - public/next.svg
-  - README.md
-  - .github/prompts/spectra-discuss.prompt.md
-  - .github/prompts/spectra-ingest.prompt.md
-  - .github/skills/spectra-discuss/SKILL.md
-  - app/(marketing)/layout.tsx
-  - app/(admin)/admin/vp-report/vp-report-form.tsx
-  - app/(member)/layout.tsx
-  - app/globals.css
-  - .opencode/commands/spectra-commit.md
-  - app/(member)/dashboard/top-clients/page.tsx
-  - app/(admin)/admin/keynote/page.tsx
-  - app/(admin)/layout.tsx
-  - supabase/migrations/005_guest_portal.sql
-  - lib/presentation/builder.ts
-  - PHASE_A_VERIFICATION.md
-  - .opencode/skills/spectra-archive/SKILL.md
-  - app/(member)/dashboard/profile/page.tsx
-  - .opencode/skills/spectra-debug/SKILL.md
-  - lib/actions/presentations.ts
-  - .github/prompts/spectra-apply.prompt.md
-  - lib/actions/admin-common.ts
-  - lib/one-on-one.ts
-  - app/(admin)/admin/presentations/page.tsx
-  - app/(admin)/admin/guests/page.tsx
-  - app/(auth)/layout.tsx
-  - app/favicon.ico
-  - .github/prompts/spectra-audit.prompt.md
-  - components/landing/stats.tsx
-  - .github/skills/spectra-ingest/SKILL.md
-  - SR_EXECUTION_OBJECTIVE.md
-  - app/(admin)/admin/presentation/page.tsx
-  - .github/skills/spectra-archive/SKILL.md
-  - .github/skills/spectra-commit/SKILL.md
-  - app/(admin)/admin/submission/page.tsx
-  - .github/prompts/spectra-archive.prompt.md
-  - app/(member)/dashboard/ai/page.tsx
-  - supabase/migrations/004_chapter_week_locks.sql
-  - .cursorrules
-  - ui-mockup-member-v3.html
-  - app/(admin)/admin/vp-report/page.tsx
-  - app/(member)/dashboard/training/page.tsx
-  - CLAUDE.md
-  - app/(member)/dashboard/events/page.tsx
-  - lib/actions/guests.ts
-  - app/(member)/dashboard/one-on-one/page.tsx
-  - .opencode/commands/spectra-ingest.md
-  - .opencode/skills/spectra-commit/SKILL.md
-  - app/layout.tsx
-  - .opencode/commands/spectra-debug.md
-  - .opencode/commands/spectra-ask.md
-  - lib/actions/awards.ts
-  - app/auth/email-link/route.ts
-  - tsconfig.json
-  - lib/actions/weekly-briefs.ts
-  - lib/member-form.ts
-  - app/(guest)/guest/page.tsx
-  - lib/actions/keynote.ts
-  - .github/prompts/spectra-drift.prompt.md
-  - .github/skills/spectra-debug/SKILL.md
-  - public/globe.svg
-  - app/(admin)/admin/guests/guest-visit-form.tsx
-  - AGENTS.md
-  - app/(guest)/guest/members/page.tsx
-  - public/file.svg
-  - components/slides/index.tsx
-  - lib/presentation/viewer.tsx
-  - supabase/migrations/006_member_module.sql
-  - .opencode/commands/spectra-audit.md
-  - .github/skills/spectra-apply/SKILL.md
-  - app/(member)/dashboard/gains/page.tsx
-  - .opencode/commands/spectra-drift.md
-  - supabase/migrations/002_auth_hook.sql
-  - supabase/migrations/003_admin_backend_patch.sql
-  - postcss.config.mjs
   - .opencode/skills/spectra-apply/SKILL.md
-  - app/(admin)/admin/members/member-form.tsx
-  - vitest.config.ts
-  - app/(admin)/admin/import/page.tsx
-  - .github/skills/spectra-ask/SKILL.md
-  - lib/actions/member-portal.ts
+  - .opencode/commands/spectra-ingest.md
   - .opencode/skills/spectra-audit/SKILL.md
-  - playwright.config.ts
-  - public/vercel.svg
-  - public/window.svg
+  - .opencode/commands/spectra-debug.md
   - .opencode/skills/spectra-drift/SKILL.md
-  - lib/guest-portal.ts
-  - app/(member)/dashboard/page.tsx
-  - app/(guest)/layout.tsx
-  - .opencode/skills/spectra-ask/SKILL.md
-  - lib/supabase/client.ts
-  - next.config.ts
-  - SR_ALIGNMENT_PATCH.md
-  - components/slides/shared.tsx
-  - lib/actions/members.ts
-  - eslint.config.mjs
-  - app/(marketing)/page.tsx
-  - app/(admin)/admin/awards/page.tsx
-  - lib/access-control.ts
-  - .opencode/skills/spectra-discuss/SKILL.md
-  - lib/actions/one-on-ones.ts
-  - components/landing/hero.tsx
-  - package.json
-  - app/(guest)/guest/content/page.tsx
+  - .opencode/commands/spectra-ask.md
   - .opencode/commands/spectra-apply.md
-  - GEMINI.md
-  - app/(admin)/admin/settings/page.tsx
-  - app/(auth)/login/page.tsx
-  - app/(admin)/admin/weekly-briefs/page.tsx
-  - .github/prompts/spectra-debug.prompt.md
-  - app/(auth)/error/page.tsx
-  - lib/member-portal-policy.ts
-  - lib/actions/guest-portal.ts
-  - .opencode/commands/spectra-archive.md
-  - app/(guest)/guest/prepare/page.tsx
-  - components/member/gains-form.tsx
-  - app/presentation/[week-date]/page.tsx
-  - .github/skills/spectra-drift/SKILL.md
-  - .github/prompts/spectra-ask.prompt.md
-  - lib/auth/session-role.ts
-  - lib/actions/vp-report.ts
-  - lib/auth/access-control.ts
-  - .github/skills/spectra-propose/SKILL.md
-  - app/(admin)/admin/presentations/[id]/page.tsx
-  - app/(admin)/admin/members/page.tsx
-  - app/(admin)/admin/members/new/page.tsx
-  - app/(member)/dashboard/directory/page.tsx
-  - app/(member)/dashboard/contacts-circle/page.tsx
-  - lib/actions/auth.ts
-  - lib/admin-workflows.ts
-  - components/ui/button.tsx
-  - app/(member)/dashboard/report/page.tsx
-  - app/(admin)/admin/guests/create/route.ts
-  - app/(member)/dashboard/brief/page.tsx
-  - lib/supabase/server.ts
-  - app/(admin)/admin/members/[id]/page.tsx
-  - .opencode/skills/spectra-propose/SKILL.md
-  - components/ui/card.tsx
+  - .opencode/skills/spectra-ask/SKILL.md
+  - .opencode/skills/spectra-debug/SKILL.md
+  - .opencode/skills/spectra-discuss/SKILL.md
+  - .opencode/commands/spectra-audit.md
   - .opencode/commands/spectra-discuss.md
-  - lib/presentation/slide-order.ts
-  - app/(member)/dashboard/weekly/page.tsx
-  - lib/presentation/types.ts
   - .opencode/skills/spectra-ingest/SKILL.md
-tests:
-  - lib/admin-workflows.test.ts
-  - e2e/admin-member.spec.ts
-  - lib/member-portal-policy.test.ts
-  - lib/one-on-one.test.ts
-  - lib/access-control.test.ts
-  - lib/members.test.ts
-  - lib/presentation-logic.test.ts
-  - lib/auth/access-control.test.ts
-  - lib/guest-portal.test.ts
+  - .opencode/skills/spectra-propose/SKILL.md
+  - .cursorrules
+  - .opencode/commands/spectra-archive.md
+  - .opencode/commands/spectra-drift.md
+  - .opencode/skills/spectra-archive/SKILL.md
+  - .opencode/skills/spectra-commit/SKILL.md
+  - .opencode/commands/spectra-commit.md
+  - .opencode/commands/spectra-propose.md
 -->
