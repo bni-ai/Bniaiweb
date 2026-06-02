@@ -36,4 +36,4 @@
 - [x] 6.1 落實 `D5. 用 page-level wiring audit 維持可驗收性`：補齊 `admin/member/guest`、presentation、settings、media、one-on-one Jitsi、AI 的 E2E case，覆蓋正常流程、fallback、preview、publish、save effect、upload readback、chat response；驗證：`npm run test:e2e` 全綠。
 - [x] 6.2 完成功能基線回歸：執行 `npm run test`、`npm run build`、`npm run test:e2e`，確認本 change 沒有造成既有功能回歸；驗證：三個指令皆成功。
 - [x] 6.3 完成 SR 自身驗收：執行 `spectra analyze functional-v3-parity-alignment --json` 與 `spectra validate functional-v3-parity-alignment`，確認 artifacts 一致且可進入 apply；驗證：analyze 無 Critical/Warning，validate 成功。
-- [ ] 6.4 完成嚴格交付：commit、push、Vercel production deploy，並對 `https://bni-ai-web.vercel.app` 跑 live E2E；驗證：live `E2E_BASE_URL=https://bni-ai-web.vercel.app npm run test:e2e` 全綠。
+- [x] 6.4 完成嚴格交付：commit、push、Vercel production deploy，並對 `https://bni-ai-web.vercel.app` 跑 live E2E；驗證：live `E2E_BASE_URL=https://bni-ai-web.vercel.app npm run test:e2e` 全綠。
