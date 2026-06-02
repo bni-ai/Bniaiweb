@@ -5,6 +5,8 @@ export type OneOnOneRow = Database["public"]["Tables"]["one_on_ones"]["Row"];
 
 export const weekdayLabels = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"] as const;
 
+const TAIPEI_UTC_OFFSET_HOURS = 8;
+
 function requireField(value: string, label: string) {
   if (!value.trim()) {
     throw new Error(`${label} 為必填`);
@@ -15,16 +17,7 @@ export function buildJitsiRoom() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 10);
 }
 
-export function parseLocalDateTimeToIso(value: string) {
-  requireField(value, "預約時間");
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new Error("預約時間格式錯誤");
-  }
-  return date.toISOString();
-}
-
-export function parseLocalDateTimeParts(value: string) {
+function parseLocalDateTimeValue(value: string) {
   requireField(value, "預約時間");
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
   if (!match) {
@@ -36,9 +29,29 @@ export function parseLocalDateTimeParts(value: string) {
   const day = Number(dayText);
   const hour = Number(hourText);
   const minute = Number(minuteText);
+  const utcMillis = Date.UTC(year, month - 1, day, hour - TAIPEI_UTC_OFFSET_HOURS, minute);
+  return {
+    iso: new Date(utcMillis).toISOString(),
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    dayText,
+    hourText,
+    minuteText,
+  };
+}
+
+export function parseLocalDateTimeToIso(value: string) {
+  return parseLocalDateTimeValue(value).iso;
+}
+
+export function parseLocalDateTimeParts(value: string) {
+  const { iso, year, month, day, hour, minute, hourText, minuteText } = parseLocalDateTimeValue(value);
   const dayOfWeek = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
   return {
-    iso: new Date(value).toISOString(),
+    iso,
     day_of_week: dayOfWeek,
     start_time: `${hourText}:${minuteText}`,
     end_time: addMinutesToTimeString(`${hourText}:${minuteText}`, 60),

@@ -43,6 +43,6 @@ describe("one-on-one helpers", () => {
 
   it("generates a 10-char jitsi room and parses datetime", () => {
     expect(buildJitsiRoom()).toHaveLength(10);
-    expect(parseLocalDateTimeToIso("2026-06-04T10:00")).toMatch(/^2026-06-04T/);
+    expect(parseLocalDateTimeToIso("2026-06-04T10:00")).toBe("2026-06-04T02:00:00.000Z");
   });
 });

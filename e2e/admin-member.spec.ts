@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
+import { parseLocalDateTimeToIso } from "../lib/one-on-one";
 
 const TINY_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn1L0sAAAAASUVORK5CYII=",
@@ -372,14 +373,20 @@ async function deleteBookingsForSlot(inviterEmail: string, inviteeEmail: string,
   const supabase = getSupabaseAdmin();
   const inviterId = await getMemberIdByEmail(inviterEmail);
   const inviteeId = await getMemberIdByEmail(inviteeEmail);
-  const scheduledAtIso = new Date(scheduledAtLocal).toISOString();
-  const { error } = await supabase
+  const scheduledAtIso = parseLocalDateTimeToIso(scheduledAtLocal);
+  const memberIds = [inviterId, inviteeId];
+  const { error: inviterError } = await supabase
     .from("one_on_ones")
     .delete()
     .eq("scheduled_at", scheduledAtIso)
-    .eq("inviter_id", inviterId)
-    .eq("invitee_id", inviteeId);
-  if (error) throw error;
+    .in("inviter_id", memberIds);
+  if (inviterError) throw inviterError;
+  const { error: inviteeError } = await supabase
+    .from("one_on_ones")
+    .delete()
+    .eq("scheduled_at", scheduledAtIso)
+    .in("invitee_id", memberIds);
+  if (inviteeError) throw inviteeError;
 }
 
 async function createConfirmedBookingWithinWindow(inviterEmail: string, inviteeEmail: string, notes: string) {
