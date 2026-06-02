@@ -58,21 +58,21 @@ export async function getChapter() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("chapters" as never)
-    .select("id, name, slug")
+    .select("id, name, slug, region")
     .eq("slug", "hua-ai")
     .maybeSingle();
 
   if (error) throw error;
-  if (data) return data as { id: string; name: string; slug: string };
+  if (data) return data as { id: string; name: string; slug: string; region: string | null };
 
   const { data: inserted, error: insertError } = await supabase
     .from("chapters" as never)
     .insert({ slug: "hua-ai", name: "BNI 華 AI 分會", region: "台北" } as never)
-    .select("id, name, slug")
+    .select("id, name, slug, region")
     .single();
 
   if (insertError) throw insertError;
-  return inserted as { id: string; name: string; slug: string };
+  return inserted as { id: string; name: string; slug: string; region: string | null };
 }
 
 export async function getMembers() {

@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { buildPresentationSlides } from "../admin-workflows";
+import { buildSlideOrder } from "../presentation/builder";
+import { parseSlideOrder } from "../presentation/slide-order";
 import { asJson, createAdminClient, getChapter, parseWeekDate, requireText } from "./admin-common";
 
 export async function getPresentations(): Promise<Array<{ id: string; week_date: string; title: string | null; status: string; published_url: string | null; slide_order: unknown; updated_at: string | null }>> {
@@ -29,34 +30,11 @@ export async function getPresentation(id: string): Promise<{ id: string; week_da
   return data as { id: string; week_date: string; title: string | null; status: string; published_url: string | null; slide_order: unknown };
 }
 
-async function collectSlideData(weekDate: string) {
-  const supabase = createAdminClient();
-  const chapter = await getChapter();
-  const [briefs, keynote, guests, awards, vpReport] = await Promise.all([
-    supabase.from("weekly_briefs").select("id").eq("week_date", weekDate).eq("status", "submitted"),
-    supabase.from("keynote_talks" as never).select("id").eq("week_date", weekDate as never).maybeSingle(),
-    supabase.from("guest_visits" as never).select("guest_id").eq("week_date", weekDate as never),
-    supabase.from("weekly_awards" as never).select("id").eq("chapter_id", chapter.id as never).eq("week_date", weekDate as never),
-    supabase.from("weekly_vp_reports" as never).select("id").eq("chapter_id", chapter.id as never).eq("week_date", weekDate as never).maybeSingle(),
-  ]);
-  for (const result of [briefs, keynote, guests, awards, vpReport]) {
-    if (result.error) throw result.error;
-  }
-  return buildPresentationSlides({
-    weekDate,
-    briefs: briefs.data || [],
-    keynote: keynote.data as { id: string } | null,
-    guestVisits: (guests.data || []) as Array<{ guest_id: string }>,
-    awards: (awards.data || []) as Array<{ id: string }>,
-    vpReport: vpReport.data as { id: string } | null,
-  });
-}
-
 export async function createPresentationAction(formData: FormData) {
   const supabase = createAdminClient();
   const chapter = await getChapter();
   const weekDate = parseWeekDate(requireText(formData, "week_date"));
-  const slideOrder = await collectSlideData(weekDate);
+  const slideOrder = await buildSlideOrder(weekDate, chapter.id, supabase);
 
   const { data, error } = await supabase
     .from("presentations" as never)
@@ -82,6 +60,7 @@ export async function saveSlideOrderAction(formData: FormData) {
   const supabase = createAdminClient();
   const id = requireText(formData, "id");
   const slideOrder = JSON.parse(requireText(formData, "slide_order"));
+  parseSlideOrder(slideOrder);
   const { error } = await supabase
     .from("presentations" as never)
     .update({ slide_order: asJson(slideOrder), updated_at: new Date().toISOString() } as never)
@@ -95,7 +74,8 @@ export async function publishPresentationAction(formData: FormData) {
   const id = requireText(formData, "id");
   const weekDate = requireText(formData, "week_date");
   const slideOrder = JSON.parse(requireText(formData, "slide_order"));
-  if (!Array.isArray(slideOrder) || slideOrder.length === 0) {
+  const parsed = parseSlideOrder(slideOrder);
+  if (parsed.length === 0) {
     throw new Error("簡報沒有 slide_order，無法發布。");
   }
   const { error } = await supabase

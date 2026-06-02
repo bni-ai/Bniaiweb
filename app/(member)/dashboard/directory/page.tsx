@@ -37,7 +37,9 @@ export default async function MemberDirectoryPage({ searchParams }: { searchPara
               <p className="mt-4 whitespace-pre-line text-sm leading-7">{m.specialty_description || "尚未填寫詳細介紹"}</p>
               <div className="mt-4 rounded-2xl border border-dashed border-border p-4 text-sm text-text-2">
                 <p>LINE：{m.line_name || "未公開"}</p>
-                <p className="mt-2">一對一預約功能仍由後續 `member-module` 接手，現階段先不開放直連操作。</p>
+                <a href={`/dashboard/one-on-one?invitee=${m.id}`} className="mt-3 inline-flex rounded-full border border-border px-4 py-2 text-xs font-medium text-text-1">
+                  預約一對一
+                </a>
               </div>
             </Card>
           </details>

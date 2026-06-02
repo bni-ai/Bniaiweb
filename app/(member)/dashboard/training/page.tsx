@@ -1,14 +1,33 @@
 import { Card } from "../../../../components/ui/card";
+import { getMemberTrainingDashboard } from "../../../../lib/actions/training";
 
-export default function TrainingPlaceholderPage() {
+export default async function MemberTrainingPage() {
+  const data = await getMemberTrainingDashboard();
+
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">Coming Soon</p>
+        <p className="text-sm text-text-2">Training Credits</p>
         <h1 className="text-3xl font-black">培訓紀錄</h1>
-        <p className="mt-2 text-sm text-text-2">training records 已有資料表，但完整會員端體驗仍會由後續主線補齊。</p>
+        <p className="mt-2 text-sm text-text-2">查看已完課課程、累積學分與剩餘課程數。</p>
       </div>
-      <Card className="rounded-[24px] p-6 text-sm text-text-2">這裡會放學分統計、課程完成狀態與建議下一課，目前先保留安全入口。</Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">總學分</p><p className="mt-3 text-3xl font-black text-text-1">{data.totalCredits}</p></Card>
+        <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">已完成課程</p><p className="mt-3 text-3xl font-black text-text-1">{data.records.length}</p></Card>
+        <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">剩餘課程</p><p className="mt-3 text-3xl font-black text-text-1">{data.remainingCourses}</p></Card>
+      </div>
+      <Card className="rounded-[24px] p-5">
+        <h2 className="text-xl font-semibold">已完成課程</h2>
+        <div className="mt-4 space-y-2 text-sm">
+          {data.records.map((record) => (
+            <div key={record.id} className="rounded-2xl border border-border px-4 py-3">
+              <p className="font-medium text-text-1">{record.courseName}</p>
+              <p className="mt-1 text-text-2">{record.completed_at} · {record.credits_earned || 0} 學分{record.provider ? ` · ${record.provider}` : ""}</p>
+            </div>
+          ))}
+          {data.records.length === 0 ? <p className="text-text-2">目前還沒有完課紀錄。</p> : null}
+        </div>
+      </Card>
     </div>
   );
 }

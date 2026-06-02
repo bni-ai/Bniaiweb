@@ -9,8 +9,16 @@ function getWeekLabel(weekDate: string) {
 
 export default async function MemberReportPage({ searchParams }: { searchParams?: Promise<{ week?: string }> }) {
   const params = await searchParams;
-  const { member, weekDate, brief, locked, lockReason } = await getMemberDashboardData(parseWeekDate(params?.week));
+  const { member, weekDate, brief, locked, lockReason, deadlineAt } = await getMemberDashboardData(parseWeekDate(params?.week));
   const status = brief?.status === "submitted" ? "已提交" : brief?.status === "draft" ? "草稿中" : "尚未開始";
+  const deadlineLabel = new Intl.DateTimeFormat("zh-TW", {
+    timeZone: "Asia/Taipei",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(deadlineAt));
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -19,7 +27,7 @@ export default async function MemberReportPage({ searchParams }: { searchParams?
           <h1 className="text-3xl font-black">每週 Brief</h1>
           <p className="mt-2 text-sm text-text-2">{member ? `${member.chinese_name} / ${status}` : "找不到會員資料"}</p>
         </div>
-        <div className="rounded-full bg-[#fff1ea] px-4 py-2 text-sm text-primary">截止時間：例會前請完成提交</div>
+        <div className="rounded-full bg-[#fff1ea] px-4 py-2 text-sm text-primary">截止時間：{deadlineLabel}</div>
       </div>
       {locked ? <Card className="rounded-[22px] border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><p className="font-semibold">此週已鎖定，Brief 只能檢視，不能修改。</p>{lockReason ? <p className="mt-1">{lockReason}</p> : null}</Card> : null}
       <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
@@ -45,7 +53,7 @@ export default async function MemberReportPage({ searchParams }: { searchParams?
           <div className="mt-4 space-y-3 text-sm text-text-2">
             <div className="rounded-2xl border border-border p-4">
               <p className="font-semibold text-text-1">狀態</p>
-              <p className="mt-2">{status}</p>
+              <p className="mt-2">{status}{brief?.submitted_late ? " / 逾期提交" : ""}</p>
             </div>
             <div className="rounded-2xl border border-border p-4">
               <p className="font-semibold text-text-1">建議寫法</p>

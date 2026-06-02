@@ -13,6 +13,8 @@ const navItems = [
   { href: "/admin/keynote", label: "8 分鐘短講" },
   { href: "/admin/guests", label: "來賓管理" },
   { href: "/admin/members", label: "會員管理" },
+  { href: "/admin/events", label: "活動管理" },
+  { href: "/admin/training", label: "培訓管理" },
   { href: "/admin/import", label: "資料匯入" },
   { href: "/admin/settings", label: "系統設定" },
 ];

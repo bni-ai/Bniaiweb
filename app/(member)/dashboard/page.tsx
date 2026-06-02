@@ -18,7 +18,7 @@ export default async function DashboardPage() {
     { label: "本週簡報", value: status, note: locked ? "本週已鎖定" : "截止前可繼續修改", tone: "text-primary" },
     { label: "本月引薦", value: String(signals.monthlyReferrals), note: "以本月新增邀約來賓估算", tone: "text-amber-700" },
     { label: "累積培訓學分", value: signals.trainingCredits === null ? "待啟用" : String(signals.trainingCredits), note: signals.trainingCredits === null ? "培訓模組建置中" : "已接 training_records", tone: "text-text-1" },
-    { label: "本月一對一", value: signals.oneOnOnesCompleted === null ? "開發中" : String(signals.oneOnOnesCompleted), note: "one-on-one 模組未完成", tone: "text-emerald-700" },
+    { label: "本月一對一", value: signals.oneOnOnesCompleted === null ? "開發中" : String(signals.oneOnOnesCompleted), note: signals.oneOnOnesCompleted === null ? "one-on-one 模組未完成" : "已完成狀態的本月一對一數量", tone: "text-emerald-700" },
   ];
 
   return (

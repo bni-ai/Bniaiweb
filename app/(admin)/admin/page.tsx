@@ -45,6 +45,7 @@ export default async function AdminHomePage({ searchParams }: { searchParams?: P
           <div className="mt-4 space-y-3 text-sm text-white/80">
             <div className="rounded-2xl bg-white/8 p-4">尚未提交：{briefs.totalCount - briefs.submittedCount} 位</div>
             <div className="rounded-2xl bg-white/8 p-4">來賓確認：{guests.length} 位</div>
+            <div className="rounded-2xl bg-white/8 p-4">逾期提交：{briefs.lateCount} 位</div>
             <div className="rounded-2xl bg-white/8 p-4">VP 引薦：{vpReport?.total_referrals ?? 0} 筆</div>
           </div>
         </Card>
@@ -54,7 +55,7 @@ export default async function AdminHomePage({ searchParams }: { searchParams?: P
         <Card className="rounded-[24px] p-4"><p className="text-sm text-text-2">本週簡報提交</p><p className="mt-3 text-3xl font-bold text-emerald-700">{briefs.submittedCount}</p><p className="mt-2 text-xs text-text-2">{briefs.totalCount} 位中</p></Card>
         <Card className="rounded-[24px] p-4"><p className="text-sm text-text-2">尚未提交</p><p className="mt-3 text-3xl font-bold text-primary">{briefs.totalCount - briefs.submittedCount}</p><p className="mt-2 text-xs text-text-2">請跟進提醒</p></Card>
         <Card className="rounded-[24px] p-4"><p className="text-sm text-text-2">本週來賓</p><p className="mt-3 text-3xl font-bold">{guests.length}</p><p className="mt-2 text-xs text-text-2">已確認</p></Card>
-        <Card className="rounded-[24px] p-4"><p className="text-sm text-text-2">本月引薦</p><p className="mt-3 text-3xl font-bold">{vpReport?.total_referrals ?? 0}</p><p className="mt-2 text-xs text-text-2">全分會</p></Card>
+        <Card className="rounded-[24px] p-4"><p className="text-sm text-text-2">本週已提醒</p><p className="mt-3 text-3xl font-bold">{briefs.remindedCount}</p><p className="mt-2 text-xs text-text-2">reminder logs</p></Card>
       </div>
       <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
         <Card className="rounded-[24px] p-5">
