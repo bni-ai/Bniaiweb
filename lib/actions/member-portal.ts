@@ -123,7 +123,7 @@ export async function getMemberDirectory(query = "") {
   const normalized = query.trim();
   let builder = supabase
     .from("members" as never)
-    .select("id, chinese_name, english_name, email, specialty_title, specialty_description, company_name, line_name")
+    .select("id, chinese_name, english_name, email, member_number, specialty_title, specialty_description, company_name, line_name, photo_url")
     .eq("chapter_id", chapter.id as never)
     .order("member_number", { ascending: true, nullsFirst: false });
   if (normalized) {
@@ -136,10 +136,12 @@ export async function getMemberDirectory(query = "") {
     chinese_name: string;
     english_name: string | null;
     email: string;
+    member_number: string | null;
     specialty_title: string | null;
     specialty_description: string | null;
     company_name: string | null;
     line_name: string | null;
+    photo_url: string | null;
   }>;
 }
 

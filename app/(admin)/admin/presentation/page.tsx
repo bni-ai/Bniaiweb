@@ -32,16 +32,20 @@ export default async function PresentationPage({ searchParams }: { searchParams?
 
       <div className="grid gap-3">
         {presentations.map((p) => (
-          <Card className="rounded-[24px] p-5" key={p.id}>
+          <Card className="rounded-lg p-5" key={p.id}>
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="font-semibold">{p.title || p.week_date}</h2>
-                <p className="text-sm text-text-2">狀態：{p.status} · slides: {Array.isArray(p.slide_order) ? p.slide_order.length : 0}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                  <span className="rounded bg-surface-2 px-2 py-1">狀態：{p.status === "published" ? "已發布" : "草稿"}</span>
+                  <span className="rounded bg-surface-2 px-2 py-1">投影片：{Array.isArray(p.slide_order) ? p.slide_order.length : 0}</span>
+                  <span className="rounded bg-surface-2 px-2 py-1">更新：{p.updated_at ? new Date(p.updated_at).toLocaleString("zh-TW", { hour12: false }) : "-"}</span>
+                </div>
                 <p className="mt-2 text-xs text-text-2">{p.published_url ? `公開網址：${p.published_url}` : "尚未發布公開網址"}</p>
               </div>
-              <div className="flex gap-2">
-                <Link className="rounded-full border border-border px-4 py-2 text-sm" href={`/presentation/${p.week_date}`}>預覽</Link>
-                <Link className="rounded-full border border-border px-4 py-2 text-sm" href={`/admin/presentations/${p.id}`}>編輯</Link>
+              <div className="flex flex-wrap gap-2">
+                <Link className="rounded-full border border-border px-4 py-2 text-sm" href={`/presentation/${p.week_date}`} target="_blank">預覽簡報</Link>
+                <Link className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white" href={`/admin/presentations/${p.id}`}>編輯工作台</Link>
               </div>
             </div>
           </Card>

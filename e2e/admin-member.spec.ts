@@ -301,6 +301,13 @@ async function countMemberProductImages(email: string) {
   return count || 0;
 }
 
+async function clearMemberProductImages(email: string) {
+  const supabase = getSupabaseAdmin();
+  const memberId = await getMemberIdByEmail(email);
+  const { error } = await supabase.from("member_product_images").delete().eq("member_id", memberId);
+  if (error) throw error;
+}
+
 async function getKeynoteImageCount(weekDate: string) {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
@@ -721,6 +728,13 @@ test.describe("admin backend", () => {
     await expect(page.getByRole("link", { name: "切換到會員視角" })).toBeVisible();
   });
 
+  test("admin shell shows signed-in identity card", async ({ page }) => {
+    await signInWithGeneratedLink(page, "fish@fishot.com");
+    await page.goto("/admin");
+    await expect(page.getByTestId("shell-user-card")).toContainText("余啟彰");
+    await expect(page.getByTestId("shell-user-card")).toContainText(/管理員|主席|president/i);
+  });
+
   test("VP report rejects negative values and can save valid metrics", async ({ page }) => {
     await page.goto("/admin/vp-report?week=2026-06-01");
     const referrals = page.locator('input[name="total_referrals"]');
@@ -760,7 +774,28 @@ test.describe("admin backend", () => {
 
     await page.goto("/admin/settings");
     await expect(page.getByRole("heading", { name: "系統設定" })).toBeVisible();
-    await expect(page.getByText("這裡已接上 chapter settings")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "分會資訊" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "AI 設定" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "例會設定" })).toBeVisible();
+  });
+
+  test("admin settings critical controls remain usable across desktop tablet and mobile", async ({ page }) => {
+    const viewports = [
+      { name: "desktop", width: 1440, height: 900 },
+      { name: "tablet", width: 834, height: 1112 },
+      { name: "mobile", width: 390, height: 844 },
+    ];
+
+    for (const viewport of viewports) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto("/admin/settings");
+      await expect(page.getByRole("heading", { name: "系統設定" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "分會資訊" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "AI 設定" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "例會設定" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "儲存設定" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "儲存設定" })).toBeEnabled();
+    }
   });
 
   test("admin can create and find a member record", async ({ page }) => {
@@ -854,7 +889,7 @@ test.describe("admin backend", () => {
       await page.locator('input[name="openai_model_name"]').fill("gpt-4.1-mini");
       await page.locator('input[name="bni_connect_username"]').fill("bnitest@example.com");
       await page.locator('input[name="bni_connect_password"]').fill("secret-123");
-      await page.getByRole("button", { name: "儲存系統設定" }).click();
+      await page.getByRole("button", { name: "儲存設定" }).click();
       await expect(page).toHaveURL(/saved=1/);
       await expect.poll(async () => (await getActiveAiProvider())).toBe("openai");
 
@@ -968,6 +1003,21 @@ test.describe("admin backend", () => {
     await expect(page.getByText("如何把例會資料變成可分享簡報")).toBeVisible();
   });
 
+  test("admin presentation workbench hides raw JSON editor and exposes preview publishing controls", async ({ page }) => {
+    test.setTimeout(60_000);
+    const seeded = await seedPresentationScenario(futureWeekDate(128), "draft");
+    await setRole(page, "admin");
+    await page.goto(`/admin/presentations/${seeded.id}`);
+    await expect(page.getByRole("heading", { name: "簡報工作台" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "投影片順序" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "預覽簡報" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "發布簡報" })).toBeVisible();
+    await expect(page.locator('textarea[name="slide_order"]')).toHaveCount(0);
+    await page.locator('input[name="slide_order_0"]').fill("1");
+    await page.getByRole("button", { name: "儲存投影片設定" }).click();
+    await expect(page.getByRole("heading", { name: "簡報工作台" })).toBeVisible();
+  });
+
   test("presentation viewer blocks missing, draft, and malformed decks", async ({ page }) => {
     test.setTimeout(60_000);
     const missingWeek = futureWeekDate(127);
@@ -998,6 +1048,13 @@ test.describe("member portal", () => {
     await page.goto("/dashboard/directory");
     await expect(page.getByRole("heading", { name: "會員通訊錄" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "王小明" }).first()).toBeVisible();
+  });
+
+  test("member shell shows signed-in identity card", async ({ page }) => {
+    await signInWithGeneratedLink(page, "fish.myfb@gmail.com");
+    await page.goto("/dashboard");
+    await expect(page.getByTestId("shell-user-card")).toContainText("余啟銘");
+    await expect(page.getByTestId("shell-user-card")).toContainText(/會員|資訊|member/i);
   });
 
   test("locked weekly report is read-only", async ({ page }) => {
@@ -1162,7 +1219,7 @@ test.describe("member portal", () => {
     await page.goto("/admin/settings");
     await page.locator('input[type="radio"][value="gemini"]').check();
     await page.locator('input[name="gemini_model_name"]').fill("gemini-2.5-pro");
-    await page.getByRole("button", { name: "儲存系統設定" }).click();
+    await page.getByRole("button", { name: "儲存設定" }).click();
     await expect(page).toHaveURL(/saved=1/);
 
     await signInWithGeneratedLink(page, "fish.myfb@gmail.com");
@@ -1171,13 +1228,15 @@ test.describe("member portal", () => {
     await page.locator('textarea[name="query"]').fill(query);
     await page.getByRole("button", { name: "送出查詢" }).click();
     await expect(page.getByText("AI 查詢會員", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(query).first()).toBeVisible();
     await expect.poll(async () => (await getLatestAiConversation(query))?.provider).toBe("gemini");
   });
 
   test("member profile media and keynote materials upload flow works", async ({ page }) => {
     test.setTimeout(90_000);
     const memberEmail = "fish.myfb@gmail.com";
-    const productCountBefore = await countMemberProductImages(memberEmail);
+    await clearMemberProductImages(memberEmail);
+    const productCountBefore = 0;
     const weekDate = futureWeekDate(28);
     await deleteKeynoteByWeek(weekDate);
 
@@ -1191,6 +1250,7 @@ test.describe("member portal", () => {
     await page.getByRole("button", { name: "上傳頭像" }).click();
     await expect(page).toHaveURL(/photo=1/);
     await expect.poll(async () => await getMemberPhotoUrl(memberEmail)).toMatch(/bniai-media/);
+    await expect(page.locator('img[alt="余啟銘"]').first()).toBeVisible();
 
     await page.locator('input[name="product_files"]').setInputFiles([
       { name: "product-1.png", mimeType: "image/png", buffer: TINY_PNG },

@@ -4,6 +4,15 @@ import { resolveAccessDecision, resolveAuthDestination, type AppRole } from "./a
 
 describe("access control", () => {
   it.each([
+    ["/admin", "admin", null],
+    ["/admin/members", "admin", null],
+    ["/dashboard", "admin", null],
+    ["/dashboard/report", "admin", null],
+    ["/guest", "admin", null],
+    ["/guest/content", "admin", null],
+    ["/admin", "member", "/dashboard"],
+    ["/dashboard", "member", null],
+    ["/guest", "member", null],
     ["/admin", "guest", "/guest"],
     ["/admin/guests", "guest", "/guest"],
     ["/dashboard", "guest", "/guest"],

@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 
 import { Button } from "../../components/ui/button";
 import { logout } from "../../lib/actions/auth";
+import { getShellIdentity, type ShellIdentity } from "../../lib/auth/shell-identity";
 import { getSessionRole } from "../../lib/auth/session-role";
 
 const navItems = [
@@ -19,8 +20,24 @@ const navItems = [
   { href: "/admin/settings", label: "系統設定" },
 ];
 
+function UserCard({ identity }: { identity: ShellIdentity }) {
+  return (
+    <div className="mb-5 flex items-center gap-3 rounded-lg border border-[#dbd1c2] bg-white p-3" data-testid="shell-user-card">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-white">
+        {identity.avatarUrl ? <img src={identity.avatarUrl} alt={identity.displayName} className="h-full w-full object-cover" /> : identity.initial}
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-text-1">{identity.displayName}</p>
+        <p className="truncate text-xs text-text-2">{identity.secondaryLabel}</p>
+        <span className="mt-1 inline-flex rounded bg-[#fef2f2] px-1.5 py-0.5 text-[10px] font-semibold text-primary">{identity.roleLabel}</span>
+      </div>
+    </div>
+  );
+}
+
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const role = await getSessionRole();
+  const identity = await getShellIdentity();
   const currentPath = (await headers()).get("x-current-path") || "";
 
   return (
@@ -29,6 +46,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <aside className="flex min-h-screen flex-col border-r border-[#dbd1c2] bg-[#f9f6f0] p-4">
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">BNI Hua AI</p>
           <p className="mb-4 text-sm text-text-2">幹部管理後台</p>
+          <UserCard identity={identity} />
           <nav className="space-y-1">
             {navItems.map((item) => (
               <Link

@@ -18,20 +18,33 @@ export default async function MemberDirectoryPage({ searchParams }: { searchPara
         {members.map((m) => (
           <details key={m.id}>
             <summary className="list-none">
-              <Card className="cursor-pointer rounded-[24px] p-5 shadow-[0_10px_30px_rgba(17,24,39,0.04)] transition hover:-translate-y-0.5 hover:border-primary/30">
+              <Card className="cursor-pointer rounded-lg p-5 shadow-[0_10px_30px_rgba(17,24,39,0.04)] transition hover:-translate-y-0.5 hover:border-primary/30">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="flex min-w-0 gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-white">
+                      {m.photo_url ? <img src={m.photo_url} alt={m.chinese_name} className="h-full w-full object-cover" /> : m.chinese_name.slice(-1)}
+                    </div>
+                    <div className="min-w-0">
                     <h2 className="text-lg font-semibold">{m.chinese_name}{m.english_name ? ` / ${m.english_name}` : ""}</h2>
                     <p className="mt-1 text-sm font-medium text-primary">{m.specialty_title || "未填專業"}</p>
                     <p className="mt-1 text-sm text-text-2">{m.company_name || "未填公司"}</p>
+                    </div>
                   </div>
                   <span className="rounded-full bg-[#fff1ea] px-3 py-1 text-xs text-primary">查看詳情</span>
                 </div>
                 <p className="mt-4 line-clamp-3 text-sm text-text-2">{m.specialty_description || "尚未填寫詳細介紹"}</p>
               </Card>
             </summary>
-            <Card className="mt-3 rounded-[24px] border-primary/15 bg-[#fffdfb] p-5">
-              <h3 className="text-xl font-semibold">{m.chinese_name}</h3>
+            <Card className="mt-3 rounded-lg border-primary/15 bg-[#fffdfb] p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-base font-semibold text-white">
+                  {m.photo_url ? <img src={m.photo_url} alt={m.chinese_name} className="h-full w-full object-cover" /> : m.chinese_name.slice(-1)}
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">{m.chinese_name}</h3>
+                  <p className="text-sm text-text-2">{m.member_number ? `會員編號 ${m.member_number}` : m.email}</p>
+                </div>
+              </div>
               <p className="mt-1 text-sm font-medium text-primary">{m.specialty_title || "未填專業"}</p>
               <p className="mt-2 text-sm text-text-2">{m.company_name || "未填公司"}</p>
               <p className="mt-4 whitespace-pre-line text-sm leading-7">{m.specialty_description || "尚未填寫詳細介紹"}</p>

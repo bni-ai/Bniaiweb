@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { buildSlideOrder } from "../presentation/builder";
 import { parseSlideOrder } from "../presentation/slide-order";
+import { buildWorkbenchSlideOrder } from "../presentation/workbench";
 import { asJson, createAdminClient, getChapter, parseWeekDate, requireText } from "./admin-common";
 
 export async function getPresentations(): Promise<Array<{ id: string; week_date: string; title: string | null; status: string; published_url: string | null; slide_order: unknown; updated_at: string | null }>> {
@@ -59,7 +60,9 @@ export async function createPresentationAction(formData: FormData) {
 export async function saveSlideOrderAction(formData: FormData) {
   const supabase = createAdminClient();
   const id = requireText(formData, "id");
-  const slideOrder = JSON.parse(requireText(formData, "slide_order"));
+  const slideOrder = formData.has("slide_count")
+    ? buildWorkbenchSlideOrder(formData)
+    : JSON.parse(requireText(formData, "slide_order"));
   parseSlideOrder(slideOrder);
   const { error } = await supabase
     .from("presentations" as never)
@@ -67,6 +70,22 @@ export async function saveSlideOrderAction(formData: FormData) {
     .eq("id", id);
   if (error) throw error;
   revalidatePath(`/admin/presentations/${id}`);
+}
+
+export async function regeneratePresentationAction(formData: FormData) {
+  const supabase = createAdminClient();
+  const chapter = await getChapter();
+  const id = requireText(formData, "id");
+  const weekDate = parseWeekDate(requireText(formData, "week_date"));
+  const slideOrder = await buildSlideOrder(weekDate, chapter.id, supabase);
+  const { error } = await supabase
+    .from("presentations" as never)
+    .update({ slide_order: asJson(slideOrder), updated_at: new Date().toISOString() } as never)
+    .eq("id", id);
+  if (error) throw error;
+  revalidatePath("/admin/presentation");
+  revalidatePath(`/admin/presentations/${id}`);
+  redirect(`/admin/presentations/${id}?regenerated=1`);
 }
 
 export async function publishPresentationAction(formData: FormData) {

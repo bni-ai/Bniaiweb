@@ -16,12 +16,14 @@ function toDateTimeLocalValue(iso: string | null) {
 
 export default async function OneOnOnePage({ searchParams }: { searchParams?: Promise<{ invitee?: string; error?: string; saved?: string }> }) {
   const params = await searchParams;
-  const { availability, bookings, members, selectedInviteeId } = await getOneOnOneDashboardData(params?.invitee);
+  const { member, availability, bookings, members, selectedInviteeId } = await getOneOnOneDashboardData(params?.invitee);
   const availabilityRows = [
     ...availability,
     { id: "new-0", member_id: "", day_of_week: 1, start_time: "", end_time: "" },
     { id: "new-1", member_id: "", day_of_week: 3, start_time: "", end_time: "" },
   ];
+  const upcoming = bookings.filter((booking) => ["pending", "confirmed"].includes(booking.status)).slice(0, 3);
+  const selectedInvitee = members.find((item) => item.id === selectedInviteeId) || null;
 
   return (
     <div className="space-y-5">
@@ -37,8 +39,38 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
         <Card className="rounded-[24px] border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">已完成：{params.saved}</Card>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="rounded-[24px] p-5">
+      <Card className="rounded-lg p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold">即將進行</h2>
+            <p className="text-sm text-text-2">確認後的會議會在時間窗口內顯示站內 Jitsi 入口。</p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {upcoming.map((booking) => {
+            const counterparty = booking.inviter_id === member?.id ? booking.invitee_name : booking.inviter_name;
+            return (
+              <div key={booking.id} className="rounded-2xl border border-border p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">{counterparty.slice(-1)}</div>
+                  <div>
+                    <p className="font-semibold text-text-1">{counterparty}</p>
+                    <p className="text-xs text-text-2">{booking.scheduled_at ? toDateTimeLocalValue(booking.scheduled_at).replace("T", " ") : "未排程"} · Jitsi Meet</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <span className="rounded bg-surface-2 px-2 py-1 text-xs text-text-2">{booking.status}</span>
+                  {booking.status === "confirmed" ? <a className="text-sm font-medium text-primary" href={`/dashboard/one-on-one/${booking.id}/video`}>進入會議</a> : null}
+                </div>
+              </div>
+            );
+          })}
+          {upcoming.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-4 text-sm text-text-2 md:col-span-3">目前沒有即將進行的一對一。</div> : null}
+        </div>
+      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+        <Card className="rounded-lg p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold">我的可預約時段</h2>
@@ -48,24 +80,30 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
           <form action={saveMyAvailabilityAction} className="mt-5 space-y-3">
             <input type="hidden" name="availability_total" value={String(availabilityRows.length)} />
             {availabilityRows.map((row, index) => (
-              <div className="grid gap-3 rounded-2xl border border-border p-4 md:grid-cols-[0.9fr_1fr_1fr]" key={`${row.id}-${index}`}>
-                <select name={`availability_day_of_week_${index}`} defaultValue={String(row.day_of_week)} className="rounded-2xl border border-border px-3 py-2.5">
+              <div className="grid gap-3 rounded-lg border border-border p-4 md:grid-cols-[0.9fr_1fr_1fr]" key={`${row.id}-${index}`}>
+                <select name={`availability_day_of_week_${index}`} defaultValue={String(row.day_of_week)} className="rounded-lg border border-border px-3 py-2.5">
                   {weekdayLabels.map((label, day) => <option key={label} value={String(day)}>{label}</option>)}
                 </select>
-                <input name={`availability_start_time_${index}`} type="time" defaultValue={row.start_time} className="rounded-2xl border border-border px-3 py-2.5" />
-                <input name={`availability_end_time_${index}`} type="time" defaultValue={row.end_time} className="rounded-2xl border border-border px-3 py-2.5" />
+                <input name={`availability_start_time_${index}`} type="time" defaultValue={row.start_time} className="rounded-lg border border-border px-3 py-2.5" />
+                <input name={`availability_end_time_${index}`} type="time" defaultValue={row.end_time} className="rounded-lg border border-border px-3 py-2.5" />
               </div>
             ))}
             <Button type="submit" className="rounded-full px-5">儲存可預約時段</Button>
           </form>
         </Card>
 
-        <Card className="rounded-[24px] p-5">
+        <Card className="rounded-lg p-5">
           <h2 className="text-xl font-semibold">建立新預約</h2>
+          {selectedInvitee ? (
+            <div className="mt-4 rounded-lg border border-primary/20 bg-[#fff8f5] p-4">
+              <p className="text-sm text-text-2">已選擇會員</p>
+              <p className="mt-1 font-semibold text-text-1">{selectedInvitee.chinese_name} {selectedInvitee.specialty_title ? `· ${selectedInvitee.specialty_title}` : ""}</p>
+            </div>
+          ) : null}
           <form action={createOneOnOneBookingAction} className="mt-5 grid gap-4">
             <label className="grid gap-2 text-sm">
               <span className="font-medium">選擇會員</span>
-              <select name="invitee_id" defaultValue={selectedInviteeId || ""} className="rounded-2xl border border-border px-3 py-2.5">
+              <select name="invitee_id" defaultValue={selectedInviteeId || ""} className="rounded-lg border border-border px-3 py-2.5">
                 <option value="">請選擇</option>
                 {members.map((member) => (
                   <option key={member.id} value={member.id}>
@@ -76,13 +114,13 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
             </label>
             <label className="grid gap-2 text-sm">
               <span className="font-medium">預約時間</span>
-              <input name="scheduled_at" type="datetime-local" className="rounded-2xl border border-border px-3 py-2.5" />
+              <input name="scheduled_at" type="datetime-local" className="rounded-lg border border-border px-3 py-2.5" />
             </label>
             <label className="grid gap-2 text-sm">
               <span className="font-medium">備註</span>
-              <textarea name="notes" className="min-h-24 rounded-2xl border border-border px-3 py-2.5" placeholder="想談的主題、目標或準備資料" />
+              <textarea name="notes" className="min-h-24 rounded-lg border border-border px-3 py-2.5" placeholder="想談的主題、目標或準備資料" />
             </label>
-            <div className="rounded-2xl border border-dashed border-border p-4 text-sm text-text-2">
+            <div className="rounded-lg border border-dashed border-border p-4 text-sm text-text-2">
               只允許預約對方已公開的可用時段。若同時間已有人預約，系統會拒絕重疊建立。
             </div>
             <Button type="submit" className="rounded-full px-5">建立一對一預約</Button>
@@ -90,7 +128,7 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
         </Card>
       </div>
 
-      <Card className="rounded-[24px] p-5">
+      <Card className="rounded-lg p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">預約紀錄</h2>
@@ -99,14 +137,11 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
         </div>
         <div className="mt-4 space-y-3">
           {bookings.map((booking) => {
-            const counterparty = booking.inviter_name === booking.invitee_name
-              ? booking.invitee_name
-              : booking.inviter_name;
             return (
               <div key={booking.id} className="rounded-2xl border border-border p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <p className="text-sm text-text-2">對象：{counterparty}</p>
+                    <p className="text-sm text-text-2">對象：{booking.inviter_id === member?.id ? booking.invitee_name : booking.inviter_name}</p>
                     <p className="mt-1 text-lg font-semibold">{booking.scheduled_at ? toDateTimeLocalValue(booking.scheduled_at).replace("T", " ") : "未排程"}</p>
                     <p className="mt-2 text-sm text-text-2">狀態：{booking.status}</p>
                     {booking.notes ? <p className="mt-2 text-sm text-text-2">備註：{booking.notes}</p> : null}
