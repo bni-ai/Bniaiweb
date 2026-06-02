@@ -25,4 +25,4 @@
 
 - [x] 5.1 完成 TDD 與 regression：`npm run test`、`npm run build`、`npm run test:e2e` 全綠；驗證：三個指令成功。
 - [x] 5.2 完成 SR 自身驗收：`spectra analyze presentation-slide-engine-redesign --json` 無 findings，`spectra validate presentation-slide-engine-redesign` 成功；驗證：兩個指令成功。
-- [ ] 5.3 完成 production 交付：commit、push、Vercel production deploy，並對 `https://bni-ai-web.vercel.app` 跑 live E2E；驗證：`E2E_BASE_URL=https://bni-ai-web.vercel.app npm run test:e2e` 全綠。
+- [x] 5.3 完成 production 交付：commit、push、Vercel production deploy，並對 `https://bni-ai-web.vercel.app` 跑 live E2E；驗證：`E2E_BASE_URL=https://bni-ai-web.vercel.app npm run test:e2e` 全綠。
