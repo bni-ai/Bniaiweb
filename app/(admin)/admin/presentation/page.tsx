@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Button } from "../../../../components/ui/button";
 import { Card } from "../../../../components/ui/card";
 import { parseWeekDate } from "../../../../lib/actions/admin-common";
-import { createPresentationAction, deletePresentationAction, getPresentations, publishPresentationAction, unpublishPresentationAction } from "../../../../lib/actions/presentations";
+import { createPresentationAction, getPresentations, publishPresentationAction, unpublishPresentationAction } from "../../../../lib/actions/presentations";
+import { DeletePresentationButton } from "./delete-presentation-button";
 import { parseSlideOrder } from "../../../../lib/presentation/slide-order";
 import { describeSlideThumbnail, isVisibleSlide } from "../../../../lib/presentation/workbench";
 import type { Json } from "../../../../lib/supabase/types";
@@ -77,17 +78,7 @@ export default async function PresentationPage({ searchParams }: { searchParams?
                     <Button type="submit" className="rounded-full px-4">發布簡報</Button>
                   </form>
                 )}
-                <form
-                  action={deletePresentationAction}
-                  onSubmit={(e) => {
-                    if (!confirm("確定要刪除這份簡報嗎？此動作將無法復原！")) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  <input type="hidden" name="id" value={p.id} />
-                  <Button type="submit" variant="destructive" className="rounded-full px-4">刪除</Button>
-                </form>
+                <DeletePresentationButton id={p.id} />
               </div>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6" data-testid="presentation-thumbnail-grid">
