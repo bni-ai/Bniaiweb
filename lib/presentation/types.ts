@@ -1,13 +1,40 @@
+export type SlideFontSize = "sm" | "md" | "lg" | "xl";
+
+export type SlideTextAlign = "left" | "center" | "right";
+
+export type SlideTextLayer = {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize: number;
+  color: string;
+  fontWeight: string;
+  align: SlideTextAlign;
+};
+
+export type SlideEditorPatch = {
+  title?: string | null;
+  body?: string | null;
+  backgroundImageUrl?: string | null;
+  fontSize?: SlideFontSize | null;
+  textLayers?: SlideTextLayer[] | null;
+  dataOverride?: Record<string, string | null>;
+};
+
 export type SlideEntry =
-  | { type: "cover" }
-  | { type: "agenda" }
-  | { type: "keynote"; id: string; visible: boolean }
-  | { type: "member"; id: string; visible: boolean }
-  | { type: "guest"; id: string; visible: boolean }
-  | { type: "award"; id: string; visible: boolean }
-  | { type: "vp_report"; id: string; visible: boolean }
-  | { type: "team" }
-  | { type: "closing" };
+  | { type: "cover"; editor?: SlideEditorPatch }
+  | { type: "agenda"; editor?: SlideEditorPatch }
+  | { type: "keynote"; id: string; visible: boolean; editor?: SlideEditorPatch }
+  | { type: "member"; id: string; visible: boolean; editor?: SlideEditorPatch }
+  | { type: "guest"; id: string; visible: boolean; editor?: SlideEditorPatch }
+  | { type: "award"; id: string; visible: boolean; editor?: SlideEditorPatch }
+  | { type: "vp_report"; id: string; visible: boolean; editor?: SlideEditorPatch }
+  | { type: "team"; editor?: SlideEditorPatch }
+  | { type: "closing"; editor?: SlideEditorPatch }
+  | { type: "custom"; id: string; visible: boolean; editor?: SlideEditorPatch };
 
 export type RuntimeSlideType = SlideEntry["type"];
 
@@ -19,6 +46,13 @@ export type PresentationRuntimeSlide = {
   subtitle: string;
   summary: string;
   notes: string;
+  editor: {
+    title: string;
+    body: string;
+    backgroundImageUrl: string | null;
+    fontSize: SlideFontSize;
+    textLayers: SlideTextLayer[];
+  };
   payload: Record<string, unknown>;
 };
 

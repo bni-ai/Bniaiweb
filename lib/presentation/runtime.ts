@@ -5,7 +5,10 @@ import type {
   MemberSlideProps,
   PresentationRuntimeDeck,
   PresentationRuntimeSlide,
+  SlideEditorPatch,
+  SlideFontSize,
   SlideEntry,
+  SlideTextLayer,
   VPReportSlideProps,
 } from "./types";
 import type { PresentationDeck } from "./viewer";
@@ -20,6 +23,7 @@ const slideLabels: Record<SlideEntry["type"], string> = {
   vp_report: "報告",
   team: "團隊",
   closing: "結束",
+  custom: "自訂",
 };
 
 function compactSummary(parts: Array<string | null | undefined>) {
@@ -31,6 +35,65 @@ function compactSummary(parts: Array<string | null | undefined>) {
 
 function createNotes(label: string, title: string, summary: string) {
   return `${label}：${title}${summary ? `。${summary}` : ""}`;
+}
+
+function buildEditorBody(subtitle: string, summary: string) {
+  return [subtitle, summary].map((part) => part.trim()).filter(Boolean).join("\n\n");
+}
+
+function defaultTextLayers(title: string, body: string, backgroundImageUrl: string | null): SlideTextLayer[] {
+  const bodyColor = backgroundImageUrl ? "#ffffff" : "#475569";
+  const titleColor = backgroundImageUrl ? "#ffffff" : "#0f172a";
+  const layers: SlideTextLayer[] = [
+    {
+      id: "title",
+      text: title,
+      x: 128,
+      y: 136,
+      width: 1280,
+      height: 160,
+      fontSize: 92,
+      color: titleColor,
+      fontWeight: "800",
+      align: "left",
+    },
+  ];
+
+  if (body.trim()) {
+    layers.push({
+      id: "body",
+      text: body,
+      x: 132,
+      y: 336,
+      width: 980,
+      height: 420,
+      fontSize: 38,
+      color: bodyColor,
+      fontWeight: "500",
+      align: "left",
+    });
+  }
+
+  return layers;
+}
+
+function resolveEditorState(
+  editor: SlideEditorPatch | undefined,
+  title: string,
+  subtitle: string,
+  summary: string,
+): PresentationRuntimeSlide["editor"] {
+  const backgroundImageUrl = editor?.backgroundImageUrl ?? null;
+  const body = editor?.body ?? buildEditorBody(subtitle, summary);
+  return {
+    title: editor?.title ?? title,
+    body,
+    backgroundImageUrl,
+    fontSize: (editor?.fontSize as SlideFontSize | null) ?? "lg",
+    textLayers: editor?.textLayers?.length
+      ? editor.textLayers
+      : defaultTextLayers(editor?.title ?? title, body, backgroundImageUrl),
+  };
 }
 
 function runtimeSlide(
@@ -50,6 +113,7 @@ function runtimeSlide(
     subtitle,
     summary,
     notes: createNotes(label, title, summary),
+    editor: resolveEditorState(entry.editor, title, subtitle, summary),
     payload,
   };
 }
@@ -109,65 +173,67 @@ function vpReportSlide(entry: Extract<SlideEntry, { type: "vp_report" }>, index:
   );
 }
 
+export function resolveRuntimeSlide(entry: SlideEntry, deck: PresentationDeck, index: number): PresentationRuntimeSlide | null {
+  switch (entry.type) {
+    case "cover":
+      return runtimeSlide(entry, index, deck.chapterName, deck.cover.meetingTime, `週次 ${deck.cover.weekDate}`, deck.cover as unknown as Record<string, unknown>);
+    case "agenda":
+      return runtimeSlide(
+        entry,
+        index,
+        "本週例會議程",
+        deck.chapterName,
+        "開場、會員簡報、來賓介紹、8 分鐘短講、表揚、VP 報告、幹部支援",
+        { chapterName: deck.chapterName, weekDate: deck.weekDate },
+      );
+    case "keynote": {
+      const slide = deck.keynoteSlides.get(entry.id);
+      return slide ? keynoteSlide(entry, index, slide) : null;
+    }
+    case "member": {
+      const slide = deck.memberSlides.get(entry.id);
+      return slide ? memberSlide(entry, index, slide) : null;
+    }
+    case "guest": {
+      const slide = deck.guestSlides.get(entry.id);
+      return slide ? guestSlide(entry, index, slide) : null;
+    }
+    case "award": {
+      const slide = deck.awardSlides.get(entry.id);
+      return slide ? awardSlide(entry, index, slide) : null;
+    }
+    case "vp_report": {
+      const slide = deck.vpReportSlides.get(entry.id);
+      return slide ? vpReportSlide(entry, index, slide) : null;
+    }
+    case "team":
+      if (!deck.teamSlide) return null;
+      return runtimeSlide(
+        entry,
+        index,
+        `${deck.chapterName} 幹部`,
+        "例會運作與會員支持窗口",
+        `本週幹部 ${deck.teamSlide.members.length} 位`,
+        deck.teamSlide as unknown as Record<string, unknown>,
+      );
+    case "closing":
+      return runtimeSlide(
+        entry,
+        index,
+        "簡報結束",
+        deck.chapterName,
+        "感謝參與本週例會，請持續完成引薦與一對一後續行動。",
+        { chapterName: deck.chapterName, weekDate: deck.weekDate },
+      );
+    case "custom":
+      return runtimeSlide(entry, index, entry.editor?.title ?? "自訂投影片", "", "", {});
+  }
+}
+
 export function toRuntimeDeck(deck: PresentationDeck): PresentationRuntimeDeck {
   const slides = deck.slideOrder.flatMap((entry, index): PresentationRuntimeSlide[] => {
-    switch (entry.type) {
-      case "cover":
-        return [runtimeSlide(entry, index, deck.chapterName, deck.cover.meetingTime, `週次 ${deck.cover.weekDate}`, deck.cover as unknown as Record<string, unknown>)];
-      case "agenda":
-        return [
-          runtimeSlide(
-            entry,
-            index,
-            "本週例會議程",
-            deck.chapterName,
-            "開場、會員簡報、來賓介紹、8 分鐘短講、表揚、VP 報告、幹部支援",
-            { chapterName: deck.chapterName, weekDate: deck.weekDate },
-          ),
-        ];
-      case "keynote": {
-        const slide = deck.keynoteSlides.get(entry.id);
-        return slide ? [keynoteSlide(entry, index, slide)] : [];
-      }
-      case "member": {
-        const slide = deck.memberSlides.get(entry.id);
-        return slide ? [memberSlide(entry, index, slide)] : [];
-      }
-      case "guest": {
-        const slide = deck.guestSlides.get(entry.id);
-        return slide ? [guestSlide(entry, index, slide)] : [];
-      }
-      case "award": {
-        const slide = deck.awardSlides.get(entry.id);
-        return slide ? [awardSlide(entry, index, slide)] : [];
-      }
-      case "vp_report": {
-        const slide = deck.vpReportSlides.get(entry.id);
-        return slide ? [vpReportSlide(entry, index, slide)] : [];
-      }
-      case "team":
-        return [
-          runtimeSlide(
-            entry,
-            index,
-            `${deck.chapterName} 幹部`,
-            "例會運作與會員支持窗口",
-            `本週幹部 ${deck.teamSlide.members.length} 位`,
-            deck.teamSlide as unknown as Record<string, unknown>,
-          ),
-        ];
-      case "closing":
-        return [
-          runtimeSlide(
-            entry,
-            index,
-            "簡報結束",
-            deck.chapterName,
-            "感謝參與本週例會，請持續完成引薦與一對一後續行動。",
-            { chapterName: deck.chapterName, weekDate: deck.weekDate },
-          ),
-        ];
-    }
+    const slide = resolveRuntimeSlide(entry, deck, index);
+    return slide ? [slide] : [];
   });
 
   return {
