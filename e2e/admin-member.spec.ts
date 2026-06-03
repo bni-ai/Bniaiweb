@@ -96,6 +96,51 @@ async function getMemberSnapshot(email: string) {
   return data;
 }
 
+async function getMemberPresentationSnapshot(email: string) {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("members")
+    .select(
+      "chinese_name, english_name, line_name, specialty_title, specialty_description, company_name, general_referral, ideal_referral, dream_referral, company_address, industry_experience_years, previous_career, photo_url",
+    )
+    .ilike("email", email)
+    .maybeSingle();
+  if (error) throw error;
+  return data as Record<string, unknown> | null;
+}
+
+async function restoreMemberPresentationSnapshot(email: string, snapshot: Record<string, unknown> | null) {
+  if (!snapshot) return;
+  const supabase = getSupabaseAdmin();
+  const chapterId = await getChapterId();
+  const { error } = await supabase.from("members").update(snapshot).eq("chapter_id", chapterId).ilike("email", email);
+  if (error) throw error;
+}
+
+async function cleanupPresentationWeek(weekDate: string, memberEmail?: string) {
+  const supabase = getSupabaseAdmin();
+  const chapterId = await getChapterId();
+  await supabase.from("sync_logs").delete().eq("chapter_id", chapterId).eq("week_date", weekDate);
+  await supabase.from("presentations").delete().eq("chapter_id", chapterId).eq("week_date", weekDate);
+  if (memberEmail) {
+    const memberId = await getMemberIdByEmail(memberEmail);
+    await supabase.from("weekly_briefs").delete().eq("member_id", memberId).eq("week_date", weekDate);
+  }
+}
+
+async function getPresentationStatusByWeek(weekDate: string) {
+  const supabase = getSupabaseAdmin();
+  const chapterId = await getChapterId();
+  const { data, error } = await supabase
+    .from("presentations")
+    .select("status, published_url")
+    .eq("chapter_id", chapterId)
+    .eq("week_date", weekDate)
+    .maybeSingle();
+  if (error) throw error;
+  return data as { status: string; published_url: string | null } | null;
+}
+
 async function deleteMembersByEmail(emails: string[]) {
   if (!emails.length) return;
   const supabase = getSupabaseAdmin();
@@ -636,10 +681,10 @@ async function seedPresentationScenario(weekDate: string, mode: "published" | "d
 }
 
 test.describe("auth shell", () => {
-  test("login exposes Email, Google, and GitHub entry points", async ({ page }) => {
+  test("login exposes email, Google, and GitHub entry points", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "會員登入" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /寄送 Email 登入連結/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /寄送登入連結/ })).toBeVisible();
     await expect(page.getByRole("button", { name: "Google" })).toBeVisible();
     await expect(page.getByRole("button", { name: "GitHub" })).toBeVisible();
   });
@@ -1010,6 +1055,14 @@ test.describe("admin backend", () => {
     await expect(page.getByTestId("active-slide")).toHaveCount(1);
     await expect(page.getByTestId("page-label")).toHaveText("1 / 9");
     await expect(page.getByTestId("active-slide").getByRole("heading", { name: "BNI 華 AI 分會" })).toBeVisible();
+    await expect.poll(async () => {
+      const box = await page.getByTestId("active-slide").boundingBox();
+      return box ? Math.round(box.width) : 0;
+    }).toBeGreaterThan(900);
+    await expect.poll(async () => {
+      const box = await page.getByTestId("active-slide").boundingBox();
+      return box ? Math.round(box.height) : 0;
+    }).toBeGreaterThan(500);
 
     await page.keyboard.press("ArrowRight");
     await expect(page.getByTestId("page-label")).toHaveText("2 / 9");
@@ -1017,23 +1070,27 @@ test.describe("admin backend", () => {
 
     await page.keyboard.press("ArrowRight");
     await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
-    await expect(page.getByText("如何把例會資料變成可分享簡報")).toBeVisible();
+    await expect(page.getByTestId("active-slide").getByRole("heading", { name: "如何把例會資料變成可分享簡報" })).toBeVisible();
+
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByTestId("page-label")).toHaveText("4 / 9");
+    await expect(page.getByTestId("active-slide").getByRole("heading", { name: /簡報會員/ })).toBeVisible();
+    await expect(page.getByTestId("active-slide").getByText("我有商務簡報優化與資訊流程整合服務。")).toBeVisible();
 
     await page.keyboard.press("ArrowLeft");
-    await expect(page.getByTestId("page-label")).toHaveText("2 / 9");
+    await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
 
     await page.getByRole("button", { name: "下一張" }).click();
-    await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
+    await expect(page.getByTestId("page-label")).toHaveText("4 / 9");
     await page.getByRole("button", { name: "上一張" }).click();
-    await expect(page.getByTestId("page-label")).toHaveText("2 / 9");
+    await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
 
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("ArrowRight");
+    await expect(page.getByRole("heading", { name: "簡報驗收來賓" })).toBeVisible();
     await page.keyboard.press("ArrowRight");
-    await expect(page.getByText("簡報驗收來賓")).toBeVisible();
     await page.keyboard.press("ArrowRight");
-    await page.keyboard.press("ArrowRight");
-    await expect(page.getByText("本週績效摘要")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "本週績效摘要" })).toBeVisible();
 
     await page.goto(`/presentation/${seeded.id}`);
     await expect(page).toHaveURL(new RegExp(`/presentation/${seeded.weekDate}$`));
@@ -1041,19 +1098,269 @@ test.describe("admin backend", () => {
     await expect(page.getByTestId("page-label")).toHaveText("1 / 9");
   });
 
-  test("admin presentation workbench hides raw JSON editor and exposes preview publishing controls", async ({ page }) => {
+  test("admin presentation workbench edits content and published viewer reflects changes", async ({ page }) => {
     test.setTimeout(60_000);
     const seeded = await seedPresentationScenario(futureWeekDate(128), "draft");
     await setRole(page, "admin");
     await page.goto(`/admin/presentations/${seeded.id}`);
     await expect(page.getByRole("heading", { name: "簡報工作台" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "投影片順序" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "投影片編輯" })).toBeVisible();
     await expect(page.getByRole("link", { name: "預覽簡報" })).toBeVisible();
     await expect(page.getByRole("button", { name: "發布簡報" })).toBeVisible();
     await expect(page.locator('textarea[name="slide_order"]')).toHaveCount(0);
-    await page.locator('input[name="slide_order_0"]').fill("1");
-    await page.getByRole("button", { name: "儲存投影片設定" }).click();
+    await expect(page.getByText("底圖上方可直接放文字框").first()).toBeVisible();
+    await expect(page.getByTestId("presentation-editor-canvas")).toBeVisible();
+    await expect(page.getByTestId("presentation-editor-canvas").getByText("BNI 華 AI 分會")).toBeVisible();
+    await expect.poll(async () => {
+      const box = await page.getByTestId("presentation-editor-canvas").boundingBox();
+      return box ? Math.round(box.width) : 0;
+    }).toBeGreaterThan(500);
+    await page.locator('input[name="slide_editor_json_0"]').evaluate((node) => {
+      const input = node as HTMLInputElement;
+      const current = JSON.parse(input.value);
+      current.title = "自訂封面標題";
+      current.body = "這是後台直接修改的封面內容。";
+      current.textLayers = [
+        {
+          id: "cover-title",
+          text: "自訂封面標題",
+          x: 128,
+          y: 136,
+          width: 1280,
+          height: 160,
+          fontSize: 92,
+          color: "#ffffff",
+          fontWeight: "800",
+          align: "left",
+        },
+        {
+          id: "cover-body",
+          text: "這是後台直接修改的封面內容。",
+          x: 132,
+          y: 336,
+          width: 980,
+          height: 180,
+          fontSize: 42,
+          color: "#ffffff",
+          fontWeight: "500",
+          align: "left",
+        },
+      ];
+      input.value = JSON.stringify(current);
+    });
+    await page.getByRole("button", { name: "儲存簡報內容" }).click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}\\?saved=1$`));
     await expect(page.getByRole("heading", { name: "簡報工作台" })).toBeVisible();
+    await page.getByRole("button", { name: "發布簡報" }).click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}\\?published=1$`));
+    await page.goto(`/admin/presentation?week=${seeded.weekDate}`);
+    await expect(page.getByTestId(`presentation-card-${seeded.weekDate}`).getByTestId("presentation-status")).toHaveText("已發布");
+
+    await page.goto(`/presentation/${seeded.weekDate}`);
+    await expect(page.getByTestId("presentation-runtime")).toBeVisible();
+    await expect(page.getByTestId("active-slide").getByRole("heading", { name: "自訂封面標題" })).toBeVisible();
+    await expect(page.getByTestId("active-slide").getByText("這是後台直接修改的封面內容。")).toBeVisible();
+  });
+
+  test("admin presentation canvas drags resizes uploads background and persists layout", async ({ page }) => {
+    test.setTimeout(90_000);
+    const seeded = await seedPresentationScenario(futureWeekDate(131), "draft");
+    await setRole(page, "admin");
+    await page.goto(`/admin/presentations/${seeded.id}`);
+    await expect(page.getByTestId("presentation-editor-canvas")).toBeVisible();
+
+    const titleLayer = page.getByTestId("presentation-editor-layer-title");
+    await expect(titleLayer).toBeVisible();
+    const initialEditor = await page.locator('input[name="slide_editor_json_0"]').evaluate((node) => JSON.parse((node as HTMLInputElement).value));
+    const initialTitleLayer = initialEditor.textLayers.find((layer: { id: string }) => layer.id === "title");
+    if (!initialTitleLayer) throw new Error("Missing title layer");
+
+    const titleBox = await titleLayer.boundingBox();
+    if (!titleBox) throw new Error("Missing title layer box");
+    await page.mouse.move(titleBox.x + 20, titleBox.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(titleBox.x + 150, titleBox.y + 100, { steps: 8 });
+    await page.mouse.up();
+
+    await expect.poll(async () => {
+      const current = await page.locator('input[name="slide_editor_json_0"]').evaluate((node) => JSON.parse((node as HTMLInputElement).value));
+      return Math.round(current.textLayers.find((layer: { id: string }) => layer.id === "title")?.x || 0);
+    }).toBeGreaterThan(Math.round(initialTitleLayer.x + 80));
+
+    const resizeHandle = page.getByTestId("presentation-editor-resize-title");
+    const handleBox = await resizeHandle.boundingBox();
+    if (!handleBox) throw new Error("Missing title resize handle");
+    await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(handleBox.x + 180, handleBox.y + 90, { steps: 8 });
+    await page.mouse.up();
+
+    await expect.poll(async () => {
+      const current = await page.locator('input[name="slide_editor_json_0"]').evaluate((node) => JSON.parse((node as HTMLInputElement).value));
+      return Math.round(current.textLayers.find((layer: { id: string }) => layer.id === "title")?.width || 0);
+    }).toBeGreaterThan(Math.round(initialTitleLayer.width + 80));
+
+    await page.locator("textarea").filter({ hasText: "BNI 華 AI 分會" }).fill("拖拉後封面標題");
+    await page.getByLabel("字體大小").fill("96");
+    await page.getByLabel("粗細").selectOption("800");
+    await page.getByLabel("對齊").selectOption("center");
+    await page.locator('input[name="slide_background_file_0"]').setInputFiles({
+      name: "cover-background.png",
+      mimeType: "image/png",
+      buffer: TINY_PNG,
+    });
+    await page.getByRole("button", { name: /會員投影片/ }).first().click();
+    await page.getByLabel("這頁顯示在簡報中").uncheck();
+    await page.getByRole("button", { name: "儲存簡報內容" }).click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}\\?saved=1$`));
+
+    await page.goto(`/admin/presentations/${seeded.id}?verify=1`);
+    const persistedEditor = await page.locator('input[name="slide_editor_json_0"]').evaluate((node) => JSON.parse((node as HTMLInputElement).value));
+    const persistedTitleLayer = persistedEditor.textLayers.find((layer: { id: string }) => layer.id === "title");
+    const memberPayloadIndex = await page.locator('input[name^="slide_payload_"]').evaluateAll((nodes) => {
+      return nodes.findIndex((node) => JSON.parse((node as HTMLInputElement).value).type === "member");
+    });
+    if (memberPayloadIndex < 0) throw new Error("Missing member slide payload");
+    expect(persistedEditor.backgroundImageUrl).toMatch(/bniai-media/);
+    expect(persistedTitleLayer.text).toBe("拖拉後封面標題");
+    expect(persistedTitleLayer.fontSize).toBe(96);
+    expect(persistedTitleLayer.fontWeight).toBe("800");
+    expect(persistedTitleLayer.align).toBe("center");
+    expect(Math.round(persistedTitleLayer.x)).toBeGreaterThan(Math.round(initialTitleLayer.x + 80));
+    expect(Math.round(persistedTitleLayer.width)).toBeGreaterThan(Math.round(initialTitleLayer.width + 80));
+    await expect(page.locator(`input[name="slide_visible_${memberPayloadIndex}"]`)).toHaveValue("false");
+
+    await page.getByRole("button", { name: "發布簡報" }).click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}\\?published=1$`));
+    await page.goto(`/presentation/${seeded.weekDate}`);
+    await expect(page.getByTestId("presentation-runtime")).toHaveAttribute("data-runtime-ready", "true");
+    await expect(page.getByTestId("page-label")).toHaveText("1 / 8");
+    await expect(page.getByTestId("presentation-viewer-layer-title")).toContainText("拖拉後封面標題");
+  });
+
+  test("admin presentation asset library reuses uploaded backgrounds across slides", async ({ page }) => {
+    test.setTimeout(90_000);
+    const seeded = await seedPresentationScenario(futureWeekDate(132), "draft");
+    await setRole(page, "admin");
+    await page.goto(`/admin/presentations/${seeded.id}`);
+    await expect(page.getByTestId("presentation-editor-canvas")).toBeVisible();
+
+    await page.locator('input[name="slide_background_file_0"]').setInputFiles({
+      name: "shared-background.png",
+      mimeType: "image/png",
+      buffer: TINY_PNG,
+    });
+    await page.getByRole("button", { name: "儲存簡報內容" }).click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}\\?saved=1$`));
+
+    const coverEditor = await page.locator('input[name="slide_editor_json_0"]').evaluate((node) => JSON.parse((node as HTMLInputElement).value));
+    expect(coverEditor.backgroundImageUrl).toMatch(/bniai-media/);
+
+    await page.getByRole("button", { name: "例會議程" }).click();
+    await expect(page.getByTestId("presentation-asset-library")).toBeVisible();
+    await page.getByTestId("presentation-asset-library").getByRole("button", { name: "套用到底圖" }).first().click();
+    await page.getByRole("button", { name: "儲存簡報內容" }).click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}\\?saved=1$`));
+
+    await page.goto(`/admin/presentations/${seeded.id}?verify=asset`);
+    const coverPersisted = await page.locator('input[name="slide_editor_json_0"]').evaluate((node) => JSON.parse((node as HTMLInputElement).value));
+    const agendaPersisted = await page.locator('input[name="slide_editor_json_1"]').evaluate((node) => JSON.parse((node as HTMLInputElement).value));
+    expect(coverPersisted.backgroundImageUrl).toMatch(/bniai-media/);
+    expect(agendaPersisted.backgroundImageUrl).toBe(coverPersisted.backgroundImageUrl);
+  });
+
+  test("admin presentation editor slide CRUD controls and duplicate/delete flow", async ({ page }) => {
+    test.setTimeout(90_000);
+    const seeded = await seedPresentationScenario(futureWeekDate(133), "draft");
+    await setRole(page, "admin");
+    await page.goto(`/admin/presentations/${seeded.id}`);
+    await expect(page.getByTestId("presentation-editor-canvas")).toBeVisible();
+
+    // 1. 驗證無法刪除固定頁
+    const coverDeleteBtn = page.locator('div.group:has-text("封面") button:has-text("刪除")');
+    await expect(coverDeleteBtn).toBeDisabled();
+    await expect(coverDeleteBtn).toHaveAttribute("title", "固定頁面無法刪除");
+
+    // 2. 測試複製 slide
+    const coverDuplicateBtn = page.locator('div.group:has-text("封面") button:has-text("複製")');
+    await coverDuplicateBtn.click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}$`));
+    const slideCountInput = page.locator('input[name="slide_count"]');
+    await expect(slideCountInput).toHaveValue("13");
+
+    // 3. 測試新增空白頁
+    const addBlankBtn = page.getByRole("button", { name: "+ 新增空白頁" });
+    await addBlankBtn.click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}$`));
+    await expect(slideCountInput).toHaveValue("14");
+
+    // 4. 測試刪除投影片
+    page.once("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+    const deletableBtn = page.locator('div.group').last().locator('button:has-text("刪除")');
+    await deletableBtn.click();
+    await page.waitForURL(new RegExp(`/admin/presentations/${seeded.id}$`));
+    await expect(slideCountInput).toHaveValue("13");
+
+    // 5. 測試刪除整個簡報
+    await page.goto("/admin/presentation");
+    await expect(page.getByTestId(`presentation-card-${seeded.weekDate}`)).toBeVisible();
+    page.once("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+    const deletePresentationBtn = page.getByTestId(`presentation-card-${seeded.weekDate}`).locator('button:has-text("刪除")');
+    await deletePresentationBtn.click();
+    await page.waitForURL(/\/admin\/presentation$/);
+    await expect(page.getByTestId(`presentation-card-${seeded.weekDate}`)).not.toBeVisible();
+  });
+
+  test("member-authored profile and weekly brief appear in published presentation", async ({ page }) => {
+    test.setTimeout(90_000);
+    const memberEmail = "fish.myfb@gmail.com";
+    const weekDate = futureWeekDate(173);
+    const stamp = Date.now();
+    const profileSnapshot = await getMemberPresentationSnapshot(memberEmail);
+    await cleanupPresentationWeek(weekDate, memberEmail);
+
+    try {
+      await signInWithGeneratedLink(page, memberEmail);
+      await page.goto("/dashboard/profile");
+      await page.locator('input[name="chinese_name"]').fill(`會員自填${stamp}`);
+      await page.locator('input[name="specialty_title"]').fill(`自填專業${stamp}`);
+      await page.locator('input[name="company_name"]').fill(`自填公司${stamp}`);
+      await page.locator('textarea[name="specialty_description"]').fill(`自填專業描述${stamp}`);
+      await page.getByRole("button", { name: "儲存個人資料" }).click();
+      await expect.poll(async () => (await getMemberPresentationSnapshot(memberEmail))?.specialty_title).toBe(`自填專業${stamp}`);
+
+      await page.goto(`/dashboard/report?week=${weekDate}`);
+      await page.locator('textarea[name="have_this_week"]').fill(`會員自填本週可提供${stamp}`);
+      await page.locator('textarea[name="want_this_week"]').fill(`會員自填本週需要${stamp}`);
+      await page.getByRole("button", { name: "提交本週簡報" }).click();
+      await expect.poll(async () => (await getLatestSyncLog(weekDate, "submission"))?.status).toBe("pending");
+
+      await signInWithGeneratedLink(page, "fish@fishot.com");
+      await page.goto(`/admin/presentation?week=${weekDate}`);
+      await page.getByRole("button", { name: "建立本週簡報" }).click();
+      await expect(page).toHaveURL(/\/admin\/presentations\/[0-9a-f-]+$/);
+      await page.getByRole("button", { name: "發布簡報" }).click();
+      await expect.poll(async () => (await getPresentationStatusByWeek(weekDate))?.status).toBe("published");
+
+      await page.goto(`/presentation/${weekDate}`);
+      await expect(page.getByTestId("presentation-runtime")).toBeVisible();
+      await expect(page.getByTestId("presentation-runtime")).toHaveAttribute("data-runtime-ready", "true");
+      await expect(page.getByTestId("page-label")).toHaveText("1 / 5");
+      await page.getByRole("button", { name: "下一張" }).click();
+      await page.getByRole("button", { name: "下一張" }).click();
+      await expect(page.getByTestId("page-label")).toHaveText("3 / 5");
+      await expect(page.getByTestId("active-slide").getByRole("heading", { name: `會員自填${stamp}` })).toBeVisible();
+      await expect(page.getByTestId("active-slide").getByText(`自填專業${stamp}`)).toBeVisible();
+      await expect(page.getByTestId("active-slide").getByText(`會員自填本週可提供${stamp}`)).toBeVisible();
+      await expect(page.getByTestId("active-slide").getByText(`會員自填本週需要${stamp}`)).toBeVisible();
+    } finally {
+      await cleanupPresentationWeek(weekDate, memberEmail);
+      await restoreMemberPresentationSnapshot(memberEmail, profileSnapshot);
+    }
   });
 
   test("admin presentation surface shows thumbnails and toggles publish state", async ({ page }) => {
@@ -1070,7 +1377,7 @@ test.describe("admin backend", () => {
     await expect(card.getByTestId("presentation-thumbnail-grid").getByText("首頁", { exact: true })).toBeVisible();
     await expect(card.getByTestId("presentation-thumbnail-grid").getByText("演講", { exact: true })).toBeVisible();
     await expect(card.getByTestId("presentation-thumbnail-grid").getByText("會員", { exact: true })).toBeVisible();
-    await expect(card.getByRole("link", { name: "Preview" })).toHaveAttribute("href", `/presentation/${seeded.weekDate}`);
+    await expect(card.getByRole("link", { name: "預覽" })).toHaveAttribute("href", `/presentation/${seeded.weekDate}`);
 
     await card.getByRole("button", { name: "發布簡報" }).click();
     await expect(card.getByTestId("presentation-status")).toHaveText("已發布");
@@ -1130,9 +1437,9 @@ test.describe("member portal", () => {
 
   test("member dashboard, report, and directory render", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(page.getByText(/Member Dashboard|早安/)).toBeVisible();
+    await expect(page.getByText(/早安/)).toBeVisible();
     await page.goto("/dashboard/report");
-    await expect(page.getByText("每週 Brief")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "每週簡報" })).toBeVisible();
     await page.goto("/dashboard/directory");
     await expect(page.getByRole("heading", { name: "會員通訊錄" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "王小明" }).first()).toBeVisible();
@@ -1152,7 +1459,7 @@ test.describe("member portal", () => {
   test("locked weekly report is read-only", async ({ page }) => {
     await seedLockedWeek("2026-05-25");
     await page.goto("/dashboard/report?week=2026-05-25");
-    await expect(page.getByText("此週已鎖定，Brief 只能檢視，不能修改。")).toBeVisible();
+    await expect(page.getByText("此週已鎖定，每週簡報只能檢視，不能修改。")).toBeVisible();
     await expect(page.locator('textarea[name="have_this_week"]')).toBeDisabled();
     await expect(page.getByRole("button", { name: "儲存草稿" })).toBeDisabled();
     await expect(page.getByRole("button", { name: "提交" })).toBeDisabled();
@@ -1285,12 +1592,12 @@ test.describe("member portal", () => {
 
     await page.goto("/dashboard/one-on-one");
     const bookingCard = page.getByTestId("one-on-one-booking-card").filter({ hasText: `E2E one-on-one ${stamp}` }).first();
-    await bookingCard.getByRole("button", { name: "confirmed" }).click();
+    await bookingCard.getByRole("button", { name: "已確認" }).click();
     await expect.poll(async () => (await getBookingByNotes(`E2E one-on-one ${stamp}`))?.status).toBe("confirmed");
 
     await page.goto("/dashboard/one-on-one");
     const confirmedCard = page.getByTestId("one-on-one-booking-card").filter({ hasText: `E2E one-on-one ${stamp}` }).first();
-    await confirmedCard.getByRole("button", { name: "completed" }).click();
+    await confirmedCard.getByRole("button", { name: "已完成" }).click();
     await expect.poll(async () => (await getBookingByNotes(`E2E one-on-one ${stamp}`))?.status).toBe("completed");
   });
 
@@ -1316,7 +1623,7 @@ test.describe("member portal", () => {
 
     await signInWithGeneratedLink(page, "fish.myfb@gmail.com");
     await page.goto("/dashboard/ai");
-    await expect(page.getByText(/目前使用中的 provider：gemini/i)).toBeVisible();
+    await expect(page.getByText(/目前使用中的 AI 服務：gemini/i)).toBeVisible();
     await page.locator('textarea[name="query"]').fill(query);
     await page.getByRole("button", { name: "送出查詢" }).click();
     await expect(page.getByText("AI 查詢會員", { exact: true }).first()).toBeVisible();
@@ -1372,11 +1679,11 @@ test.describe("member portal", () => {
     await signInWithGeneratedLink(page, "fish.myfb@gmail.com");
     await page.goto("/dashboard/one-on-one");
     await expect(page.getByTestId("jitsi-upcoming-panel")).toBeVisible();
-    await expect(page.getByTestId("jitsi-upcoming-panel")).toContainText("Jitsi 線上視訊");
+    await expect(page.getByTestId("jitsi-upcoming-panel")).toContainText("線上視訊");
     await expect(page.getByTestId("jitsi-upcoming-panel").getByRole("link", { name: "進入站內視訊入口" })).toHaveAttribute("href", /\/dashboard\/one-on-one\/[0-9a-f-]+\/video/);
 
     await page.goto(`/dashboard/one-on-one/${bookingId}/video`);
     await expect(page.getByRole("heading", { name: "一對一視訊入口" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "進入 Jitsi 視訊會議" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "進入視訊會議" })).toBeVisible();
   });
 });

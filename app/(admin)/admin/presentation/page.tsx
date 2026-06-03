@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Button } from "../../../../components/ui/button";
 import { Card } from "../../../../components/ui/card";
 import { parseWeekDate } from "../../../../lib/actions/admin-common";
-import { createPresentationAction, getPresentations, publishPresentationAction, unpublishPresentationAction } from "../../../../lib/actions/presentations";
+import { createPresentationAction, deletePresentationAction, getPresentations, publishPresentationAction, unpublishPresentationAction } from "../../../../lib/actions/presentations";
 import { parseSlideOrder } from "../../../../lib/presentation/slide-order";
 import { describeSlideThumbnail, isVisibleSlide } from "../../../../lib/presentation/workbench";
 import type { Json } from "../../../../lib/supabase/types";
@@ -31,7 +31,7 @@ export default async function PresentationPage({ searchParams }: { searchParams?
         <div>
           <p className="text-sm text-text-2">{weekDate}</p>
           <h1 className="text-3xl font-black">簡報管理</h1>
-          <p className="mt-2 text-sm text-text-2">建立、編輯、發布本週簡報。公開 viewer、typed slide engine 與相容舊連結的 alias 已接上。</p>
+          <p className="mt-2 text-sm text-text-2">建立、編輯、發布本週簡報。公開檢視器、型別化投影片引擎與相容舊連結的別名已接上。</p>
         </div>
         <Link className="rounded-full border border-border bg-white px-4 py-2 text-sm" href={`/presentation/${weekDate}`}>
           預覽公開頁
@@ -62,7 +62,7 @@ export default async function PresentationPage({ searchParams }: { searchParams?
                 <p className="mt-2 text-xs text-text-2" data-testid="presentation-public-link">{isPublished && p.published_url ? `公開網址：${p.published_url}` : "尚未發布公開網址"}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Link className="rounded-full border border-border px-4 py-2 text-sm" href={`/presentation/${p.week_date}`} target="_blank">Preview</Link>
+                <Link className="rounded-full border border-border px-4 py-2 text-sm" href={`/presentation/${p.week_date}`} target="_blank">預覽</Link>
                 <Link className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white" href={`/admin/presentations/${p.id}`}>編輯工作台</Link>
                 {isPublished ? (
                   <form action={unpublishPresentationAction}>
@@ -77,6 +77,17 @@ export default async function PresentationPage({ searchParams }: { searchParams?
                     <Button type="submit" className="rounded-full px-4">發布簡報</Button>
                   </form>
                 )}
+                <form
+                  action={deletePresentationAction}
+                  onSubmit={(e) => {
+                    if (!confirm("確定要刪除這份簡報嗎？此動作將無法復原！")) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  <input type="hidden" name="id" value={p.id} />
+                  <Button type="submit" variant="destructive" className="rounded-full px-4">刪除</Button>
+                </form>
               </div>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6" data-testid="presentation-thumbnail-grid">
@@ -86,7 +97,7 @@ export default async function PresentationPage({ searchParams }: { searchParams?
                   <div key={`${entry.type}-${"id" in entry ? entry.id : index}`} className="rounded-[20px] border border-border bg-surface-1 p-4">
                     <p className="text-xs font-semibold text-text-3">#{index + 1} · {meta.typeLabel}</p>
                     <p className="mt-2 text-lg font-black text-text-1">{meta.label}</p>
-                    <p className="mt-1 text-xs text-text-2">Type：{entry.type}</p>
+                    <p className="mt-1 text-xs text-text-2">類型：{meta.typeLabel}</p>
                   </div>
                 );
               })}

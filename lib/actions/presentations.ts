@@ -162,7 +162,18 @@ export async function publishPresentationAction(formData: FormData) {
   const id = requireText(formData, "id");
   const returnTo = typeof formData.get("return_to") === "string" ? String(formData.get("return_to")) : null;
   const presentation = await getPresentation(id);
-  const parsed = parseSlideOrder(presentation.slide_order as never);
+  
+  let parsed;
+  try {
+    parsed = parseSlideOrder(presentation.slide_order as never);
+  } catch (err: any) {
+    throw new Error(`發布失敗，簡報排版格式不正確：${err.message}`);
+  }
+
+  if (parsed.length === 0) {
+    throw new Error("發布失敗，簡報至少需要包含一張投影片。");
+  }
+
   const visibleSlides = parsed.filter((entry) => !("visible" in entry) || entry.visible);
   if (visibleSlides.length === 0) {
     throw new Error("至少需要一張可見的投影片才能發布。");

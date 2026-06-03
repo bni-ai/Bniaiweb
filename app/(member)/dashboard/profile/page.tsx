@@ -1,7 +1,8 @@
 import { Button } from "../../../../components/ui/button";
 import { Card } from "../../../../components/ui/card";
+import { MemberProfileCard } from "../../../../components/member/profile-card";
 import { deleteMyProductImageAction, getMyProductImages, updateMyProfileAction, uploadMyProductImagesAction, uploadMyProfilePhotoAction } from "../../../../lib/actions/members";
-import { getCurrentMember } from "../../../../lib/actions/member-portal";
+import { getMemberDashboardData } from "../../../../lib/actions/member-portal";
 
 export default async function MemberProfilePage({
   searchParams,
@@ -9,18 +10,26 @@ export default async function MemberProfilePage({
   searchParams?: Promise<{ photo?: string; products?: string }>;
 }) {
   const params = await searchParams;
-  const member = await getCurrentMember();
+  const { member, brief } = await getMemberDashboardData();
   const productImages = await getMyProductImages();
 
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">Public Profile</p>
+        <p className="text-sm text-text-2">公開個人資料</p>
         <h1 className="text-3xl font-black">個人資料</h1>
         <p className="mt-2 text-sm text-text-2">管理你的公開名片與引薦素材，這裡只開放會員本人可編輯的欄位。</p>
       </div>
       {params?.photo ? <Card className="rounded-[20px] border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">頭像已更新。</Card> : null}
       {params?.products ? <Card className="rounded-[20px] border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">產品圖庫已更新。</Card> : null}
+      
+      {member && (
+        <Card className="rounded-[28px] p-6 border border-border bg-surface-1 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+          <h2 className="text-xl font-black text-slate-800 mb-4">公開名片與簡報預覽</h2>
+          <MemberProfileCard member={member as any} brief={brief} />
+        </Card>
+      )}
+
       <div className="grid gap-4 md:grid-cols-[1fr_0.95fr]">
         <Card className="rounded-[24px] p-5">
           <h2 className="text-xl font-semibold">公開名片</h2>

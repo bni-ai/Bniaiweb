@@ -83,16 +83,30 @@ function resolveEditorState(
   subtitle: string,
   summary: string,
 ): PresentationRuntimeSlide["editor"] {
-  const backgroundImageUrl = editor?.backgroundImageUrl ?? null;
-  const body = editor?.body ?? buildEditorBody(subtitle, summary);
+  const backgroundImageUrl = editor?.backgroundImageUrl !== undefined && editor?.backgroundImageUrl !== null
+    ? editor.backgroundImageUrl
+    : null;
+
+  const resolvedTitle = editor?.title !== undefined && editor?.title !== null
+    ? editor.title
+    : title;
+
+  const resolvedBody = editor?.body !== undefined && editor?.body !== null
+    ? editor.body
+    : buildEditorBody(subtitle, summary);
+
+  const resolvedFontSize = (editor?.fontSize as SlideFontSize | null) ?? "lg";
+
+  const textLayers = editor?.textLayers?.length
+    ? editor.textLayers
+    : defaultTextLayers(resolvedTitle, resolvedBody, backgroundImageUrl);
+
   return {
-    title: editor?.title ?? title,
-    body,
+    title: resolvedTitle,
+    body: resolvedBody,
     backgroundImageUrl,
-    fontSize: (editor?.fontSize as SlideFontSize | null) ?? "lg",
-    textLayers: editor?.textLayers?.length
-      ? editor.textLayers
-      : defaultTextLayers(editor?.title ?? title, body, backgroundImageUrl),
+    fontSize: resolvedFontSize,
+    textLayers,
   };
 }
 
@@ -188,23 +202,91 @@ export function resolveRuntimeSlide(entry: SlideEntry, deck: PresentationDeck, i
       );
     case "keynote": {
       const slide = deck.keynoteSlides.get(entry.id);
-      return slide ? keynoteSlide(entry, index, slide) : null;
+      return keynoteSlide(entry, index, slide || {
+        speaker: {
+          id: entry.id,
+          chinese_name: "資料暫時無法取得",
+          english_name: null,
+          specialty_title: null,
+          specialty_description: null,
+          company_name: null,
+          photo_url: null,
+          position: null,
+          committee: null,
+          member_number: null,
+        },
+        keynote: {
+          id: entry.id,
+          topic: "資料暫時無法取得",
+          outline: "請稍後再試",
+          product_images: [],
+        },
+      });
     }
     case "member": {
       const slide = deck.memberSlides.get(entry.id);
-      return slide ? memberSlide(entry, index, slide) : null;
+      return memberSlide(entry, index, slide || {
+        member: {
+          id: entry.id,
+          chinese_name: "資料暫時無法取得",
+          english_name: null,
+          specialty_title: "請稍後再試",
+          specialty_description: null,
+          company_name: null,
+          photo_url: null,
+          position: null,
+          committee: null,
+          member_number: null,
+        },
+        brief: {
+          id: entry.id,
+          have_this_week: null,
+          want_this_week: null,
+        },
+      });
     }
     case "guest": {
       const slide = deck.guestSlides.get(entry.id);
-      return slide ? guestSlide(entry, index, slide) : null;
+      return guestSlide(entry, index, slide || {
+        guest: {
+          id: entry.id,
+          name: "資料暫時無法取得",
+          company: null,
+          specialty: null,
+        },
+        visit: {
+          id: entry.id,
+          visit_number: 1,
+          status: "pending",
+          self_intro: "請稍後再試",
+        },
+        referrer: null,
+      });
     }
     case "award": {
       const slide = deck.awardSlides.get(entry.id);
-      return slide ? awardSlide(entry, index, slide) : null;
+      return awardSlide(entry, index, slide || {
+        award: {
+          id: entry.id,
+          award_type: "獎項資料暫時無法取得",
+          description: "請稍後再試",
+        },
+        recipient: null,
+      });
     }
     case "vp_report": {
       const slide = deck.vpReportSlides.get(entry.id);
-      return slide ? vpReportSlide(entry, index, slide) : null;
+      return vpReportSlide(entry, index, slide || {
+        report: {
+          id: entry.id,
+          total_referrals: 0,
+          total_one_on_ones: 0,
+          total_visitors: 0,
+          member_attendance: 0,
+          referral_value_twd: 0,
+          notes: "營運指標資料暫時無法取得，請稍後再試",
+        },
+      });
     }
     case "team":
       if (!deck.teamSlide) return null;
