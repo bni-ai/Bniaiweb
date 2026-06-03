@@ -19,7 +19,7 @@ export function DeletePresentationButton({ id }: { id: string }) {
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <Button type="submit" variant="destructive" className="rounded-full px-4">刪除</Button>
+      <Button type="submit" variant="secondary" className="rounded-full px-4 text-red-600 hover:text-red-700">刪除</Button>
     </form>
   );
 }
