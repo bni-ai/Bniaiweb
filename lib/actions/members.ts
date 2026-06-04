@@ -32,7 +32,7 @@ export type MemberRecord = {
   gains_networks: string | null;
   gains_skills: string | null;
   photo_url: string | null;
-  role: "member" | "officer" | "president";
+  role: "member" | "officer" | "president" | "pending_member";
   position: string | null;
   committee: string | null;
   is_active: boolean;
@@ -337,4 +337,75 @@ export async function deleteMyContactAction(contactId: string, formData: FormDat
     .eq("member_id", member.id as never);
   if (error) throw error;
   revalidatePath("/dashboard/contacts-circle");
+}
+
+export async function approvePendingMemberAction(formData: FormData) {
+  const id = requireText(formData, "id");
+  const targetRole = requireText(formData, "role"); // 'member' | 'officer' | 'president'
+
+  if (!id || !["member", "officer", "president"].includes(targetRole)) {
+    throw new Error("無效的核准參數");
+  }
+
+  const supabase = createAdminClient();
+  const chapter = await getChapter();
+
+  const { error } = await supabase
+    .from("members" as never)
+    .update({
+      role: targetRole,
+      is_active: true,
+    } as never)
+    .eq("chapter_id", chapter.id as never)
+    .eq("id", id as never);
+
+  if (error) throw error;
+
+  revalidatePath("/admin/members");
+}
+
+export async function promoteGuestToMemberAction(formData: FormData) {
+  const guestId = requireText(formData, "guest_id");
+  const targetRole = requireText(formData, "role"); // 'member' | 'officer' | 'president'
+
+  if (!guestId || !["member", "officer", "president"].includes(targetRole)) {
+    throw new Error("無效的升權參數");
+  }
+
+  const supabase = createAdminClient();
+  const chapter = await getChapter();
+
+  const { data: guest, error: guestError } = await supabase
+    .from("guests" as never)
+    .select("*")
+    .eq("id", guestId as never)
+    .maybeSingle();
+
+  if (guestError || !guest) {
+    throw new Error("找不到該來賓資料");
+  }
+
+  const guestData = guest as Database["public"]["Tables"]["guests"]["Row"];
+
+  const { error: insertError } = await supabase.from("members" as never).insert({
+    chapter_id: chapter.id,
+    auth_uid: guestId,
+    email: guestData.email || "",
+    chinese_name: guestData.name,
+    company_name: guestData.company || null,
+    specialty_title: guestData.specialty || null,
+    role: targetRole,
+    is_active: true,
+  } as never);
+
+  if (insertError) throw insertError;
+
+  const { error: deleteError } = await supabase
+    .from("guests" as never)
+    .delete()
+    .eq("id", guestId as never);
+
+  void deleteError;
+
+  revalidatePath("/admin/members");
 }

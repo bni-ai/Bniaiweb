@@ -21,6 +21,10 @@ describe("access control", () => {
     ["/guest/members", "guest", null],
     ["/admin", null, "/login"],
     ["/dashboard", null, "/login"],
+    ["/admin", "pending_member", "/guest"],
+    ["/dashboard", "pending_member", "/guest"],
+    ["/guest", "pending_member", null],
+    ["/login", "pending_member", "/guest"],
   ] satisfies Array<[string, AppRole, string | null]>)("routes %s for role %s", (pathname, role, redirectTo) => {
     expect(resolveAccessDecision(pathname, role).redirectTo ?? null).toBe(redirectTo);
   });
@@ -30,5 +34,6 @@ describe("access control", () => {
     expect(resolveAuthDestination({ memberRole: "member", isGuest: true })).toEqual({ role: "member", redirectTo: "/dashboard" });
     expect(resolveAuthDestination({ memberRole: null, isGuest: true })).toEqual({ role: "guest", redirectTo: "/guest" });
     expect(resolveAuthDestination({ memberRole: null, isGuest: false })).toEqual({ role: null, redirectTo: "/error" });
+    expect(resolveAuthDestination({ memberRole: "pending_member", isGuest: false })).toEqual({ role: "pending_member", redirectTo: "/guest" });
   });
 });

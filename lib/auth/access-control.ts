@@ -1,4 +1,4 @@
-export type AppRole = "admin" | "member" | "guest" | null;
+export type AppRole = "admin" | "member" | "guest" | "pending_member" | null;
 
 export type AccessDecision = {
   allow: boolean;
@@ -23,20 +23,20 @@ export function resolveAccessDecision(
   if (pathname === "/login") {
     if (role === "admin") return { allow: false, redirectTo: "/admin" };
     if (role === "member") return { allow: false, redirectTo: "/dashboard" };
-    if (role === "guest") return { allow: false, redirectTo: "/guest" };
+    if (role === "guest" || role === "pending_member") return { allow: false, redirectTo: "/guest" };
     return { allow: true };
   }
 
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     if (!role) return { allow: false, redirectTo: "/login" };
-    if (role === "guest") return { allow: false, redirectTo: "/guest" };
+    if (role === "guest" || role === "pending_member") return { allow: false, redirectTo: "/guest" };
     if (role !== "admin") return { allow: false, redirectTo: "/dashboard" };
     return { allow: true };
   }
 
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     if (!role) return { allow: false, redirectTo: "/login" };
-    if (role === "guest") return { allow: false, redirectTo: "/guest" };
+    if (role === "guest" || role === "pending_member") return { allow: false, redirectTo: "/guest" };
     return { allow: true };
   }
 

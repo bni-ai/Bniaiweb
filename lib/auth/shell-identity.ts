@@ -28,6 +28,7 @@ const roleLabels: Record<Exclude<AppRole, null>, string> = {
   admin: "管理員",
   member: "會員",
   guest: "來賓",
+  pending_member: "待審核會員",
 };
 
 export function getInitial(value: string) {

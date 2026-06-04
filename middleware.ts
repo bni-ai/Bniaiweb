@@ -5,7 +5,7 @@ import { resolveAccessDecision, type AppRole } from "./lib/access-control";
 
 function getRole(request: NextRequest): AppRole {
   const role = request.cookies.get("sb-role")?.value;
-  if (role === "admin" || role === "member" || role === "guest") return role;
+  if (role === "admin" || role === "member" || role === "guest" || role === "pending_member") return role;
   return null;
 }
 

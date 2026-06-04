@@ -7,15 +7,18 @@ import { filterGuestContentItems, selectCurrentGuestVisit } from "../guest-porta
 import { createServerClient } from "../supabase/server";
 import { createAdminClient, getChapter } from "./admin-common";
 
-export async function getGuestRole(): Promise<"guest" | null> {
+export async function getGuestRole(): Promise<"guest" | "pending_member" | null> {
   const cookieStore = await cookies();
-  return cookieStore.get("sb-role")?.value === "guest" ? "guest" : null;
+  const role = cookieStore.get("sb-role")?.value;
+  if (role === "guest" || role === "pending_member") return role;
+  return null;
 }
 
 export async function getGuestContentItems() {
   const supabase = createAdminClient();
   const chapter = await getChapter();
-  const isGuest = (await getGuestRole()) === "guest";
+  const role = await getGuestRole();
+  const isGuest = role === "guest" || role === "pending_member";
   const { data, error } = await supabase
     .from("guest_content_items" as never)
     .select("id, title, summary, body, video_url, visibility, status, published_at")
@@ -27,7 +30,7 @@ export async function getGuestContentItems() {
 
 export async function getCurrentGuestContext() {
   const role = await getGuestRole();
-  if (role !== "guest") return null;
+  if (!role) return null;
 
   const authClient = await createServerClient();
   const { data: { user } } = await authClient.auth.getUser();
@@ -35,6 +38,31 @@ export async function getCurrentGuestContext() {
   if (!email) return null;
 
   const supabase = createAdminClient();
+
+  if (role === "pending_member") {
+    const { data: member, error: memberError } = await supabase
+      .from("members" as never)
+      .select("id, chinese_name, company_name, specialty_title, email")
+      .ilike("email", email as never)
+      .maybeSingle();
+
+    if (memberError) throw memberError;
+    if (!member) return null;
+
+    const pm = member as { id: string; chinese_name: string; company_name: string | null; specialty_title: string | null; email: string };
+    return {
+      isPending: true,
+      guest: {
+        id: pm.id,
+        name: pm.chinese_name,
+        email: pm.email,
+        company: pm.company_name,
+        specialty: pm.specialty_title,
+      },
+      visit: null,
+    };
+  }
+
   const { data: guest, error: guestError } = await supabase
     .from("guests" as never)
     .select("id, name, company, specialty, email, referrer_id, members(chinese_name)")
@@ -51,6 +79,7 @@ export async function getCurrentGuestContext() {
   if (visitsError) throw visitsError;
 
   return {
+    isPending: false,
     guest: guest as any,
     visit: selectCurrentGuestVisit((visits || []) as any[]),
   };

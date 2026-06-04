@@ -22,6 +22,25 @@ describe("resolveAccessDecision", () => {
       allow: false,
       redirectTo: "/admin",
     });
+
+    expect(resolveAccessDecision("/admin", "pending_member")).toEqual({
+      allow: false,
+      redirectTo: "/guest",
+    });
+
+    expect(resolveAccessDecision("/dashboard", "pending_member")).toEqual({
+      allow: false,
+      redirectTo: "/guest",
+    });
+
+    expect(resolveAccessDecision("/login", "pending_member")).toEqual({
+      allow: false,
+      redirectTo: "/guest",
+    });
+
+    expect(resolveAccessDecision("/guest", "pending_member")).toEqual({
+      allow: true,
+    });
   });
 
   it("does not trigger any db query in access control", () => {

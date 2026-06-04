@@ -33,7 +33,7 @@ export type Database = {
           gains_networks: string | null;
           gains_skills: string | null;
           photo_url: string | null;
-          role: "member" | "officer" | "president";
+          role: "member" | "officer" | "president" | "pending_member";
           position: string | null;
           committee: string | null;
           is_active: boolean;
@@ -63,7 +63,7 @@ export type Database = {
           gains_networks?: string | null;
           gains_skills?: string | null;
           photo_url?: string | null;
-          role?: "member" | "officer" | "president";
+          role?: "member" | "officer" | "president" | "pending_member";
           position?: string | null;
           committee?: string | null;
           is_active?: boolean;
@@ -93,7 +93,7 @@ export type Database = {
           gains_networks?: string | null;
           gains_skills?: string | null;
           photo_url?: string | null;
-          role?: "member" | "officer" | "president";
+          role?: "member" | "officer" | "president" | "pending_member";
           position?: string | null;
           committee?: string | null;
           is_active?: boolean;

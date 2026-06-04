@@ -3,11 +3,12 @@
 import { type FormEvent, useState } from "react";
 
 import { Button } from "../../../components/ui/button";
+import { getReadableAuthErrorMessage, isGithubOauthEnabled, type LoginMode } from "../../../lib/auth/login";
 import { createBrowserClient } from "../../../lib/supabase/client";
 
 type OAuthProvider = "google" | "github";
 
-const githubEnabled = process.env.NEXT_PUBLIC_AUTH_GITHUB_ENABLED === "true";
+const githubEnabled = isGithubOauthEnabled();
 
 function GoogleIcon() {
   return (
@@ -33,7 +34,9 @@ function GithubIcon() {
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [loadingProvider, setLoadingProvider] = useState<"email" | OAuthProvider | null>(null);
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<LoginMode>("password");
+  const [loadingProvider, setLoadingProvider] = useState<"password" | "email-link" | OAuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -41,36 +44,61 @@ export default function LoginPage() {
     setLoadingProvider(provider);
     setError(null);
     setMessage(null);
-    const supabase = createBrowserClient();
+    try {
+      const supabase = createBrowserClient();
 
-    const { data, error: signInError } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        skipBrowserRedirect: true,
-      },
-    });
+      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          skipBrowserRedirect: true,
+        },
+      });
 
-    if (signInError) {
-      setError(signInError.message);
+      if (signInError) {
+        setError(getReadableAuthErrorMessage("社群登入失敗，請稍後再試。", signInError));
+        setLoadingProvider(null);
+        return;
+      }
+
+      if (!data.url) {
+        setError("無法取得登入導向網址，請重新整理後再試一次。");
+        setLoadingProvider(null);
+        return;
+      }
+
+      window.location.assign(data.url);
+    } catch (caughtError) {
+      setError(getReadableAuthErrorMessage("社群登入初始化失敗，請稍後再試。", caughtError));
       setLoadingProvider(null);
-      return;
     }
-
-    if (!data.url) {
-      setError("無法取得登入導向網址，請重新整理後再試一次。");
-      setLoadingProvider(null);
-      return;
-    }
-
-    window.location.assign(data.url);
   }
 
   async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setLoadingProvider("email");
+    setLoadingProvider(mode === "password" ? "password" : "email-link");
     setError(null);
     setMessage(null);
+
+    if (mode === "password") {
+      const response = await fetch("/auth/password-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const body = (await response.json().catch(() => null)) as { error?: string; redirectTo?: string } | null;
+      if (!response.ok || !body?.redirectTo) {
+        setError(body?.error || "登入失敗，請確認 Email 與密碼。");
+        setLoadingProvider(null);
+        return;
+      }
+
+      window.location.assign(body.redirectTo);
+      return;
+    }
 
     const response = await fetch("/auth/email-link", {
       method: "POST",
@@ -96,12 +124,29 @@ export default function LoginPage() {
       <div>
         <p className="mb-2 text-sm text-text-2">BNI 華 AI 分會</p>
         <h1 className="text-2xl font-semibold text-text-1">會員登入</h1>
-        <p className="mt-2 text-sm text-text-2">使用分會名冊內的 email 登入會員系統。</p>
+        <p className="mt-2 text-sm text-text-2">使用分會名冊內的會員 Email 登入會員系統。</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 rounded-[var(--radius-card)] bg-surface-2 p-1">
+        <button
+          type="button"
+          className={`rounded-[var(--radius-input)] px-3 py-2 text-sm font-medium transition ${mode === "password" ? "bg-white text-text-1 shadow-sm" : "text-text-2"}`}
+          onClick={() => setMode("password")}
+        >
+          密碼登入
+        </button>
+        <button
+          type="button"
+          className={`rounded-[var(--radius-input)] px-3 py-2 text-sm font-medium transition ${mode === "magic-link" ? "bg-white text-text-1 shadow-sm" : "text-text-2"}`}
+          onClick={() => setMode("magic-link")}
+        >
+          Magic Link
+        </button>
       </div>
 
       <form className="space-y-3" onSubmit={handleEmailLogin}>
         <label className="block text-sm font-medium text-text-1" htmlFor="email">
-          Email
+          會員 Email
         </label>
         <input
           id="email"
@@ -113,9 +158,43 @@ export default function LoginPage() {
           className="w-full rounded-[var(--radius-input)] border border-border bg-surface px-3 py-2 text-sm text-text-1 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           placeholder="you@example.com"
         />
+        {mode === "password" ? (
+          <>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-text-1" htmlFor="password">
+                密碼
+              </label>
+              <a href="/forgot-password" id="forgot-password-link" className="text-xs text-text-2 hover:underline">
+                忘記密碼？
+              </a>
+            </div>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+              className="w-full rounded-[var(--radius-input)] border border-border bg-surface px-3 py-2 text-sm text-text-1 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              placeholder="請輸入密碼"
+            />
+          </>
+        ) : null}
         <Button className="w-full" type="submit" disabled={loadingProvider !== null}>
-          {loadingProvider === "email" ? "寄送中..." : "寄送 Email 登入連結"}
+          {mode === "password"
+            ? loadingProvider === "password"
+              ? "登入中..."
+              : "登入"
+            : loadingProvider === "email-link"
+              ? "寄送中..."
+              : "寄送登入連結"}
         </Button>
+        <div className="text-center text-xs">
+          沒有帳號？{" "}
+          <a href="/signup" id="signup-link" className="font-medium text-text-2 hover:underline">
+            註冊來賓帳號
+          </a>
+        </div>
       </form>
 
       <div className="relative">
@@ -135,15 +214,17 @@ export default function LoginPage() {
           <GoogleIcon />
           {loadingProvider === "google" ? "登入中..." : "Google"}
         </Button>
-        <Button
-          className="gap-2"
-          variant="secondary"
-          onClick={() => (githubEnabled ? handleOAuthLogin("github") : setError("GitHub 登入尚未設定 OAuth 憑證。"))}
-          disabled={loadingProvider !== null}
-        >
-          <GithubIcon />
-          {loadingProvider === "github" ? "登入中..." : "GitHub"}
-        </Button>
+        {githubEnabled ? (
+          <Button
+            className="gap-2"
+            variant="secondary"
+            onClick={() => handleOAuthLogin("github")}
+            disabled={loadingProvider !== null}
+          >
+            <GithubIcon />
+            {loadingProvider === "github" ? "登入中..." : "GitHub"}
+          </Button>
+        ) : null}
       </div>
 
       {message ? (
@@ -152,7 +233,7 @@ export default function LoginPage() {
       {error ? <p className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-primary">{error}</p> : null}
 
       <p className="text-xs leading-5 text-text-2">
-        登入後會比對 `members.email`。如果名冊還沒有你的 email，系統會導向未加入分會頁面。
+        登入後會比對 `members.email` / `guests.email`。如果名冊還沒有你的 email，系統會導向未加入分會頁面。
       </p>
     </section>
   );

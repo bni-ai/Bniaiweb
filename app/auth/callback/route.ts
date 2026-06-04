@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-import { resolveAuthDestination } from "../../../lib/access-control";
-import { createAdminClient } from "../../../lib/actions/admin-common";
-import { createServerClient } from "../../../lib/supabase/server";
+import { AuthIdentityError, resolveAuthIdentityByEmail } from "../../../lib/auth/identity";
+import { clearAuthCookies, copyResponseCookies, createRouteHandlerClient } from "../../../lib/supabase/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const tokenHash = requestUrl.searchParams.get("token_hash");
@@ -16,17 +15,25 @@ export async function GET(request: Request) {
     return NextResponse.redirect(redirectToLogin);
   }
 
-  const supabase = await createServerClient();
+  const authResponse = NextResponse.next();
+  const supabase = createRouteHandlerClient(request, authResponse);
+  const allowedOtpTypes = ["signup", "invite", "magiclink", "recovery", "email_change", "phone_change"];
+  const otpType = allowedOtpTypes.includes(type || "")
+    ? (type as "signup" | "invite" | "magiclink" | "recovery" | "email_change")
+    : "magiclink";
+
   const authResult = tokenHash
     ? await supabase.auth.verifyOtp({
         token_hash: tokenHash,
-        type: type === "email" ? "email" : "magiclink",
+        type: otpType,
       })
     : await supabase.auth.exchangeCodeForSession(code as string);
 
   if (authResult.error) {
     redirectToError.searchParams.set("reason", "exchange-failed");
-    return NextResponse.redirect(redirectToError);
+    const response = NextResponse.redirect(redirectToError);
+    clearAuthCookies(request, response);
+    return response;
   }
 
   const {
@@ -36,49 +43,37 @@ export async function GET(request: Request) {
   const email = user?.email;
   if (!email) {
     redirectToError.searchParams.set("reason", "missing-email");
-    return NextResponse.redirect(redirectToError);
+    const response = NextResponse.redirect(redirectToError);
+    clearAuthCookies(request, response);
+    return response;
   }
 
-  const adminClient = createAdminClient();
-  const { data: memberData, error: memberError } = await adminClient
-    .from("members" as never)
-    .select("id, role")
-    .ilike("email", email as never)
-    .maybeSingle();
-
-  const member = memberData as { id: string; role: string } | null;
-  if (memberError) {
-    redirectToError.searchParams.set("reason", "member-lookup-failed");
-    return NextResponse.redirect(redirectToError);
+  let destination;
+  try {
+    destination = await resolveAuthIdentityByEmail(email, user?.id);
+  } catch (error) {
+    if (error instanceof AuthIdentityError) {
+      redirectToError.searchParams.set("reason", error.reason);
+    } else {
+      redirectToError.searchParams.set("reason", "member-lookup-failed");
+    }
+    const response = NextResponse.redirect(redirectToError);
+    clearAuthCookies(request, response);
+    return response;
   }
-
-  const { data: guestData, error: guestError } = member
-    ? { data: null, error: null }
-    : await adminClient
-        .from("guests" as never)
-        .select("id")
-        .ilike("email", email as never)
-        .maybeSingle();
-
-  if (guestError) {
-    redirectToError.searchParams.set("reason", "guest-lookup-failed");
-    return NextResponse.redirect(redirectToError);
-  }
-
-  const destination = resolveAuthDestination({
-    memberRole: member?.role || null,
-    isGuest: Boolean(guestData),
-  });
 
   if (!destination.role) {
     redirectToError.searchParams.set("reason", "identity-not-found");
     redirectToError.searchParams.set("email", email);
     const response = NextResponse.redirect(redirectToError);
-    response.cookies.delete("sb-role");
+    clearAuthCookies(request, response);
     return response;
   }
 
-  const response = NextResponse.redirect(new URL(destination.redirectTo, request.url));
+  const isRecovery = type === "recovery";
+  const redirectUrl = isRecovery ? new URL("/reset-password", request.url) : new URL(destination.redirectTo, request.url);
+  const response = NextResponse.redirect(redirectUrl);
+  copyResponseCookies(authResponse, response);
 
   response.cookies.set("sb-role", destination.role, {
     httpOnly: true,
