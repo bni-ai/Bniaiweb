@@ -774,15 +774,15 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
           ))}
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface-1 p-3" data-testid="presentation-asset-library">
+        <div className="space-y-2" data-testid="presentation-asset-library">
           <div className="flex items-center justify-between gap-2">
             <div>
               <p className="text-sm font-medium text-text-1">已上傳底圖</p>
-              <p className="mt-1 text-xs text-text-2">同一份簡報已經存過的底圖可以直接重用。</p>
+              <p className="text-xs text-text-2">同一份簡報已經存過的底圖可以直接重用。</p>
             </div>
-            <span className="rounded-full border border-border bg-white px-2 py-1 text-xs text-text-2">{reusableAssets.length} 張</span>
+            <span className="text-xs text-text-2 font-semibold">({reusableAssets.length} 張)</span>
           </div>
-          <div className="mt-3 grid gap-3">
+          <div className="grid gap-3">
             {reusableAssets.length ? reusableAssets.map((asset) => (
               <div key={asset.url} className="rounded-2xl border border-border bg-white p-3">
                 <img alt={asset.label} className="h-24 w-full rounded-xl object-cover" src={asset.url} />
@@ -808,9 +808,9 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface-1 p-3">
+        <div className="space-y-2">
           <p className="text-sm font-medium text-text-1">圖層元素</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {slideLayers.map((layer) => (
               <button
                 key={layer.id}

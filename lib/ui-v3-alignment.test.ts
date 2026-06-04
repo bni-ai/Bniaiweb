@@ -88,6 +88,10 @@ describe("ui v3 alignment source contracts", () => {
     // 8. admin/presentations/[id]/page.tsx 不應該用 Card 包裹簡報編輯器（去除雙重外框）
     const presentationPage = read("app/(admin)/admin/presentations/[id]/page.tsx");
     expect(presentationPage).not.toContain("<Card className=\"rounded-2xl p-5\">\n          <div className=\"mb-4 flex items-center justify-between gap-3\">\n            <div>\n              <h2 className=\"text-xl font-semibold\">投影片編輯</h2>");
+
+    // 9. canvas-editor.tsx 不應該為「已上傳底圖」與「圖層元素」加上 border 卡片外框，也不應為張數數字使用 border 圈圈（打字按鍵/打字機樣式）
+    expect(canvasEditor).not.toContain("className=\"rounded-2xl border border-border bg-surface-1 p-3\" data-testid=\"presentation-asset-library\"");
+    expect(canvasEditor).not.toContain("rounded-full border border-border bg-white px-2 py-1 text-xs text-text-2");
   });
 
   it("uses Open Design svg icons instead of text placeholders in icon wraps", () => {
