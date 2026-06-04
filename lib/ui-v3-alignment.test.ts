@@ -64,8 +64,8 @@ describe("ui v3 alignment source contracts", () => {
     expect(adminLayout).toContain("contentClassName={");
     expect(adminLayout).toContain("presentations");
 
-    // 3. globals.css 應該定義 .od-content.is-workspace 來移除 max-width
-    expect(globals).toContain(".od-content.is-workspace");
+    // 3. globals.css 應該定義 .od-content 移除 max-width（即 max-width: none）以消除全站右側留白
+    expect(globals).toContain(".od-content {\n  width: 100%;\n  max-width: none;");
 
     // 4. globals.css 應該定義三欄重新分配的離散寬度級距 (.od-editor-workspace)
     expect(globals).toContain(".od-editor-workspace");

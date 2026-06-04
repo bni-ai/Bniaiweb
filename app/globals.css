@@ -445,7 +445,7 @@ button {
 
 .od-content {
   width: 100%;
-  max-width: 1280px;
+  max-width: none;
   padding: 24px;
   display: grid;
   gap: 18px;
