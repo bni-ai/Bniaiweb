@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -15,7 +15,8 @@
     "@supabase/supabase-js": "^2.106.2",
     "next": "^15.2.8",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "reveal.js": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
