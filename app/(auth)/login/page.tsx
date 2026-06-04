@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import Link from "next/link";
 
 import { Button } from "../../../components/ui/button";
 import { getReadableAuthErrorMessage, isGithubOauthEnabled, type LoginMode } from "../../../lib/auth/login";
@@ -189,13 +190,15 @@ export default function LoginPage() {
               ? "寄送中..."
               : "寄送登入連結"}
         </Button>
-        <div className="text-center text-xs">
-          沒有帳號？{" "}
-          <a href="/signup" id="signup-link" className="font-medium text-text-2 hover:underline">
-            註冊來賓帳號
-          </a>
-        </div>
       </form>
+
+      <div className="rounded-[var(--radius-card)] border border-primary/20 bg-primary/5 p-4">
+        <p className="text-sm font-semibold text-text-1">首次來訪的來賓？</p>
+        <p className="mt-1 text-xs text-text-2">進入來賓專區瞭解分會、準備拜訪資料，或申請來賓帳號。</p>
+        <Link href="/guest">
+          <Button className="mt-3 w-full" variant="secondary">進入來賓專區 →</Button>
+        </Link>
+      </div>
 
       <div className="relative">
         <div className="h-px bg-border" />

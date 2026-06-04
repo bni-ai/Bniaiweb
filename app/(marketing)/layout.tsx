@@ -9,7 +9,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div>
-            <p className="text-sm text-text-2">BNI Chapter</p>
+            <p className="text-sm text-text-2">BNI 分會</p>
             <p className="font-semibold text-text-1">華 AI 分會</p>
           </div>
           <Link href="/login">
@@ -21,7 +21,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       <footer className="border-t border-border bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-text-2">
           <p>BNI 華 AI 分會</p>
-          <p>聯絡信箱：huaai@bni.com.tw</p>
+          <p>聯絡信箱：bniaitw@gmail.com</p>
         </div>
       </footer>
     </div>
