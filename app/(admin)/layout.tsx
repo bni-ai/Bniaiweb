@@ -1,17 +1,14 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { headers } from "next/headers";
 
-import { Button } from "../../components/ui/button";
-import { logout } from "../../lib/actions/auth";
-import { getShellIdentity, type ShellIdentity } from "../../lib/auth/shell-identity";
-import { getSessionRole } from "../../lib/auth/session-role";
+import { BniPortalShell } from "../../components/layout/bni-portal-shell";
+import { getShellIdentity } from "../../lib/auth/shell-identity";
 
 const navGroups = [
   {
     label: "概覽",
     items: [
-      { href: "/admin", label: "總覽" },
+      { href: "/admin", label: "總覽", badge: "會務" },
     ],
   },
   {
@@ -36,86 +33,28 @@ const navGroups = [
   },
   {
     label: "系統",
-    items: [
-      { href: "/admin/settings", label: "系統設定" },
-    ],
+    items: [{ href: "/admin/settings", label: "系統設定" }],
   },
 ];
 
-function isActivePath(currentPath: string, href: string) {
-  if (href === "/admin") return currentPath === href;
-  return currentPath === href || currentPath.startsWith(`${href}/`);
-}
-
-function UserCard({ identity }: { identity: ShellIdentity }) {
-  return (
-    <div className="mb-5 flex items-center gap-3 rounded-lg border border-[#dbd1c2] bg-white p-3" data-testid="shell-user-card">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold text-white">
-        {identity.avatarUrl ? <img src={identity.avatarUrl} alt={identity.displayName} className="h-full w-full object-cover" /> : identity.initial}
-      </div>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-text-1">{identity.displayName}</p>
-        <p className="truncate text-xs text-text-2">{identity.secondaryLabel}</p>
-        <span className="mt-1 inline-flex rounded bg-[#fef2f2] px-1.5 py-0.5 text-[10px] font-semibold text-primary">{identity.roleLabel}</span>
-      </div>
-    </div>
-  );
-}
-
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const role = await getSessionRole();
   const identity = await getShellIdentity();
   const currentPath = (await headers()).get("x-current-path") || "";
+  
+  const isWorkspace = /^\/admin\/presentations\/[^/]+$/.test(currentPath);
+  const contentClassName = isWorkspace ? "od-content is-workspace" : undefined;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(212,168,75,0.08),_transparent_28%),linear-gradient(180deg,#f7f5f1_0%,#efebe4_100%)]">
-      <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 md:grid-cols-[260px_1fr]">
-        <aside className="flex min-h-screen flex-col border-r border-[#dbd1c2] bg-[#f9f6f0] p-4" data-testid="admin-sidebar">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">BNI Hua AI</p>
-          <p className="mb-4 text-sm text-text-2">幹部管理後台</p>
-          <UserCard identity={identity} />
-          <nav className="space-y-5">
-            {navGroups.map((group) => (
-              <section key={group.label} className="space-y-1.5">
-                <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-text-2">{group.label}</p>
-                {group.items.map((item) => {
-                  const active = isActivePath(currentPath, item.href);
-
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`block rounded-2xl border px-3 py-2.5 text-sm transition ${
-                        active
-                          ? "border-primary/20 bg-white font-semibold text-text-1 shadow-[0_10px_28px_rgba(17,24,39,0.07)]"
-                          : "border-transparent text-text-1 hover:border-[#dbd1c2] hover:bg-white"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </section>
-            ))}
-          </nav>
-          <div className="mt-auto space-y-3 pt-6">
-            {role === "admin" ? (
-              <a
-                href="/dashboard"
-                className="block rounded-2xl border border-[#dbd1c2] bg-white px-3 py-3 text-center text-sm font-medium text-text-1 transition hover:border-primary/30 hover:text-primary"
-              >
-                切換到會員視角
-              </a>
-            ) : null}
-            <form action={logout}>
-              <Button type="submit" variant="ghost" className="w-full justify-center rounded-full border border-[#dbd1c2] bg-white">
-                登出
-              </Button>
-            </form>
-          </div>
-        </aside>
-        <main className="p-6">{children}</main>
-      </div>
-    </div>
+    <BniPortalShell
+      currentPath={currentPath}
+      identity={identity}
+      mode="admin"
+      navGroups={navGroups}
+      subtitle="例會準備、投稿審核、簡報發布與資料品質"
+      title="幹部入口總覽"
+      contentClassName={contentClassName}
+    >
+      {children}
+    </BniPortalShell>
   );
 }

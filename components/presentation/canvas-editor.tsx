@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import type { PresentationRuntimeSlide, SlideEditorPatch, SlideEntry, SlideTextAlign, SlideTextLayer } from "../../lib/presentation/types";
-import { addBlankSlideAction, deleteSlideAction, duplicateSlideAction } from "../../lib/actions/presentations";
+import type { PresentationRuntimeSlide, SlideEditorPatch, SlideEntry, SlideTextAlign, SlideTextLayer, SlideImageLayer } from "../../lib/presentation/types";
+import { addBlankSlideAction, deleteSlideAction, duplicateSlideAction, uploadLayerImageAction } from "../../lib/actions/presentations";
 
 const CANVAS_WIDTH = 1920;
 const CANVAS_HEIGHT = 1080;
@@ -23,10 +23,14 @@ type EditableSlide = {
 type DragState = {
   slideIndex: number;
   layerId: string;
+  layerType: "text" | "image";
   mode: "move" | "resize";
   startX: number;
   startY: number;
-  initialLayer: SlideTextLayer;
+  initialX: number;
+  initialY: number;
+  initialWidth: number;
+  initialHeight: number;
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -42,6 +46,7 @@ function toEditorJson(slide: EditableSlide): SlideEditorPatch {
     fontSize: slide.editor.fontSize,
     backgroundImageUrl: slide.editor.backgroundImageUrl,
     textLayers: slide.editor.textLayers,
+    imageLayers: slide.editor.imageLayers,
   };
 }
 
@@ -67,13 +72,16 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
   const [slides, setSlides] = useState<EditableSlide[]>(initialSlides);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(initialSlides[0]?.editor.textLayers[0]?.id || null);
+  const [selectedLayerType, setSelectedLayerType] = useState<"text" | "image" | null>(initialSlides[0]?.editor.textLayers[0]?.id ? "text" : null);
   const [scale, setScale] = useState(1);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const previewUrlsRef = useRef<Map<number, string>>(new Map());
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const activeSlide = slides[activeSlideIndex];
   const selectedLayer = activeSlide?.editor.textLayers.find((layer) => layer.id === selectedLayerId) || null;
+  const selectedImageLayer = (activeSlide?.editor.imageLayers || []).find((layer) => layer.id === selectedLayerId) || null;
 
   useEffect(() => {
     if (!viewportRef.current) return;
@@ -108,34 +116,56 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
     const onPointerMove = (event: PointerEvent) => {
       setSlides((current) => current.map((slide, slideIndex) => {
         if (slideIndex !== dragState.slideIndex) return slide;
-        const nextLayers = slide.editor.textLayers.map((layer) => {
-          if (layer.id !== dragState.layerId) return layer;
-          const dx = (event.clientX - dragState.startX) / scale;
-          const dy = (event.clientY - dragState.startY) / scale;
-          if (dragState.mode === "move") {
+        const dx = (event.clientX - dragState.startX) / scale;
+        const dy = (event.clientY - dragState.startY) / scale;
+
+        if (dragState.layerType === "text") {
+          const nextLayers = slide.editor.textLayers.map((layer) => {
+            if (layer.id !== dragState.layerId) return layer;
+            if (dragState.mode === "move") {
+              return {
+                ...layer,
+                x: clamp(dragState.initialX + dx, 0, CANVAS_WIDTH - layer.width),
+                y: clamp(dragState.initialY + dy, 0, CANVAS_HEIGHT - layer.height),
+              };
+            }
             return {
               ...layer,
-              x: clamp(dragState.initialLayer.x + dx, 0, CANVAS_WIDTH - layer.width),
-              y: clamp(dragState.initialLayer.y + dy, 0, CANVAS_HEIGHT - layer.height),
+              width: clamp(dragState.initialWidth + dx, 140, CANVAS_WIDTH - dragState.initialX),
+              height: clamp(dragState.initialHeight + dy, 80, CANVAS_HEIGHT - dragState.initialY),
             };
-          }
-
-          const width = clamp(dragState.initialLayer.width + dx, 140, CANVAS_WIDTH - dragState.initialLayer.x);
-          const height = clamp(dragState.initialLayer.height + dy, 80, CANVAS_HEIGHT - dragState.initialLayer.y);
+          });
           return {
-            ...layer,
-            width,
-            height,
+            ...slide,
+            editor: {
+              ...slide.editor,
+              textLayers: nextLayers,
+            },
           };
-        });
-
-        return {
-          ...slide,
-          editor: {
-            ...slide.editor,
-            textLayers: nextLayers,
-          },
-        };
+        } else {
+          const nextLayers = (slide.editor.imageLayers || []).map((layer) => {
+            if (layer.id !== dragState.layerId) return layer;
+            if (dragState.mode === "move") {
+              return {
+                ...layer,
+                x: clamp(dragState.initialX + dx, 0, CANVAS_WIDTH - layer.width),
+                y: clamp(dragState.initialY + dy, 0, CANVAS_HEIGHT - layer.height),
+              };
+            }
+            return {
+              ...layer,
+              width: clamp(dragState.initialWidth + dx, 140, CANVAS_WIDTH - dragState.initialX),
+              height: clamp(dragState.initialHeight + dy, 80, CANVAS_HEIGHT - dragState.initialY),
+            };
+          });
+          return {
+            ...slide,
+            editor: {
+              ...slide.editor,
+              imageLayers: nextLayers,
+            },
+          };
+        }
       }));
     };
 
@@ -152,7 +182,9 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
   useEffect(() => {
     const currentSlide = slides[activeSlideIndex];
     if (!currentSlide) return;
-    if (!currentSlide.editor.textLayers.some((layer) => layer.id === selectedLayerId)) {
+    const hasTextLayer = currentSlide.editor.textLayers.some((layer) => layer.id === selectedLayerId);
+    const hasImageLayer = (currentSlide.editor.imageLayers || []).some((layer) => layer.id === selectedLayerId);
+    if (!hasTextLayer && !hasImageLayer) {
       setSelectedLayerId(currentSlide.editor.textLayers[0]?.id || null);
     }
   }, [slides, activeSlideIndex, selectedLayerId]);
@@ -217,22 +249,98 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
       },
     }));
     setSelectedLayerId(layer.id);
+    setSelectedLayerType("text");
   }
 
-  function deleteSelectedLayer() {
-    if (!selectedLayerId) return;
-    updateSlide(activeSlideIndex, (slide) => ({
-      ...slide,
-      editor: (() => {
-        const nextLayers = slide.editor.textLayers.filter((layer) => layer.id !== selectedLayerId);
-        return {
-          ...slide.editor,
-          fontSize: nextFontToken(nextLayers, slide.editor.fontSize),
-          textLayers: nextLayers,
+  function handleImageInsertClick() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/png,image/jpeg,image/webp";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const result = await uploadLayerImageAction(presentationId, file);
+        const newLayer: SlideImageLayer = {
+          id: result.id,
+          imageUrl: result.imageUrl,
+          x: 720,
+          y: 360,
+          width: 480,
+          height: 360,
+          borderRadius: 8,
+          shadow: "md",
+          objectFit: "cover",
         };
-      })(),
-    }));
+
+        updateSlide(activeSlideIndex, (slide) => ({
+          ...slide,
+          editor: {
+            ...slide.editor,
+            imageLayers: [...(slide.editor.imageLayers || []), newLayer],
+          },
+        }));
+        setSelectedLayerId(newLayer.id);
+        setSelectedLayerType("image");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "上傳失敗，請稍後再試");
+      }
+    };
+    input.click();
+  }
+
+  function deleteSelectedElement() {
+    if (!selectedLayerId) return;
+    updateSlide(activeSlideIndex, (slide) => {
+      const textLayers = slide.editor.textLayers.filter((layer) => layer.id !== selectedLayerId);
+      const imageLayers = (slide.editor.imageLayers || []).filter((layer) => layer.id !== selectedLayerId);
+      return {
+        ...slide,
+        editor: {
+          ...slide.editor,
+          fontSize: nextFontToken(textLayers, slide.editor.fontSize),
+          textLayers,
+          imageLayers,
+        },
+      };
+    });
     setSelectedLayerId(null);
+    setSelectedLayerType(null);
+  }
+
+  function handleInsertInlineImage() {
+    if (!selectedLayer) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/png,image/jpeg,image/webp";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const result = await uploadLayerImageAction(presentationId, file);
+        const mdTag = `\n![圖片](${result.imageUrl})\n`;
+
+        const textarea = textareaRef.current;
+        let nextText = selectedLayer.text;
+        if (textarea) {
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          nextText = selectedLayer.text.substring(0, start) + mdTag + selectedLayer.text.substring(end);
+        } else {
+          nextText = selectedLayer.text + mdTag;
+        }
+
+        updateSelectedLayer((layer) => ({
+          ...layer,
+          text: nextText,
+        }));
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "上傳失敗，請稍後再試");
+      }
+    };
+    input.click();
   }
 
   function updateBackgroundPreview(index: number, file: File | null) {
@@ -286,6 +394,28 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
     });
   }
 
+  function updateSelectedImageLayer(updater: (layer: SlideImageLayer) => SlideImageLayer) {
+    if (!selectedLayerId) return;
+    updateSlide(activeSlideIndex, (slide) => ({
+      ...slide,
+      editor: {
+        ...slide.editor,
+        imageLayers: (slide.editor.imageLayers || []).map((layer) => (layer.id === selectedLayerId ? updater(layer) : layer)),
+      },
+    }));
+  }
+
+  function updateImageLayerNumber(field: keyof Pick<SlideImageLayer, "x" | "y" | "width" | "height">, value: number) {
+    updateSelectedImageLayer((layer) => {
+      const next = { ...layer, [field]: value };
+      if (field === "x") next.x = clamp(value, 0, CANVAS_WIDTH - layer.width);
+      if (field === "y") next.y = clamp(value, 0, CANVAS_HEIGHT - layer.height);
+      if (field === "width") next.width = clamp(value, 140, CANVAS_WIDTH - layer.x);
+      if (field === "height") next.height = clamp(value, 80, CANVAS_HEIGHT - layer.y);
+      return next;
+    });
+  }
+
   function layerButtonClass(active: boolean) {
     return active
       ? "rounded-full bg-[#b91c1c] px-3 py-1 text-xs font-semibold text-white"
@@ -293,7 +423,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
   }
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[180px_minmax(0,1fr)] 2xl:grid-cols-[180px_minmax(0,1fr)_280px]">
+    <div className="od-editor-workspace">
       <aside className="space-y-3 rounded-2xl border border-border bg-white p-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-text-3">投影片</p>
@@ -372,7 +502,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
         </button>
       </aside>
 
-      <section className="space-y-4">
+      <section className="min-w-0 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3">
           <div>
             <h3 className="text-lg font-semibold text-text-1">{activeSlide?.label}</h3>
@@ -382,18 +512,21 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
             <button className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium" onClick={addTextLayer} type="button">
               新增文字框
             </button>
+            <button className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium" onClick={handleImageInsertClick} type="button">
+              插入圖片
+            </button>
             <button
               className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium disabled:opacity-40"
-              disabled={!selectedLayer}
-              onClick={deleteSelectedLayer}
+              disabled={!selectedLayerId}
+              onClick={deleteSelectedElement}
               type="button"
             >
-              刪除文字框
+              刪除選取元素
             </button>
           </div>
         </div>
 
-        <div ref={viewportRef} className="flex aspect-video items-center justify-center overflow-hidden rounded-[28px] border border-border bg-[#0f172a]">
+        <div ref={viewportRef} className="w-full flex aspect-video items-center justify-center overflow-hidden rounded-[28px] border border-border bg-[#0f172a]">
           <div
             data-testid="presentation-editor-canvas"
             className="relative overflow-hidden rounded-[28px] bg-[#fffdf9] shadow-[0_30px_120px_rgba(15,23,42,0.28)]"
@@ -422,8 +555,89 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
               {!activeSlide?.backgroundPreviewUrl && !activeSlide?.editor.backgroundImageUrl ? (
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(220,38,38,0.12),_transparent_42%),linear-gradient(180deg,#fffdf9_0%,#f8f1eb_100%)]" />
               ) : null}
+              {(activeSlide?.editor.imageLayers || []).map((layer) => {
+                const selected = layer.id === selectedLayerId && selectedLayerType === "image";
+                return (
+                  <div
+                    key={layer.id}
+                    className={`absolute ${selected ? "ring-2 ring-[#2563eb]" : "ring-1 ring-transparent hover:ring-[#93c5fd]"}`}
+                    data-testid={`presentation-editor-image-${layer.id}`}
+                    style={{
+                      left: `${layer.x}px`,
+                      top: `${layer.y}px`,
+                      width: `${layer.width}px`,
+                      height: `${layer.height}px`,
+                      cursor: dragState?.layerId === layer.id && dragState.mode === "move" ? "grabbing" : "grab",
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSelectedLayerId(layer.id);
+                      setSelectedLayerType("image");
+                    }}
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      setSelectedLayerId(layer.id);
+                      setSelectedLayerType("image");
+                      setDragState({
+                        slideIndex: activeSlideIndex,
+                        layerId: layer.id,
+                        layerType: "image",
+                        mode: "move",
+                        startX: event.clientX,
+                        startY: event.clientY,
+                        initialX: layer.x,
+                        initialY: layer.y,
+                        initialWidth: layer.width,
+                        initialHeight: layer.height,
+                      });
+                    }}
+                  >
+                    <img
+                      alt="圖片元素"
+                      src={layer.imageUrl}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: layer.objectFit,
+                        borderRadius: layer.borderRadius === 999 ? "999px" : `${layer.borderRadius}px`,
+                        boxShadow:
+                          layer.shadow === "sm"
+                            ? "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+                            : layer.shadow === "md"
+                              ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                              : "none",
+                      }}
+                      draggable={false}
+                    />
+                    <button
+                      className="absolute -bottom-4 -right-4 h-7 w-7 rounded-full border border-white bg-[#2563eb] text-white shadow shadow-blue-500/50 flex items-center justify-center text-xs font-bold"
+                      data-testid={`presentation-editor-image-resize-${layer.id}`}
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                        setSelectedLayerId(layer.id);
+                        setSelectedLayerType("image");
+                        setDragState({
+                          slideIndex: activeSlideIndex,
+                          layerId: layer.id,
+                          layerType: "image",
+                          mode: "resize",
+                          startX: event.clientX,
+                          startY: event.clientY,
+                          initialX: layer.x,
+                          initialY: layer.y,
+                          initialWidth: layer.width,
+                          initialHeight: layer.height,
+                        });
+                      }}
+                      type="button"
+                    >
+                      ↘
+                    </button>
+                  </div>
+                );
+              })}
               {slideLayers.map((layer) => {
-                const selected = layer.id === selectedLayerId;
+                const selected = layer.id === selectedLayerId && selectedLayerType === "text";
                 return (
                   <div
                     key={layer.id}
@@ -443,17 +657,23 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
                     onClick={(event) => {
                       event.stopPropagation();
                       setSelectedLayerId(layer.id);
+                      setSelectedLayerType("text");
                     }}
                     onPointerDown={(event) => {
                       event.stopPropagation();
                       setSelectedLayerId(layer.id);
+                      setSelectedLayerType("text");
                       setDragState({
                         slideIndex: activeSlideIndex,
                         layerId: layer.id,
+                        layerType: "text",
                         mode: "move",
                         startX: event.clientX,
                         startY: event.clientY,
-                        initialLayer: layer,
+                        initialX: layer.x,
+                        initialY: layer.y,
+                        initialWidth: layer.width,
+                        initialHeight: layer.height,
                       });
                     }}
                   >
@@ -464,13 +684,18 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
                       onPointerDown={(event) => {
                         event.stopPropagation();
                         setSelectedLayerId(layer.id);
+                        setSelectedLayerType("text");
                         setDragState({
                           slideIndex: activeSlideIndex,
                           layerId: layer.id,
+                          layerType: "text",
                           mode: "resize",
                           startX: event.clientX,
                           startY: event.clientY,
-                          initialLayer: layer,
+                          initialX: layer.x,
+                          initialY: layer.y,
+                          initialWidth: layer.width,
+                          initialHeight: layer.height,
                         });
                       }}
                       type="button"
@@ -495,7 +720,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
         ))}
       </section>
 
-      <aside className="space-y-4 rounded-2xl border border-border bg-white p-4 xl:col-span-2 2xl:col-span-1">
+      <aside className="od-editor-inspector space-y-4 rounded-2xl border border-border bg-white p-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-text-3">屬性</p>
           <h3 className="mt-2 text-lg font-semibold text-text-1">背景與文字</h3>
@@ -541,7 +766,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
             <input
               key={`background-${index}`}
               accept="image/png,image/jpeg,image/webp"
-              className={index === activeSlideIndex ? "rounded-2xl border border-border px-3 py-2" : "hidden"}
+              className={index === activeSlideIndex ? "block w-full rounded-xl border border-border px-2 py-1.5 text-xs" : "hidden"}
               name={`slide_background_file_${index}`}
               onChange={(event) => updateBackgroundPreview(index, event.target.files?.[0] || null)}
               type="file"
@@ -584,33 +809,59 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-1 p-3">
-          <p className="text-sm font-medium text-text-1">文字框</p>
+          <p className="text-sm font-medium text-text-1">圖層元素</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {slideLayers.map((layer) => (
               <button
                 key={layer.id}
-                className={layerButtonClass(layer.id === selectedLayerId)}
-                onClick={() => setSelectedLayerId(layer.id)}
+                className={layerButtonClass(layer.id === selectedLayerId && selectedLayerType === "text")}
+                onClick={() => {
+                  setSelectedLayerId(layer.id);
+                  setSelectedLayerType("text");
+                }}
                 type="button"
               >
-                {layer.text.slice(0, 10) || "未命名"}
+                T: {layer.text.slice(0, 10) || "未命名"}
+              </button>
+            ))}
+            {(activeSlide?.editor.imageLayers || []).map((layer, index) => (
+              <button
+                key={layer.id}
+                className={layerButtonClass(layer.id === selectedLayerId && selectedLayerType === "image")}
+                onClick={() => {
+                  setSelectedLayerId(layer.id);
+                  setSelectedLayerType("image");
+                }}
+                type="button"
+              >
+                圖: {index + 1}
               </button>
             ))}
           </div>
         </div>
 
-        {selectedLayer ? (
+        {selectedLayerType === "text" && selectedLayer ? (
           <div className="space-y-3">
-            <label className="grid gap-2 text-sm">
-              <span className="font-medium text-text-1">文字內容</span>
+            <div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="font-medium text-text-1">文字內容</span>
+                <button
+                  className="rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-text-2 hover:bg-gray-50"
+                  onClick={handleInsertInlineImage}
+                  type="button"
+                >
+                  插入圖片
+                </button>
+              </div>
               <textarea
-                className="min-h-32 rounded-2xl border border-border px-3 py-2"
+                ref={textareaRef}
+                className="min-h-32 rounded-2xl border border-border px-3 py-2 w-full mt-1"
                 onChange={(event) => updateSelectedLayer((layer) => ({ ...layer, text: event.target.value }))}
                 value={selectedLayer.text}
               />
-            </label>
+            </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {([
                 ["x", "X"],
                 ["y", "Y"],
@@ -620,7 +871,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
                 <label key={field} className="grid gap-1 text-sm">
                   <span className="font-medium text-text-1">{label}</span>
                   <input
-                    className="rounded-2xl border border-border px-3 py-2"
+                    className="rounded-xl border border-border px-2 py-1.5 text-sm"
                     onChange={(event) => updateLayerNumber(field, Number(event.target.value))}
                     type="number"
                     value={Math.round(selectedLayer[field])}
@@ -629,11 +880,11 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <label className="grid gap-1 text-sm">
                 <span className="font-medium text-text-1">字體大小</span>
                 <input
-                  className="rounded-2xl border border-border px-3 py-2"
+                  className="rounded-xl border border-border px-2 py-1.5 text-sm"
                   onChange={(event) => updateLayerNumber("fontSize", Number(event.target.value))}
                   type="number"
                   value={Math.round(selectedLayer.fontSize)}
@@ -642,7 +893,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
               <label className="grid gap-1 text-sm">
                 <span className="font-medium text-text-1">字色</span>
                 <input
-                  className="h-11 rounded-2xl border border-border px-2 py-1"
+                  className="h-9 w-full rounded-xl border border-border px-1 py-1"
                   onChange={(event) => updateSelectedLayer((layer) => ({ ...layer, color: event.target.value }))}
                   type="color"
                   value={selectedLayer.color}
@@ -650,11 +901,11 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
               </label>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <label className="grid gap-1 text-sm">
                 <span className="font-medium text-text-1">粗細</span>
                 <select
-                  className="rounded-2xl border border-border px-3 py-2"
+                  className="rounded-xl border border-border px-2 py-1.5 text-sm"
                   onChange={(event) => updateSelectedLayer((layer) => ({ ...layer, fontWeight: event.target.value }))}
                   value={selectedLayer.fontWeight}
                 >
@@ -668,7 +919,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
               <label className="grid gap-1 text-sm">
                 <span className="font-medium text-text-1">對齊</span>
                 <select
-                  className="rounded-2xl border border-border px-3 py-2"
+                  className="rounded-xl border border-border px-2 py-1.5 text-sm"
                   onChange={(event) => updateSelectedLayer((layer) => ({ ...layer, align: event.target.value as SlideTextAlign }))}
                   value={selectedLayer.align}
                 >
@@ -679,9 +930,101 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
               </label>
             </div>
           </div>
+        ) : selectedLayerType === "image" && selectedImageLayer ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                ["x", "X"],
+                ["y", "Y"],
+                ["width", "寬"],
+                ["height", "高"],
+              ] as Array<[keyof Pick<SlideImageLayer, "x" | "y" | "width" | "height">, string]>).map(([field, label]) => (
+                <label key={field} className="grid gap-1 text-sm">
+                  <span className="font-medium text-text-1">{label}</span>
+                  <input
+                    className="rounded-xl border border-border px-2 py-1.5 text-sm"
+                    onChange={(event) => updateImageLayerNumber(field, Number(event.target.value))}
+                    type="number"
+                    value={Math.round(selectedImageLayer[field])}
+                  />
+                </label>
+              ))}
+            </div>
+
+            <label className="grid gap-1 text-sm">
+              <span className="font-medium text-text-1">圓角</span>
+              <select
+                className="rounded-xl border border-border px-2 py-1.5 text-sm"
+                onChange={(event) => updateSelectedImageLayer((layer) => ({ ...layer, borderRadius: Number(event.target.value) as 0 | 8 | 16 | 999 }))}
+                value={selectedImageLayer.borderRadius}
+              >
+                <option value="0">直角 (0px)</option>
+                <option value="8">小圓角 (8px)</option>
+                <option value="16">中圓角 (16px)</option>
+                <option value="999">全圓角 (圓形)</option>
+              </select>
+            </label>
+
+            <label className="grid gap-1 text-sm">
+              <span className="font-medium text-text-1">陰影</span>
+              <select
+                className="rounded-xl border border-border px-2 py-1.5 text-sm"
+                onChange={(event) => updateSelectedImageLayer((layer) => ({ ...layer, shadow: event.target.value as "none" | "sm" | "md" }))}
+                value={selectedImageLayer.shadow}
+              >
+                <option value="none">無陰影</option>
+                <option value="sm">小陰影</option>
+                <option value="md">中陰影</option>
+              </select>
+            </label>
+
+            <label className="grid gap-1 text-sm">
+              <span className="font-medium text-text-1">縮放填充 (Object Fit)</span>
+              <select
+                className="rounded-xl border border-border px-2 py-1.5 text-sm"
+                onChange={(event) => updateSelectedImageLayer((layer) => ({ ...layer, objectFit: event.target.value as "cover" | "contain" }))}
+                value={selectedImageLayer.objectFit}
+              >
+                <option value="cover">裁切填充 (Cover)</option>
+                <option value="contain">完整縮放 (Contain)</option>
+              </select>
+            </label>
+
+            <div className="pt-2 grid grid-cols-2 gap-2">
+              <button
+                className="w-full rounded-xl border border-border bg-white py-2 text-center text-xs font-semibold text-text-2 hover:bg-gray-50"
+                onClick={() => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.accept = "image/png,image/jpeg,image/webp";
+                  input.onchange = async (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (!file) return;
+                    try {
+                      const result = await uploadLayerImageAction(presentationId, file);
+                      updateSelectedImageLayer((layer) => ({ ...layer, imageUrl: result.imageUrl }));
+                    } catch (err: unknown) {
+                      alert(err instanceof Error ? err.message : "上傳失敗，請稍後再試");
+                    }
+                  };
+                  input.click();
+                }}
+                type="button"
+              >
+                替換圖片
+              </button>
+              <button
+                className="w-full rounded-xl bg-red-50 py-2 text-center text-xs font-semibold text-red-600 hover:bg-red-100"
+                onClick={deleteSelectedElement}
+                type="button"
+              >
+                刪除圖片
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-border bg-surface-1 p-4 text-sm text-text-2">
-            先選取一個文字框，或新增新的文字框再開始排版。
+            先選取一個文字框或圖片元素，或新增新的元素再開始排版。
           </div>
         )}
       </aside>
