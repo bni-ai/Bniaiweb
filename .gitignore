@@ -15,6 +15,17 @@
 /playwright-report
 /test-results
 
+# local tool directories
+/graphify-out
+/huashu-design-master
+/open-slide-main
+/.agent
+/.augment
+/.cursor
+/.gemini
+/.opencode
+/.vercelignore
+
 # next.js
 /.next/
 /out/

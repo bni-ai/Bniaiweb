@@ -232,9 +232,6 @@ export default function LoginPage() {
       ) : null}
       {error ? <p className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-primary">{error}</p> : null}
 
-      <p className="text-xs leading-5 text-text-2">
-        登入後會比對 `members.email` / `guests.email`。如果名冊還沒有你的 email，系統會導向未加入分會頁面。
-      </p>
     </section>
   );
 }
