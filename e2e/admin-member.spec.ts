@@ -1835,4 +1835,21 @@ test.describe("member portal", () => {
     // Capture tablet screenshot
     await page.screenshot({ path: "/Users/fishtv/Downloads/tablet-workspace.png" });
   });
+
+  test("admin keynote page shows 簡報系統 and uses flat unbordered layout", async ({ page }) => {
+    test.setTimeout(60_000);
+    await setRole(page, "admin");
+    await page.goto("/admin/keynote?week=2026-06-01");
+
+    // 驗證標題已經改為 "簡報系統"
+    const sectionTitle = page.locator('h2:has-text("簡報系統")');
+    await expect(sectionTitle).toBeVisible();
+
+    // 驗證沒有 "簡報管理連結" 字樣
+    const oldTitle = page.locator('h2:has-text("簡報管理連結")');
+    await expect(oldTitle).toHaveCount(0);
+
+    // 截圖該頁面並儲存到 Downloads 目錄中以供 Fish 驗收
+    await page.screenshot({ path: "/Users/fishtv/Downloads/keynote-system.png", fullPage: true });
+  });
 });

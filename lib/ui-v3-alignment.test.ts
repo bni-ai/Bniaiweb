@@ -126,4 +126,11 @@ describe("ui v3 alignment source contracts", () => {
     expect(videoPage).not.toContain("One-on-One");
     expect(videoPage).not.toContain("Jitsi");
   });
+
+  it("enforces keynote page layout and navigation title rules", () => {
+    const keynotePage = read("app/(admin)/admin/keynote/page.tsx");
+    expect(keynotePage).toContain("簡報系統");
+    expect(keynotePage).not.toContain("簡報管理連結");
+    expect(keynotePage).not.toContain("<Card className=\"rounded-[24px] p-5\">");
+  });
 });
