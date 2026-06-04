@@ -84,6 +84,10 @@ describe("ui v3 alignment source contracts", () => {
 
     // 7. canvas-editor.tsx 應該將該 class 套用在 inspector aside 元件上
     expect(canvasEditor).toContain("od-editor-inspector");
+
+    // 8. admin/presentations/[id]/page.tsx 不應該用 Card 包裹簡報編輯器（去除雙重外框）
+    const presentationPage = read("app/(admin)/admin/presentations/[id]/page.tsx");
+    expect(presentationPage).not.toContain("<Card className=\"rounded-2xl p-5\">\n          <div className=\"mb-4 flex items-center justify-between gap-3\">\n            <div>\n              <h2 className=\"text-xl font-semibold\">投影片編輯</h2>");
   });
 
   it("uses Open Design svg icons instead of text placeholders in icon wraps", () => {

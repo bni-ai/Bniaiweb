@@ -454,6 +454,7 @@ button {
 .od-content.is-workspace {
   max-width: none;
   width: 100%;
+  padding: 16px;
 }
 
 .od-editor-workspace {
