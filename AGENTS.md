@@ -17,6 +17,7 @@ This project uses Spectra for Spec-Driven Development(SDD). Specs live in `opens
 ## Use local repo skills when:
 
 - User asks to inspect or deploy this repo on Vercel without CLI → `.agent/skills/vercel-api-deploy/SKILL.md`
+- User asks how this repo should coordinate shared development, GitHub sync, or release status → `.github/skills/team-sync-release/SKILL.md`
 
 ## Workflow
 
