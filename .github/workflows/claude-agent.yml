@@ -1,0 +1,91 @@
+name: Claude Code Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: '任務描述'
+        required: true
+        type: string
+      channel_id:
+        description: 'Discord channel ID'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  run-claude:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run Claude Code
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          claude -p "${{ inputs.task }}" \
+            --allowedTools "Edit,Write,Bash,Read,Glob,Grep" \
+            --output-format text > /tmp/claude-output.txt 2>&1 || true
+
+      - name: Notify Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          OUTPUT=$(cat /tmp/claude-output.txt)
+          OUTPUT_TRUNCATED=$(echo "$OUTPUT" | head -c 1800)
+          EXIT_CODE=$?
+
+          if [ -s /tmp/claude-output.txt ]; then
+            TITLE="✅ Claude Code 完成"
+            COLOR=3066993
+          else
+            TITLE="❌ Claude Code 失敗"
+            COLOR=15158332
+          fi
+
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          PAYLOAD=$(jq -n \
+            --arg title "$TITLE" \
+            --arg desc "\`\`\`\n${OUTPUT_TRUNCATED}\n\`\`\`" \
+            --argjson color "$COLOR" \
+            --arg run_url "$RUN_URL" \
+            --arg task "${{ inputs.task }}" \
+            '{
+              embeds: [{
+                title: $title,
+                description: $desc,
+                color: $color,
+                fields: [
+                  {
+                    name: "任務",
+                    value: $task,
+                    inline: false
+                  },
+                  {
+                    name: "GitHub Actions Run",
+                    value: $run_url,
+                    inline: false
+                  }
+                ]
+              }]
+            }')
+
+          curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
