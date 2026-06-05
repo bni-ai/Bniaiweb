@@ -1,50 +1,39 @@
 ---
 name: team-sync-release
-description: "Use when the user wants GitHub, Vercel, and shared collaboration flow to stay aligned for this repo. Covers branch/PR rules, production release checks, and proving whether bni-ai-web.vercel.app is already on the intended commit."
+description: "Use when the task is about this repo's shared development workflow, GitHub/Vercel sync, release status, or proving whether production already matches a commit. Covers branch/PR rules, main-branch deployment checks, and mismatch detection."
 ---
 
 # Team Sync Release
 
-Use this skill when the task is about shared development workflow, GitHub/Vercel sync, release readiness, or proving whether production already matches a commit.
-
-## Goals
-
-- Keep GitHub `main` and Vercel production aligned
-- Avoid shipping local dirty changes as the normal path
-- Give humans one simple collaboration workflow
-- Prove release state with repo facts, not guesses
+Use this skill for Bniaiweb collaboration and release checks.
 
 ## Repo Facts
 
-- GitHub repo: `https://github.com/bni-ai/Bniaiweb`
-- Production site: `https://bni-ai-web.vercel.app/`
+- Repo: `https://github.com/bni-ai/Bniaiweb`
+- Production: `https://bni-ai-web.vercel.app/`
 - Vercel project: `bni-ai-web`
-- Production branch should be `main`
+- Production branch: `main`
 
-## Default Workflow
+Read [CONTRIBUTING.md](../../../CONTRIBUTING.md) when the user wants the full human workflow or team policy.
 
-1. Check `git status --short`
-2. Check current branch with `git branch --show-current`
-3. If work is not ready, do not push
-4. If work is ready, commit to a feature branch or approved branch
-5. Open or update a PR into `main`
-6. Review and merge into `main`
-7. Confirm Vercel auto-deploy for the merged commit reaches `READY`
-8. Confirm production URL responds and the deployment commit SHA matches GitHub `main`
+## Use This Skill When
 
-## Hard Rules
+- The user asks whether GitHub and production are synced
+- The user asks whether a commit is already deployed
+- The user asks how teammates should collaborate on this repo
+- The user asks to push, release, or verify release status
+- You suspect a manual Vercel deploy made GitHub and production diverge
 
-- Prefer `GitHub main -> Vercel auto deploy` as the normal production path
-- Do not treat `vercel deploy --prod` from a dirty working tree as the normal workflow
-- If a manual production deploy was used, explicitly check whether GitHub and production are now diverged
-- Before saying "already deployed", verify all three:
-  - GitHub `main` contains the target commit
-  - Latest Vercel production deployment is `READY`
-  - The deployment commit SHA equals GitHub `main`
+## Normal Policy
 
-## Release Check Commands
+- Standard path is: `branch -> PR -> merge to main -> Vercel auto deploy`
+- `main` is the only production deployment branch
+- Do not normalize dirty local `vercel deploy --prod` as the default path
+- If a manual production deploy happened, explicitly check whether GitHub and production still match
 
-Run the minimum set:
+## Required Checks
+
+Run these before claiming release state:
 
 ```bash
 git branch --show-current
@@ -54,35 +43,39 @@ git rev-parse origin/main
 curl -s -o /tmp/bniaiweb-prod.html -w '%{http_code} %{url_effective}\n' --max-time 20 https://bni-ai-web.vercel.app
 ```
 
-If Vercel token is available, also inspect the latest deployment and compare `githubCommitSha`.
+If `VERCEL_TOKEN` is available, inspect the latest production deployment and capture:
 
-## Human-Facing Answer Format
+- deployment state
+- deployment source
+- deployment `githubCommitSha`
 
-When reporting release state, keep it blunt:
+## Deployment Is Done Only If
+
+All three are true:
+
+1. GitHub `main` already has the target commit
+2. Latest Vercel production deployment is `READY`
+3. Deployment `githubCommitSha` equals GitHub `main`
+
+## Response Format
+
+Report release state in four blunt lines:
 
 - `GitHub: synced / not synced`
 - `Vercel production: READY / BUILDING / ERROR`
 - `Production URL: 200 / not healthy`
 - `Same commit: yes / no`
 
-Then give one sentence:
+Then add one sentence only:
 
 - `現在已經上線`
 - `還沒上線，卡在 build`
 - `線上和 GitHub 不一致`
 
-## Collaboration Policy To Enforce
-
-- Everyone develops on branches, not directly in `main`
-- Every production change should be traceable to a PR or merge commit
-- `main` is the only branch that should auto-deploy production
-- Preview or local verification should happen before merge when the change is meaningful
-- If production data is mutated manually, report exactly what changed
-
-## When To Escalate
+## Escalate When
 
 Stop and ask before proceeding if:
 
-- The repo has unrelated dirty work you did not author and pushing all of it would be risky
-- Vercel production is linked to the wrong repo, wrong branch, or wrong project
-- Production is already serving a manual dirty deploy and the user has not said whether to preserve or replace it
+- pushing would include unrelated dirty work
+- Vercel is linked to the wrong repo, branch, or project
+- production currently serves a manual dirty deploy and the user has not said whether to preserve it
