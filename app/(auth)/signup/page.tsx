@@ -19,6 +19,21 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
     return <MemberInviteBlockedState />;
   }
 
+  // 共用邀請碼模式（測試階段）：不需要 DB 查詢，任何人皆可使用
+  const openToken = process.env.MEMBER_OPEN_INVITE_TOKEN;
+  if (openToken && token === openToken) {
+    return (
+      <section className="space-y-6">
+        <div>
+          <p className="mb-2 text-sm text-text-2">BNI 華 AI 分會</p>
+          <h1 className="text-2xl font-semibold text-text-1">會員申請註冊</h1>
+          <p className="mt-2 text-sm text-text-2">填寫基本資料後送出，帳號進入待審核狀態，幹部核准後即可登入。</p>
+        </div>
+        <MemberSignupForm inviteToken={token} />
+      </section>
+    );
+  }
+
   const adminClient = createAdminClient();
   const { data, error } = await adminClient
     .from("member_invites" as never)

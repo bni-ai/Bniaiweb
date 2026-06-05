@@ -1,10 +1,37 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { generateMemberInviteAction } from "../../app/actions/member-invite";
 
 const initialState: { inviteUrl?: string; error?: string } = {};
+
+function InviteLinkDisplay({ path }: { path: string }) {
+  const [copied, setCopied] = useState(false);
+  const fullUrl = typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(fullUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="rounded-2xl bg-surface p-3 text-sm text-text-1">
+      <p className="font-medium">邀請連結（複製後傳給對方）</p>
+      <div className="mt-2 flex items-center gap-2">
+        <p className="flex-1 break-all rounded-xl bg-white border border-border px-3 py-2 text-xs">{fullUrl}</p>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="shrink-0 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-white"
+        >
+          {copied ? "已複製" : "複製"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function MemberInviteForm() {
   const [state, formAction, pending] = useActionState(generateMemberInviteAction, initialState);
@@ -29,10 +56,7 @@ export function MemberInviteForm() {
       </div>
       {state.error ? <p className="text-sm text-primary">{state.error}</p> : null}
       {state.inviteUrl ? (
-        <div className="rounded-2xl bg-surface p-3 text-sm text-text-1">
-          <p className="font-medium">邀請連結</p>
-          <p className="mt-1 break-all">{state.inviteUrl}</p>
-        </div>
+        <InviteLinkDisplay path={state.inviteUrl} />
       ) : null}
     </form>
   );
