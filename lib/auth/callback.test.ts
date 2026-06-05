@@ -53,7 +53,7 @@ describe("auth callback route", () => {
     vi.clearAllMocks();
   });
 
-  it("persists auth cookie and redirects guest users", async () => {
+  it("blocks guest users from completing OAuth login", async () => {
     callbackMocks.exchangeCodeForSession.mockResolvedValue({ error: null });
     callbackMocks.getUser.mockResolvedValue({
       data: {
@@ -69,12 +69,10 @@ describe("auth callback route", () => {
     const response = await callbackGet(request);
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost:3000/guest");
-    expect(response.cookies.get("sb-role")?.value).toBe("guest");
-    expect(response.cookies.get("sb-test-auth-token")?.value).toBe("code-test-code");
+    expect(response.headers.get("location")).toContain("/error?reason=guest-oauth-disabled");
   });
 
-  it("persists auth cookie and redirects pending_member users to /guest", async () => {
+  it("blocks pending_member users from completing OAuth login", async () => {
     callbackMocks.exchangeCodeForSession.mockResolvedValue({ error: null });
     callbackMocks.getUser.mockResolvedValue({
       data: {
@@ -90,8 +88,7 @@ describe("auth callback route", () => {
     const response = await callbackGet(request);
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe("http://localhost:3000/guest");
-    expect(response.cookies.get("sb-role")?.value).toBe("pending_member");
+    expect(response.headers.get("location")).toContain("/error?reason=guest-oauth-disabled");
   });
 
   it("redirects to error page when identity cannot be resolved", async () => {

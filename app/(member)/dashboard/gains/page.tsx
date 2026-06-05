@@ -9,7 +9,7 @@ export default async function GainsPage({ searchParams }: { searchParams?: Promi
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">GAINS Profile</p>
+        <p className="text-sm text-text-2">GAINS 個人資料</p>
         <h1 className="text-3xl font-black">GAINS 收穫工作表</h1>
       </div>
       <Card className="rounded-[24px] p-5">

@@ -47,6 +47,8 @@ function toEditorJson(slide: EditableSlide): SlideEditorPatch {
     backgroundImageUrl: slide.editor.backgroundImageUrl,
     textLayers: slide.editor.textLayers,
     imageLayers: slide.editor.imageLayers,
+    timerEnabled: slide.editor.timerEnabled,
+    timerSeconds: slide.editor.timerSeconds,
   };
 }
 
@@ -424,7 +426,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
 
   return (
     <div className="od-editor-workspace">
-      <aside className="space-y-3 rounded-2xl border border-border bg-white p-4">
+      <aside className="od-editor-sidebar space-y-3 rounded-2xl border border-border bg-white p-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-text-3">投影片</p>
           <h3 className="mt-2 text-lg font-semibold text-text-1">多頁編輯</h3>
@@ -502,7 +504,7 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
         </button>
       </aside>
 
-      <section className="min-w-0 space-y-4">
+      <section className="od-editor-stage min-w-0 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3">
           <div>
             <h3 className="text-lg font-semibold text-text-1">{activeSlide?.label}</h3>
@@ -748,6 +750,45 @@ export function PresentationCanvasEditor({ initialSlides, presentationId }: { in
               type="checkbox"
             />
             這頁顯示在簡報中
+          </label>
+          <label className="flex items-center gap-2 text-sm text-text-1">
+            <input
+              checked={activeSlide?.editor.timerEnabled ?? false}
+              data-testid="presentation-timer-enabled"
+              onChange={(event) => updateSlide(activeSlideIndex, (slide) => ({
+                ...slide,
+                editor: {
+                  ...slide.editor,
+                  timerEnabled: event.target.checked,
+                  timerSeconds: event.target.checked
+                    ? (typeof slide.editor.timerSeconds === "number" && slide.editor.timerSeconds > 0 ? slide.editor.timerSeconds : 30)
+                    : null,
+                },
+              }))}
+              type="checkbox"
+            />
+            這頁顯示 timer
+          </label>
+          <label className="text-sm font-medium text-text-1">
+            Timer 秒數
+            <input
+              className="mt-2 w-full rounded-2xl border border-border px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-text-3"
+              data-testid="presentation-timer-seconds"
+              disabled={!(activeSlide?.editor.timerEnabled ?? false)}
+              min={1}
+              onChange={(event) => {
+                const value = Number(event.target.value);
+                updateSlide(activeSlideIndex, (slide) => ({
+                  ...slide,
+                  editor: {
+                    ...slide.editor,
+                    timerSeconds: Number.isFinite(value) && value > 0 ? Math.round(value) : null,
+                  },
+                }));
+              }}
+              type="number"
+              value={activeSlide?.editor.timerSeconds ?? ""}
+            />
           </label>
         </div>
 

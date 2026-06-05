@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("auth login page", () => {
-  test("shows password and magic-link modes, and renders available OAuth actions", async ({ page }) => {
+  test("shows password and magic-link modes, member OAuth actions, and guest entry", async ({ page }) => {
     await page.goto("/login");
 
     await expect(page.getByRole("heading", { name: "會員登入" })).toBeVisible();
@@ -9,6 +9,7 @@ test.describe("auth login page", () => {
     await expect(page.getByRole("button", { name: "Magic Link" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Google" })).toBeVisible();
     await expect(page.getByRole("button", { name: "GitHub" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "進入來賓專區 →" })).toBeVisible();
 
     await page.getByRole("button", { name: "密碼登入" }).click();
     await expect(page.locator('input[autocomplete="current-password"]')).toBeVisible();
@@ -35,20 +36,20 @@ test.describe("auth login page", () => {
     await expect(page.getByText("Email 或密碼錯誤，請再試一次。")).toBeVisible();
   });
 
-  test("renders forgot password and signup links and supports navigation", async ({ page }) => {
+  test("renders forgot password link and guest registration handoff", async ({ page }) => {
     await page.goto("/login");
 
     const forgotLink = page.locator("#forgot-password-link");
-    const signupLink = page.locator("#signup-link");
 
     await expect(forgotLink).toBeVisible();
-    await expect(signupLink).toBeVisible();
 
     await forgotLink.click();
     await expect(page).toHaveURL(/.*forgot-password/);
 
     await page.goto("/login");
-    await signupLink.click();
-    await expect(page).toHaveURL(/.*signup/);
+    await page.getByRole("button", { name: "進入來賓專區 →" }).click();
+    await expect(page).toHaveURL(/.*guest/);
+    await page.getByRole("main").getByRole("link", { name: "註冊來賓帳號" }).click();
+    await expect(page).toHaveURL(/.*guest\/register/);
   });
 });

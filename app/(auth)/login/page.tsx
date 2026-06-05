@@ -203,7 +203,7 @@ export default function LoginPage() {
       <div className="relative">
         <div className="h-px bg-border" />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface px-3 text-xs font-medium text-text-2">
-          或使用社群帳號
+          會員可使用社群帳號
         </span>
       </div>
 

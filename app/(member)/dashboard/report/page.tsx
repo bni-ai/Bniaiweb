@@ -24,12 +24,12 @@ export default async function MemberReportPage({ searchParams }: { searchParams?
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm text-text-2">{getWeekLabel(weekDate)}</p>
-          <h1 className="text-3xl font-black">每週 Brief</h1>
+          <h1 className="text-3xl font-black">每週簡報</h1>
           <p className="mt-2 text-sm text-text-2">{member ? `${member.chinese_name} / ${status}` : "找不到會員資料"}</p>
         </div>
         <div className="rounded-full bg-[#fff1ea] px-4 py-2 text-sm text-primary">截止時間：{deadlineLabel}</div>
       </div>
-      {locked ? <Card className="rounded-[22px] border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><p className="font-semibold">此週已鎖定，Brief 只能檢視，不能修改。</p>{lockReason ? <p className="mt-1">{lockReason}</p> : null}</Card> : null}
+      {locked ? <Card className="rounded-[22px] border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><p className="font-semibold">此週已鎖定，每週簡報只能檢視，不能修改。</p>{lockReason ? <p className="mt-1">{lockReason}</p> : null}</Card> : null}
       <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
         <Card className="rounded-[24px] p-5">
           <form action={saveMyBriefAction} className="grid gap-4">

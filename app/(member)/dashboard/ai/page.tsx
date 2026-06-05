@@ -14,9 +14,9 @@ export default async function AiAssistantPage({
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">AI Assistant</p>
+        <p className="text-sm text-text-2">AI 助手</p>
         <h1 className="text-3xl font-black">AI 助手</h1>
-        <p className="mt-2 text-sm text-text-2">目前使用中的 provider：{data.activeProvider.provider} / {data.activeProvider.model_name || "未設定 model"}</p>
+        <p className="mt-2 text-sm text-text-2">目前使用中的 AI 服務：{data.activeProvider.provider} / {data.activeProvider.model_name || "未設定模型"}</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
@@ -26,7 +26,7 @@ export default async function AiAssistantPage({
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">AI</div>
               <div>
                 <h2 className="font-semibold">BNI 華AI 助手</h2>
-                <p className="text-xs text-text-2">active · {data.activeProvider.provider}</p>
+                <p className="text-xs text-text-2">使用中 · {data.activeProvider.provider}</p>
               </div>
             </div>
           </div>
@@ -99,7 +99,7 @@ export default async function AiAssistantPage({
               {data.recentConversations.map((item) => (
                 <div key={item.id} className="rounded-2xl border border-border p-3">
                   <p className="line-clamp-2 font-medium text-text-1">{item.query}</p>
-                  <p className="mt-1 text-xs text-text-2">{item.provider} · {item.created_at.slice(0, 16).replace("T", " ")}</p>
+                  <p className="mt-1 text-xs text-text-2">AI 服務：{item.provider} · {item.created_at.slice(0, 16).replace("T", " ")}</p>
                 </div>
               ))}
               {data.recentConversations.length === 0 ? <p className="text-text-2">目前還沒有查詢紀錄。</p> : null}

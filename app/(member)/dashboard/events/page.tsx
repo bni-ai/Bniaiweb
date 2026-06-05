@@ -1,13 +1,19 @@
 import { Card } from "../../../../components/ui/card";
 import { getMemberEvents, registerEventAction } from "../../../../lib/actions/events";
 
+const registrationStatusLabels: Record<string, string> = {
+  registered: "已報名",
+  attended: "已出席",
+  cancelled: "已取消",
+};
+
 export default async function MemberEventsPage() {
   const events = await getMemberEvents();
 
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">Chapter Events</p>
+        <p className="text-sm text-text-2">分會活動</p>
         <h1 className="text-3xl font-black">活動</h1>
         <p className="mt-2 text-sm text-text-2">查看近期活動、剩餘名額與報名狀態。</p>
       </div>
@@ -27,7 +33,7 @@ export default async function MemberEventsPage() {
                 <div className="rounded-2xl bg-surface-2 px-4 py-3 text-sm text-text-1">
                   <p>已報名 {event.registrationCount}</p>
                   <p className="mt-1">{event.remaining === null ? "不限名額" : `剩餘 ${event.remaining} 位`}</p>
-                  <p className="mt-1 text-text-2">{event.memberRegistration ? `你的狀態：${event.memberRegistration.status}` : event.isClosed ? "已截止" : full ? "已額滿" : "可報名"}</p>
+                  <p className="mt-1 text-text-2">{event.memberRegistration ? `你的狀態：${registrationStatusLabels[event.memberRegistration.status] || event.memberRegistration.status}` : event.isClosed ? "已截止" : full ? "已額滿" : "可報名"}</p>
                 </div>
               </div>
               <div className="mt-4">

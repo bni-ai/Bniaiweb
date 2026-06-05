@@ -22,7 +22,7 @@ export function parseAdminMemberFormData(formData: FormData, mode: "create" | "u
   const role = requireText(formData, "role") as MemberRole;
 
   if (mode === "create") {
-    requireField(email, "Email");
+    requireField(email, "會員 Email");
     requireField(memberNumber, "會員編號");
     requireField(chineseName, "中文姓名");
     requireField(specialtyTitle, "專業名稱");

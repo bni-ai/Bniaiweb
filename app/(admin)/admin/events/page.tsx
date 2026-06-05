@@ -1,6 +1,12 @@
 import { Card } from "../../../../components/ui/card";
 import { createEventAction, getAdminEvents, markEventAttendanceAction } from "../../../../lib/actions/events";
 
+const registrationStatusLabels: Record<string, string> = {
+  registered: "已報名",
+  attended: "已出席",
+  cancelled: "已取消",
+};
+
 export default async function AdminEventsPage({
   searchParams,
 }: {
@@ -13,7 +19,7 @@ export default async function AdminEventsPage({
     <div className="space-y-5">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-sm text-text-2">Event Operations</p>
+          <p className="text-sm text-text-2">活動營運</p>
           <h1 className="text-3xl font-black">活動管理</h1>
           <p className="mt-2 text-sm text-text-2">建立活動、追蹤報名人數、標記出席率。</p>
         </div>
@@ -54,7 +60,7 @@ export default async function AdminEventsPage({
                     <form key={registration.id} action={markEventAttendanceAction} className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm">
                       <div>
                         <p className="font-medium text-text-1">{registration.memberName}</p>
-                        <p className="text-text-2">目前狀態：{registration.status}</p>
+                        <p className="text-text-2">目前狀態：{registrationStatusLabels[registration.status] || registration.status}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <input type="hidden" name="registration_id" value={registration.id} />

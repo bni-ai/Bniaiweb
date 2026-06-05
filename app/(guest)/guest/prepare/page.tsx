@@ -12,7 +12,7 @@ export default function GuestPreparePage() {
   return (
     <div className="space-y-5">
       <div className="rounded-[28px] bg-primary p-8 text-white">
-        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/70">15 Second Brief</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/70">15 秒介紹</p>
         <h1 className="mt-3 text-4xl font-black">準備你的 15 秒自我介紹</h1>
         <p className="mt-3 max-w-2xl text-white/80">重點不是講完整公司簡介，而是讓會員知道「你是誰、你能幫誰、你現在想被引薦給誰」。</p>
       </div>

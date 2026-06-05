@@ -3,9 +3,9 @@ import { Card } from "../../../../components/ui/card";
 import { deleteMyContactAction, getMyContactsCircle, saveMyContactsCircleAction } from "../../../../lib/actions/members";
 
 const tierLabels = {
-  1: "Tier 1 核心圈",
-  2: "Tier 2 中層圈",
-  3: "Tier 3 外圍圈",
+  1: "第一層核心圈",
+  2: "第二層中層圈",
+  3: "第三層外圍圈",
 } as const;
 
 export default async function ContactsCirclePage() {
@@ -15,7 +15,7 @@ export default async function ContactsCirclePage() {
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">Contacts Circle</p>
+        <p className="text-sm text-text-2">業務人脈圈</p>
         <h1 className="text-3xl font-black">業務人脈圈</h1>
       </div>
       <form action={saveMyContactsCircleAction} className="space-y-4">

@@ -654,7 +654,7 @@ async function seedPresentationScenario(weekDate: string, mode: "published" | "d
       : [
           { type: "cover" },
           { type: "agenda" },
-          { type: "keynote", id: keynote.id, visible: true },
+          { type: "keynote", id: keynote.id, visible: true, editor: { timerEnabled: true, timerSeconds: 30 } },
           { type: "member", id: brief.id, visible: true },
           { type: "guest", id: visit.id, visible: true },
           { type: "award", id: award.id, visible: true },
@@ -732,7 +732,9 @@ test.describe("guest portal", () => {
     await expect(page).toHaveURL(/\/guest$/);
 
     await page.goto("/guest/content");
-    await expect(page.getByText("來賓限定：如何提出有效引薦需求")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "來賓文章與影片" })).toBeVisible();
+    await expect(page.getByText("一對一預約")).toHaveCount(0);
+    await expect(page.getByText("會員管理")).toHaveCount(0);
   });
 
   test("guest preparation and limited member directory exclude member-only actions", async ({ page }) => {
@@ -748,6 +750,20 @@ test.describe("guest portal", () => {
     await expect(page.getByText("一對一預約")).toHaveCount(0);
     await expect(page.getByText("會員編輯")).toHaveCount(0);
     await expect(page.getByText("後台操作")).toHaveCount(0);
+  });
+
+  test("guest feedback and connections pages render without member-only actions", async ({ page }) => {
+    await setRole(page, "guest");
+
+    await page.goto("/guest/feedback");
+    await expect(page.getByRole("heading", { name: "會後回饋" })).toBeVisible();
+    await expect(page.getByText("您的回饋")).toBeVisible();
+    await expect(page.getByText("會員管理")).toHaveCount(0);
+
+    await page.goto("/guest/connections");
+    await expect(page.getByRole("heading", { name: "請聯繫人協助引介" })).toBeVisible();
+    await expect(page.getByText("目前聯繫窗口")).toBeVisible();
+    await expect(page.getByText("一對一預約")).toHaveCount(0);
   });
 });
 
@@ -775,6 +791,12 @@ test.describe("admin backend", () => {
       await page.goto(path);
       await expect(page.getByText(heading).first()).toBeVisible();
     }
+  });
+
+  test("admin members page exposes member invite form", async ({ page }) => {
+    await page.goto("/admin/members");
+    await expect(page.getByText("邀請新會員")).toBeVisible();
+    await expect(page.getByPlaceholder("member@example.com")).toBeVisible();
   });
 
   test("admin can see the member-view switch entry", async ({ page }) => {
@@ -1238,6 +1260,24 @@ test.describe("admin backend", () => {
     await expect(page.getByTestId("presentation-viewer-layer-title")).toContainText("拖拉後封面標題");
   });
 
+  test("admin presentation editor saves and reloads per-slide timer config", async ({ page }) => {
+    test.setTimeout(60_000);
+    const seeded = await seedPresentationScenario(futureWeekDate(136), "draft");
+
+    await page.goto(`/admin/presentations/${seeded.id}`);
+    await expect(page.getByTestId("presentation-editor-canvas")).toBeVisible();
+
+    await page.locator(".od-editor-sidebar").getByText("8 分鐘短講").first().click();
+    await page.getByTestId("presentation-timer-enabled").check();
+    await page.getByTestId("presentation-timer-seconds").fill("45");
+    await page.getByRole("button", { name: "儲存簡報內容" }).click();
+
+    await expect(page).toHaveURL(new RegExp(`/admin/presentations/${seeded.id}\\?saved=1`));
+    await page.locator(".od-editor-sidebar").getByText("8 分鐘短講").first().click();
+    await expect(page.getByTestId("presentation-timer-enabled")).toBeChecked();
+    await expect(page.getByTestId("presentation-timer-seconds")).toHaveValue("45");
+  });
+
   test("admin presentation asset library reuses uploaded backgrounds across slides", async ({ page }) => {
     test.setTimeout(90_000);
     const seeded = await seedPresentationScenario(futureWeekDate(132), "draft");
@@ -1414,13 +1454,18 @@ test.describe("admin backend", () => {
     await expect(page.getByTestId("present-mode")).toBeVisible();
     await expect(page.getByTestId("active-slide")).toHaveCount(1);
     await expect(page.getByTestId("page-label")).toHaveText("1 / 9");
-    await expect(page.getByTestId("present-timer")).toHaveText("00:00");
+    await expect(page.getByTestId("present-timer")).toHaveCount(0);
     await expect(page.getByTestId("next-slide-preview").getByText("本週例會議程")).toBeVisible();
     await expect(page.locator("nav, aside").filter({ hasText: "會員管理平台" })).toHaveCount(0);
 
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("ArrowRight");
     await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
+    await expect(page.getByTestId("present-timer")).toHaveText("00:30");
+    await page.getByTestId("present-timer-pause").click();
+    await expect(page.getByTestId("present-timer-resume")).toBeVisible();
+    await page.getByTestId("present-timer-reset").click();
+    await expect(page.getByTestId("present-timer")).toHaveText("00:30");
     await expect(page.getByTestId("speaker-notes")).toContainText("演講");
     await expect(page.getByTestId("speaker-notes")).toContainText("如何把例會資料變成可分享簡報");
 
@@ -1429,6 +1474,27 @@ test.describe("admin backend", () => {
     }
     await expect(page.getByTestId("page-label")).toHaveText("9 / 9");
     await expect(page.getByTestId("next-slide-preview")).toContainText("簡報結束");
+  });
+
+  test("presentation viewer mirrors presenter slide timer in the same browser session", async ({ page }) => {
+    test.setTimeout(60_000);
+    const seeded = await seedPresentationScenario(futureWeekDate(151), "published");
+    const viewerPage = await page.context().newPage();
+
+    await page.goto(`/presentation/${seeded.weekDate}/present`);
+    await viewerPage.goto(`/presentation/${seeded.weekDate}`);
+
+    await expect(page.getByTestId("present-mode")).toBeVisible();
+    await expect(viewerPage.getByTestId("presentation-runtime")).toHaveAttribute("data-runtime-ready", "true");
+
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+
+    await expect(page.getByTestId("page-label")).toHaveText("3 / 9");
+    await expect(page.getByTestId("present-timer")).toHaveText("00:30");
+    await expect(viewerPage.getByTestId("page-label")).toHaveText("3 / 9");
+    await expect(viewerPage.getByTestId("viewer-slide-timer")).toHaveText("00:30");
+    await expect(viewerPage.getByTestId("present-timer-pause")).toHaveCount(0);
   });
 });
 

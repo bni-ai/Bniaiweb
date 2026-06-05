@@ -11,7 +11,7 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-sm text-text-2">Admin Edit</p>
+        <p className="text-sm text-text-2">編輯會員</p>
         <h1 className="text-3xl font-black">{member.chinese_name}</h1>
         <p className="mt-2 text-sm text-text-2">{member.email}</p>
       </div>

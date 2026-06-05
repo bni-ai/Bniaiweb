@@ -45,10 +45,33 @@ describe("ui v3 alignment source contracts", () => {
     expect(memberShell).toContain("BniPortalShell");
     expect(adminShell).toContain("BniPortalShell");
     expect(shell).toContain("od-app-shell");
-    expect(shell).toContain("data-testid=\"topbar-user-card\"");
+    expect(shell).toContain("showTopbarUser?: boolean");
+    expect(shell).toContain("showTopbarSearch?: boolean");
     expect(shell).toContain("identity.displayName");
     expect(memberShell).not.toContain("rounded-2xl");
     expect(adminShell).not.toContain("rounded-2xl");
+  });
+
+  it("uses a functional topbar search form instead of a static chip", () => {
+    const shell = read("components/layout/bni-portal-shell.tsx");
+    const globals = read("app/globals.css");
+
+    expect(shell).toContain("od-search-form");
+    expect(shell).toContain("type=\"search\"");
+    expect(shell).toContain("name=\"q\"");
+    expect(shell).toContain("搜尋會員、來賓、簡報");
+    expect(shell).not.toContain("od-search-chip");
+    expect(globals).toContain(".od-search-form");
+    expect(globals).toContain(".od-search-input");
+  });
+
+  it("suppresses duplicate topbar identity on presentation surfaces", () => {
+    const adminLayout = read("app/(admin)/layout.tsx");
+
+    expect(adminLayout).toContain("showTopbarUser={!isPresentationSurface}");
+    expect(adminLayout).toContain("isPresentationSurface");
+    expect(adminLayout).toContain("/admin/presentation");
+    expect(adminLayout).toContain("const isWorkspace = /^\\/admin\\/presentations\\/[^/]+$/.test(currentPath);");
   });
 
   it("enforces presentation editor workspace-first layout rules", () => {
@@ -69,9 +92,9 @@ describe("ui v3 alignment source contracts", () => {
 
     // 4. globals.css 應該定義三欄重新分配的離散寬度級距 (.od-editor-workspace)
     expect(globals).toContain(".od-editor-workspace");
-    expect(globals).toContain("180px minmax(0, 1fr) 320px");
-    expect(globals).toContain("180px minmax(0, 1fr) 360px");
-    expect(globals).toContain("180px minmax(0, 1fr) 400px");
+    expect(globals).toContain("160px minmax(0, 1fr) 272px");
+    expect(globals).toContain("188px minmax(0, 1.05fr) 336px");
+    expect(globals).toContain("220px minmax(0, 1.12fr) 380px");
 
     // 5. canvas-editor.tsx 應該套用 .od-editor-workspace 樣式
     const canvasEditor = read("components/presentation/canvas-editor.tsx");

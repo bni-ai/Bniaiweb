@@ -1,6 +1,6 @@
 import { requireText } from "../actions/admin-common";
 import { parseSlideOrder } from "./slide-order";
-import type { SlideEditorPatch, SlideEntry, SlideFontSize, SlideTextLayer } from "./types";
+import type { SlideEditorPatch, SlideEntry, SlideFontSize, SlideImageLayer, SlideTextLayer } from "./types";
 
 export function isVisibleSlide(entry: SlideEntry): entry is Extract<SlideEntry, { visible: boolean }> {
   return "visible" in entry;
@@ -82,6 +82,21 @@ function normalizeTextLayers(value: SlideTextLayer[] | null | undefined): SlideT
   }));
 }
 
+function normalizeImageLayers(value: SlideImageLayer[] | null | undefined): SlideImageLayer[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.map((layer, index) => ({
+    id: typeof layer.id === "string" && layer.id.length > 0 ? layer.id : `image-layer-${index + 1}`,
+    imageUrl: String(layer.imageUrl || ""),
+    x: Number.isFinite(layer.x) ? layer.x : 720,
+    y: Number.isFinite(layer.y) ? layer.y : 360,
+    width: Number.isFinite(layer.width) ? layer.width : 480,
+    height: Number.isFinite(layer.height) ? layer.height : 360,
+    borderRadius: (layer.borderRadius === 0 || layer.borderRadius === 8 || layer.borderRadius === 16 || layer.borderRadius === 999) ? layer.borderRadius : 0,
+    shadow: (layer.shadow === "none" || layer.shadow === "sm" || layer.shadow === "md") ? layer.shadow : "none",
+    objectFit: (layer.objectFit === "cover" || layer.objectFit === "contain") ? layer.objectFit : "cover",
+  }));
+}
+
 function buildEditorPatch(
   formData: FormData,
   index: number,
@@ -95,6 +110,11 @@ function buildEditorPatch(
       backgroundImageUrl: uploadedBackgroundImageUrl ?? (editorJson.backgroundImageUrl || null),
       fontSize: editorJson.fontSize ?? "lg",
       textLayers: normalizeTextLayers(editorJson.textLayers),
+      imageLayers: normalizeImageLayers(editorJson.imageLayers),
+      timerEnabled: editorJson.timerEnabled === true,
+      timerSeconds: typeof editorJson.timerSeconds === "number" && Number.isFinite(editorJson.timerSeconds)
+        ? editorJson.timerSeconds
+        : null,
     };
   }
 
@@ -104,6 +124,8 @@ function buildEditorPatch(
     body: String(formData.get(`slide_body_${index}`) || ""),
     backgroundImageUrl: uploadedBackgroundImageUrl ?? (existingBackgroundImageUrl || null),
     fontSize: parseFontSize(formData.get(`slide_font_size_${index}`)),
+    timerEnabled: false,
+    timerSeconds: null,
   };
 }
 

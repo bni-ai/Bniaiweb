@@ -33,6 +33,10 @@ type BniPortalShellProps = {
   navGroups: ShellNavGroup[];
   children: ReactNode;
   contentClassName?: string;
+  showTopbarSearch?: boolean;
+  showTopbarUser?: boolean;
+  topbarSearchAction?: string;
+  topbarSearchPlaceholder?: string;
 };
 
 function isActivePath(currentPath: string, href: string) {
@@ -84,6 +88,10 @@ export function BniPortalShell({
   navGroups,
   children,
   contentClassName,
+  showTopbarSearch = true,
+  showTopbarUser = true,
+  topbarSearchAction,
+  topbarSearchPlaceholder = "搜尋會員、來賓、簡報",
 }: BniPortalShellProps) {
   return (
     <div className="od-app-shell">
@@ -184,20 +192,39 @@ export function BniPortalShell({
               <PortalLink mode={mode} target="member" />
               <PortalLink mode={mode} target="admin" />
             </div>
-            <div className="od-search-chip"><SearchIcon size={16} />搜尋會員、引薦、簡報、會議紀錄</div>
+            {showTopbarSearch && topbarSearchAction ? (
+              <form action={topbarSearchAction} className="od-search-form" method="get" role="search">
+                <SearchIcon size={16} />
+                <input
+                  aria-label="搜尋"
+                  className="od-search-input"
+                  name="q"
+                  placeholder={topbarSearchPlaceholder}
+                  type="search"
+                />
+              </form>
+            ) : null}
             <span className="od-role-chip">本週會議週期：2026 W23</span>
-            <div className="od-topbar-user" data-testid="topbar-user-card">
-              <UserAvatar identity={identity} />
-              <div className="od-user-copy">
-                <strong>{identity.displayName}</strong>
-                <span>{identity.secondaryLabel}</span>
+            {showTopbarUser ? (
+              <div className="od-topbar-user" data-testid="topbar-user-card">
+                <UserAvatar identity={identity} />
+                <div className="od-user-copy">
+                  <strong>{identity.displayName}</strong>
+                  <span>{identity.secondaryLabel}</span>
+                </div>
+                <form action="/auth/logout" method="post">
+                  <button className="od-logout-button" aria-label="登出" type="submit">
+                    <LogoutIcon size={16} />
+                  </button>
+                </form>
               </div>
+            ) : (
               <form action="/auth/logout" method="post">
                 <button className="od-logout-button" aria-label="登出" type="submit">
                   <LogoutIcon size={16} />
                 </button>
               </form>
-            </div>
+            )}
           </div>
         </header>
 

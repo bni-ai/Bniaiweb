@@ -67,13 +67,52 @@ export async function getPublishedPresentationDeck(
 
   if (presentation.status !== "published") return null;
 
+  return buildPresentationDeck(presentation, supabase);
+}
+
+export async function getPresentationDeckById(
+  id: string,
+  supabase: SupabaseClient<Database>,
+  options?: { includeHidden?: boolean },
+): Promise<PresentationDeck | null> {
+  const { data, error } = await supabase
+    .from("presentations" as never)
+    .select("id, chapter_id, week_date, slide_order, status")
+    .eq("id", id as never)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const presentation = data as {
+    chapter_id: string;
+    week_date: string;
+    slide_order: Json;
+    status: "draft" | "published";
+  };
+
+  return buildPresentationDeck(presentation, supabase, options);
+}
+
+export async function buildPresentationDeck(
+  presentation: {
+    chapter_id: string;
+    week_date: string;
+    slide_order: Json;
+  },
+  supabase: SupabaseClient<Database>,
+  options?: { includeHidden?: boolean },
+): Promise<PresentationDeck | null> {
   const slideOrder = parseSlideOrder(presentation.slide_order);
-  const visibleEntries = slideOrder.filter((entry) => entry.type === "cover" || entry.type === "agenda" || entry.type === "team" || entry.type === "closing" || entry.visible);
-  const memberSlideIds = visibleEntries.filter((entry): entry is Extract<SlideEntry, { type: "member" }> => entry.type === "member").map((entry) => entry.id);
-  const keynoteSlideIds = visibleEntries.filter((entry): entry is Extract<SlideEntry, { type: "keynote" }> => entry.type === "keynote").map((entry) => entry.id);
-  const guestSlideIds = visibleEntries.filter((entry): entry is Extract<SlideEntry, { type: "guest" }> => entry.type === "guest").map((entry) => entry.id);
-  const awardSlideIds = visibleEntries.filter((entry): entry is Extract<SlideEntry, { type: "award" }> => entry.type === "award").map((entry) => entry.id);
-  const vpReportSlideIds = visibleEntries.filter((entry): entry is Extract<SlideEntry, { type: "vp_report" }> => entry.type === "vp_report").map((entry) => entry.id);
+  const selectedEntries = options?.includeHidden
+    ? slideOrder
+    : slideOrder.filter((entry) => entry.type === "cover" || entry.type === "agenda" || entry.type === "team" || entry.type === "closing" || entry.visible);
+
+  const memberSlideIds = selectedEntries.filter((entry): entry is Extract<SlideEntry, { type: "member" }> => entry.type === "member").map((entry) => entry.id);
+  const keynoteSlideIds = selectedEntries.filter((entry): entry is Extract<SlideEntry, { type: "keynote" }> => entry.type === "keynote").map((entry) => entry.id);
+  const guestSlideIds = selectedEntries.filter((entry): entry is Extract<SlideEntry, { type: "guest" }> => entry.type === "guest").map((entry) => entry.id);
+  const awardSlideIds = selectedEntries.filter((entry): entry is Extract<SlideEntry, { type: "award" }> => entry.type === "award").map((entry) => entry.id);
+  const vpReportSlideIds = selectedEntries.filter((entry): entry is Extract<SlideEntry, { type: "vp_report" }> => entry.type === "vp_report").map((entry) => entry.id);
 
   const [chapterResult, briefsResult, keynotesResult, guestVisitsResult, awardsResult, vpReportsResult, teamMembersResult] = await Promise.all([
     supabase.from("chapters" as never).select("name").eq("id", presentation.chapter_id as never).single(),
@@ -211,7 +250,7 @@ export async function getPublishedPresentationDeck(
   return {
     chapterName,
     weekDate: presentation.week_date,
-    slideOrder: visibleEntries,
+    slideOrder: selectedEntries,
     cover: {
       chapterName,
       weekDate: weekDateLabel(presentation.week_date),

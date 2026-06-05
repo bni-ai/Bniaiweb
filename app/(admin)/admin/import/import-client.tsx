@@ -18,7 +18,7 @@ const FIELD_LABELS: Record<ImportableMemberField, string> = {
   member_number: "會員編號",
   chinese_name: "中文姓名",
   english_name: "英文姓名",
-  email: "Email",
+  email: "會員 Email",
   line_name: "LINE 名稱",
   specialty_title: "專業名稱",
   specialty_description: "專業說明",
@@ -79,10 +79,10 @@ export function ImportClient() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-text-2">Import Workflow</p>
+        <p className="text-sm text-text-2">匯入流程</p>
         <h1 className="text-3xl font-black">資料匯入</h1>
         <p className="mt-2 text-sm text-text-2">
-          上傳會員 CSV 後，系統會先做欄位對應、逐列驗證與重複偵測，確認無誤後才會 atomic commit。
+          上傳會員 CSV 後，系統會先做欄位對應、逐列驗證與重複偵測，確認無誤後才會一次性寫入。
         </p>
       </div>
 
@@ -101,23 +101,36 @@ export function ImportClient() {
 
       <form onSubmit={handlePreviewSubmit} className="space-y-4">
         <Card className="rounded-[24px] p-5">
-          <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-            <label className="grid gap-2 text-sm">
-              <span className="font-medium text-text-1">CSV 檔案</span>
-              <input
-                name="csv_file"
-                type="file"
-                accept=".csv,text/csv,text/tab-separated-values,.tsv"
-                className="rounded-2xl border border-border px-3 py-2.5"
-              />
-            </label>
-            <button
-              type="submit"
-              className="inline-flex h-11 items-center justify-center rounded-2xl bg-primary px-5 text-sm font-semibold text-white disabled:opacity-60"
-              disabled={isPending}
-            >
-              {isPending ? "處理中..." : "解析並預覽"}
-            </button>
+          <div className="grid gap-4">
+            <div className="rounded-2xl border border-border bg-surface-2 p-4 text-sm text-text-2">
+              <p className="font-medium text-text-1">正式匯入前先用範本整理欄位</p>
+              <p className="mt-1">至少要有 `會員編號`、`中文姓名`、`會員 Email`。其餘欄位可先留白，再逐步補齊。</p>
+              <a
+                href="/templates/member-import-sample.csv"
+                download
+                className="mt-3 inline-flex h-10 items-center justify-center rounded-2xl border border-border bg-white px-4 text-sm font-medium text-text-1"
+              >
+                下載 CSV 範本
+              </a>
+            </div>
+            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+              <label className="grid gap-2 text-sm">
+                <span className="font-medium text-text-1">CSV 檔案</span>
+                <input
+                  name="csv_file"
+                  type="file"
+                  accept=".csv,text/csv,text/tab-separated-values,.tsv"
+                  className="rounded-2xl border border-border px-3 py-2.5"
+                />
+              </label>
+              <button
+                type="submit"
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-primary px-5 text-sm font-semibold text-white disabled:opacity-60"
+                disabled={isPending}
+              >
+                {isPending ? "處理中..." : "解析並預覽"}
+              </button>
+            </div>
           </div>
           {state.rawCsv ? <textarea name="raw_csv" defaultValue={state.rawCsv} className="hidden" readOnly /> : null}
         </Card>
@@ -189,7 +202,7 @@ export function ImportClient() {
                     <th className="px-4 py-3">列</th>
                     <th className="px-4 py-3">會員編號</th>
                     <th className="px-4 py-3">姓名</th>
-                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">會員 Email</th>
                     <th className="px-4 py-3">專業</th>
                     <th className="px-4 py-3">狀態</th>
                     <th className="px-4 py-3">重複策略</th>

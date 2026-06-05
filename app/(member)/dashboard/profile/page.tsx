@@ -26,7 +26,7 @@ export default async function MemberProfilePage({
       {member && (
         <Card className="rounded-[28px] p-6 border border-border bg-surface-1 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
           <h2 className="text-xl font-black text-slate-800 mb-4">公開名片與簡報預覽</h2>
-          <MemberProfileCard member={member as any} brief={brief} />
+          <MemberProfileCard member={member as unknown as Parameters<typeof MemberProfileCard>[0]["member"]} brief={brief} />
         </Card>
       )}
 

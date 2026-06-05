@@ -8,6 +8,16 @@ const providers = [
 ] as const;
 
 const dayOptions = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"];
+const syncStatusLabels: Record<string, string> = {
+  pending: "等待中",
+  success: "成功",
+  failed: "失敗",
+};
+const syncTriggerLabels: Record<string, string> = {
+  manual: "手動",
+  submission: "提交",
+  reminder: "提醒",
+};
 
 export default async function AdminSettingsPage({
   searchParams,
@@ -21,21 +31,21 @@ export default async function AdminSettingsPage({
     <div className="space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sm text-text-2">Admin Settings</p>
+          <p className="text-sm text-text-2">管理設定</p>
           <h1 className="text-3xl font-black">系統設定</h1>
-          <p className="mt-2 text-sm text-text-2">管理分會資訊、AI provider、例會截止與同步基線。</p>
+          <p className="mt-2 text-sm text-text-2">管理分會資訊、AI 服務、例會截止與同步基線。</p>
         </div>
       </div>
 
       {params?.saved ? <Card className="rounded-2xl border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">設定已儲存。</Card> : null}
-      {params?.sync ? <Card className="rounded-2xl border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">已完成 {params.week || "本週"} 的 manual sync baseline。</Card> : null}
+      {params?.sync ? <Card className="rounded-2xl border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">已完成 {params.week || "本週"} 的手動同步基線。</Card> : null}
 
       <form action={saveAdminSettingsAction} className="space-y-5">
         <Card className="rounded-2xl p-5">
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold">分會資訊</h2>
-              <p className="text-sm text-text-2">這些資料會作為後台與簡報 viewer 的基礎顯示。</p>
+              <p className="text-sm text-text-2">這些資料會作為後台與簡報檢視器的基礎顯示。</p>
             </div>
             <button type="submit" className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white">儲存設定</button>
           </div>
@@ -49,7 +59,7 @@ export default async function AdminSettingsPage({
         <Card className="rounded-2xl p-5">
           <div className="mb-5">
             <h2 className="text-xl font-semibold">AI 設定</h2>
-            <p className="text-sm text-text-2">啟用中的 provider 會被會員 AI 助手讀取，切換後下一次查詢立即生效。</p>
+            <p className="text-sm text-text-2">啟用中的 AI 服務會被會員 AI 助手讀取，切換後下一次查詢立即生效。</p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {providers.map((provider) => {
@@ -62,8 +72,8 @@ export default async function AdminSettingsPage({
                     {provider.label}
                   </label>
                   <div className="mt-4 grid gap-3">
-                    <input name={`${provider.id}_model_name`} defaultValue={row.modelName} className="rounded-2xl border border-border px-3 py-2.5 text-sm" placeholder="Model name" />
-                    <input name={`${provider.id}_api_key`} defaultValue={row.apiKey} className="rounded-2xl border border-border px-3 py-2.5 text-sm" placeholder="API key" />
+                    <input name={`${provider.id}_model_name`} defaultValue={row.modelName} className="rounded-2xl border border-border px-3 py-2.5 text-sm" placeholder="模型名稱" />
+                    <input name={`${provider.id}_api_key`} defaultValue={row.apiKey} className="rounded-2xl border border-border px-3 py-2.5 text-sm" placeholder="API 金鑰" />
                   </div>
                 </div>
               );
@@ -74,7 +84,7 @@ export default async function AdminSettingsPage({
         <Card className="rounded-2xl p-5">
           <div className="mb-5">
             <h2 className="text-xl font-semibold">例會設定</h2>
-            <p className="text-sm text-text-2">控制每週 Brief 截止、提醒時間與 BNI Connect baseline。</p>
+            <p className="text-sm text-text-2">控制每週簡報截止、提醒時間與 BNI Connect 同步基線。</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2 text-sm"><span className="font-medium">提交截止日</span><select name="submission_deadline_day" defaultValue={String(settings.submissionDeadlineDay)} className="rounded-2xl border border-border px-3 py-2.5">
@@ -95,7 +105,7 @@ export default async function AdminSettingsPage({
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-xl font-semibold">同步紀錄</h2>
-            <p className="text-sm text-text-2">manual sync 目前走 baseline success flow，後續自動化可沿用這裡的紀錄。</p>
+            <p className="text-sm text-text-2">手動同步目前走基線成功流程，後續自動化可沿用這裡的紀錄。</p>
           </div>
           <form action={triggerManualSyncAction} className="flex flex-wrap items-center gap-3">
             <input name="week_date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="rounded-2xl border border-border px-3 py-2.5 text-sm" />
@@ -111,8 +121,8 @@ export default async function AdminSettingsPage({
               {syncLogs.map((log) => (
                 <tr key={log.id} className="border-t border-border">
                   <td className="px-4 py-3">{log.week_date}</td>
-                  <td className="px-4 py-3">{log.status}</td>
-                  <td className="px-4 py-3">{log.trigger_type}</td>
+                  <td className="px-4 py-3">{syncStatusLabels[log.status] || log.status}</td>
+                  <td className="px-4 py-3">{syncTriggerLabels[log.trigger_type] || log.trigger_type}</td>
                   <td className="px-4 py-3">{log.synced_at ? new Date(log.synced_at).toLocaleString("zh-TW", { hour12: false }) : "-"}</td>
                   <td className="px-4 py-3 text-text-2">{log.error_message || "-"}</td>
                 </tr>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Card } from "../../../../components/ui/card";
+import { MemberInviteForm } from "../../../../components/admin/member-invite-form";
 import {
   toggleMemberActiveAction,
   getAdminMembers,
@@ -74,6 +75,7 @@ export default async function AdminMembersPage({ searchParams }: { searchParams?
           <option value="inactive">停用</option>
         </select>
       </form>
+      <MemberInviteForm />
           <div className="grid gap-4 md:grid-cols-4">
         <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">會員總數</p><p className="mt-3 text-3xl font-bold">{activeMembers.length}</p></Card>
         <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">幹部 / 主席群</p><p className="mt-3 text-3xl font-bold text-primary">{officerCount}</p></Card>

@@ -13,11 +13,11 @@ type GainsValues = {
 };
 
 const fields: Array<{ key: keyof GainsValues; label: string; accent: string }> = [
-  { key: "gains_goals", label: "Goals", accent: "bg-[#fff1ea]" },
-  { key: "gains_accomplishments", label: "Accomplishments", accent: "bg-[#fff7e8]" },
-  { key: "gains_interests", label: "Interests", accent: "bg-[#eef6ff]" },
-  { key: "gains_networks", label: "Networks", accent: "bg-[#f4f3ff]" },
-  { key: "gains_skills", label: "Skills", accent: "bg-[#eefbf2]" },
+  { key: "gains_goals", label: "目標", accent: "bg-[#fff1ea]" },
+  { key: "gains_accomplishments", label: "成就", accent: "bg-[#fff7e8]" },
+  { key: "gains_interests", label: "興趣", accent: "bg-[#eef6ff]" },
+  { key: "gains_networks", label: "人脈網絡", accent: "bg-[#f4f3ff]" },
+  { key: "gains_skills", label: "技能", accent: "bg-[#eefbf2]" },
 ];
 
 function sameValues(left: GainsValues, right: GainsValues) {

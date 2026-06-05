@@ -8,6 +8,11 @@ import { adminUpsertMemberAction } from "../../../../lib/actions/members";
 const positionOptions = ["", "主席", "副主席", "秘書財務", "資訊組長", "成長協調", "活動協調", "導師協調", "教育協調", "來賓接待"];
 const committeeOptions = ["", "導師群", "接待組員", "教育組員", "秘財組員", "資訊組員", "成長組員", "活動組員", "會員委員"];
 const roleOptions = ["member", "officer", "president"] as const;
+const roleLabels: Record<(typeof roleOptions)[number], string> = {
+  member: "會員",
+  officer: "幹部",
+  president: "主席",
+};
 
 function Input({ name, label, defaultValue, type = "text", required = false, readOnly = false }: { name: string; label: string; defaultValue?: string | number | null; type?: string; required?: boolean; readOnly?: boolean }) {
   return (
@@ -48,7 +53,7 @@ export function MemberForm({ member }: { member: MemberRecord | null }) {
           <h2 className="text-lg font-semibold">基本資料</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <Input name="member_number" label="會員編號" defaultValue={member?.member_number} required />
-            <Input name="email" label="Email" defaultValue={member?.email} required readOnly={Boolean(member)} />
+            <Input name="email" label="會員 Email" defaultValue={member?.email} required readOnly={Boolean(member)} />
             <Input name="chinese_name" label="中文姓名" defaultValue={member?.chinese_name} required />
             <Input name="english_name" label="英文姓名" defaultValue={member?.english_name} />
             <Input name="line_name" label="LINE 名稱" defaultValue={member?.line_name} />
@@ -61,7 +66,7 @@ export function MemberForm({ member }: { member: MemberRecord | null }) {
             <label className="grid gap-2 text-sm">
               <span className="font-medium text-text-1">角色</span>
               <select name="role" defaultValue={member?.role ?? "member"} className="rounded-2xl border border-border bg-white px-3 py-2.5">
-                {roleOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                {roleOptions.map((option) => <option key={option} value={option}>{roleLabels[option]}</option>)}
               </select>
             </label>
             <label className="grid gap-2 text-sm">

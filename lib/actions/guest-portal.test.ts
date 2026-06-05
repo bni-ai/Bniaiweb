@@ -6,6 +6,8 @@ const guestPortalMocks = vi.hoisted(() => ({
   maybeSingleMember: vi.fn(),
   maybeSingleGuest: vi.fn(),
   selectVisits: vi.fn(),
+  updateVisitEq: vi.fn(),
+  redirect: vi.fn(),
 }));
 
 vi.mock("next/headers", () => ({
@@ -25,6 +27,14 @@ vi.mock("../supabase/server", () => ({
       getUser: guestPortalMocks.getUser,
     },
   })),
+}));
+
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  redirect: guestPortalMocks.redirect,
 }));
 
 vi.mock("./admin-common", () => ({
@@ -55,6 +65,9 @@ vi.mock("./admin-common", () => ({
               order: guestPortalMocks.selectVisits,
             })),
           })),
+          update: vi.fn(() => ({
+            eq: guestPortalMocks.updateVisitEq,
+          })),
         };
       }
       return {};
@@ -63,7 +76,7 @@ vi.mock("./admin-common", () => ({
   getChapter: vi.fn(() => ({ id: "chapter-1" })),
 }));
 
-import { getCurrentGuestContext } from "./guest-portal";
+import { getCurrentGuestContext, submitGuestFeedbackAction } from "./guest-portal";
 
 describe("guest portal actions", () => {
   beforeEach(() => {
@@ -135,5 +148,34 @@ describe("guest portal actions", () => {
       },
       visit: { week_date: "2026-06-08", visit_number: 2, status: "confirmed" },
     });
+  });
+
+  it("writes feedback to guest_visits and redirects back to guest feedback page", async () => {
+    guestPortalMocks.getRoleCookie.mockReturnValue("guest");
+    guestPortalMocks.maybeSingleGuest.mockResolvedValue({
+      data: {
+        id: "g-888",
+        name: "林來賓",
+        email: "test@example.com",
+        company: "林記",
+        specialty: "餐飲",
+        referrer_id: "inviter-1",
+        members: { chinese_name: "王小明" },
+      },
+      error: null,
+    });
+    guestPortalMocks.selectVisits.mockResolvedValue({
+      data: [{ id: "visit-1", week_date: "2026-06-08", visit_number: 2, status: "confirmed", feedback: null }],
+      error: null,
+    });
+    guestPortalMocks.updateVisitEq.mockResolvedValue({ error: null });
+
+    const formData = new FormData();
+    formData.set("feedback", "今天收穫很多。");
+
+    await submitGuestFeedbackAction(formData);
+
+    expect(guestPortalMocks.updateVisitEq).toHaveBeenCalled();
+    expect(guestPortalMocks.redirect).toHaveBeenCalledWith("/guest/feedback?saved=1");
   });
 });

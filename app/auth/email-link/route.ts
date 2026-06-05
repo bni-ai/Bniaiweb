@@ -65,7 +65,7 @@ export async function POST(request: Request) {
   const normalizedEmail = email?.trim().toLowerCase();
 
   if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
-    return NextResponse.json({ error: "請輸入有效的 email。" }, { status: 400 });
+    return NextResponse.json({ error: "請輸入有效的 Email。" }, { status: 400 });
   }
 
   const supabase = createClient<Database>(

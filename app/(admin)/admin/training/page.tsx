@@ -12,7 +12,7 @@ export default async function AdminTrainingPage({
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">Training Overview</p>
+        <p className="text-sm text-text-2">培訓總覽</p>
         <h1 className="text-3xl font-black">培訓管理</h1>
         <p className="mt-2 text-sm text-text-2">維護課程目錄、補登完課紀錄、查看分會學分排行。</p>
       </div>
@@ -23,8 +23,8 @@ export default async function AdminTrainingPage({
             <h2 className="text-xl font-semibold">新增課程</h2>
             <form action={createTrainingCourseAction} className="mt-4 grid gap-3">
               <input name="name" className="rounded-2xl border border-border px-3 py-2.5" placeholder="課程名稱" required />
-              <input name="system_form_name" className="rounded-2xl border border-border px-3 py-2.5" placeholder="System 表單名稱" />
-              <input name="desktop_form_name" className="rounded-2xl border border-border px-3 py-2.5" placeholder="Desktop 表單名稱" />
+              <input name="system_form_name" className="rounded-2xl border border-border px-3 py-2.5" placeholder="系統表單名稱" />
+              <input name="desktop_form_name" className="rounded-2xl border border-border px-3 py-2.5" placeholder="桌面表單名稱" />
               <div className="grid gap-3 md:grid-cols-3">
                 <input name="credits" type="number" min="0" className="rounded-2xl border border-border px-3 py-2.5" placeholder="學分" />
                 <input name="first_fee" type="number" min="0" className="rounded-2xl border border-border px-3 py-2.5" placeholder="初訓費用" />

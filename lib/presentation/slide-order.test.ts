@@ -93,4 +93,122 @@ describe("parseSlideOrder", () => {
     ];
     expect(() => parseSlideOrder(rawInvalidOverrideValue)).toThrow("slide_order editor.dataOverride.theme 格式不正確");
   });
+
+  it("successfully parses imageLayers in editor", () => {
+    const raw = [
+      {
+        type: "cover",
+        editor: {
+          imageLayers: [
+            {
+              id: "img-1",
+              imageUrl: "https://example.com/img.png",
+              x: 100,
+              y: 200,
+              width: 300,
+              height: 400,
+              borderRadius: 8,
+              shadow: "md",
+              objectFit: "cover"
+            }
+          ]
+        }
+      }
+    ];
+    const parsed = parseSlideOrder(raw);
+    expect(parsed[0].editor?.imageLayers).toEqual([
+      {
+        id: "img-1",
+        imageUrl: "https://example.com/img.png",
+        x: 100,
+        y: 200,
+        width: 300,
+        height: 400,
+        borderRadius: 8,
+        shadow: "md",
+        objectFit: "cover"
+      }
+    ]);
+  });
+
+  it("successfully parses per-slide timer config in editor", () => {
+    const raw = [
+      {
+        type: "custom",
+        id: "custom-slide-2",
+        visible: true,
+        editor: {
+          timerEnabled: true,
+          timerSeconds: 30,
+        },
+      },
+    ];
+    const parsed = parseSlideOrder(raw);
+    expect(parsed[0]).toEqual({
+      type: "custom",
+      id: "custom-slide-2",
+      visible: true,
+      editor: {
+        timerEnabled: true,
+        timerSeconds: 30,
+      },
+    });
+  });
+
+  it("throws error for invalid imageLayers format", () => {
+    const rawInvalidType = [
+      {
+        type: "cover",
+        editor: {
+          imageLayers: "not-an-array"
+        }
+      }
+    ];
+    expect(() => parseSlideOrder(rawInvalidType)).toThrow("slide_order editor.imageLayers 格式不正確");
+
+    const rawInvalidField = [
+      {
+        type: "cover",
+        editor: {
+          imageLayers: [
+            {
+              id: "img-1",
+              imageUrl: 123,
+              x: 100,
+              y: 200,
+              width: 300,
+              height: 400,
+              borderRadius: 8,
+              shadow: "md",
+              objectFit: "cover"
+            }
+          ]
+        }
+      }
+    ];
+    expect(() => parseSlideOrder(rawInvalidField)).toThrow("slide_order editor.imageLayers[0] 欄位格式不正確");
+  });
+
+  it("throws error for invalid timer config format", () => {
+    const rawInvalidEnabled = [
+      {
+        type: "cover",
+        editor: {
+          timerEnabled: "yes",
+        },
+      },
+    ];
+    expect(() => parseSlideOrder(rawInvalidEnabled)).toThrow("slide_order editor.timerEnabled 格式不正確");
+
+    const rawInvalidSeconds = [
+      {
+        type: "cover",
+        editor: {
+          timerEnabled: true,
+          timerSeconds: "30",
+        },
+      },
+    ];
+    expect(() => parseSlideOrder(rawInvalidSeconds)).toThrow("slide_order editor.timerSeconds 格式不正確");
+  });
 });

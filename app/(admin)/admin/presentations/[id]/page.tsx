@@ -27,6 +27,8 @@ export default async function PresentationEditPage({ params }: { params: Promise
         fontSize: "lg" as const,
         textLayers: [],
         imageLayers: [],
+        timerEnabled: false,
+        timerSeconds: null,
       },
       backgroundPreviewUrl: null,
     };

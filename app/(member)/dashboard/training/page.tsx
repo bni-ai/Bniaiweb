@@ -7,7 +7,7 @@ export default async function MemberTrainingPage() {
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">Training Credits</p>
+        <p className="text-sm text-text-2">培訓學分</p>
         <h1 className="text-3xl font-black">培訓紀錄</h1>
         <p className="mt-2 text-sm text-text-2">查看已完課課程、累積學分與剩餘課程數。</p>
       </div>

@@ -73,7 +73,7 @@ export async function saveMyBriefAction(formData: FormData) {
   const weekDate = parseWeekDate(requireText(formData, "week_date"));
   const lock = await getWeekLock(weekDate);
   if (isWeekLocked(lock)) {
-    throw new Error("此週已鎖定，Brief 只能檢視，不能修改");
+    throw new Error("此週已鎖定，每週簡報只能檢視，不能修改");
   }
   const status = requireText(formData, "intent") === "submit" ? "submitted" : "draft";
   const settings = await getResolvedChapterSettings();

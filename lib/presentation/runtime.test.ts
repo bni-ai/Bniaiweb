@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveRuntimeSlide, toRuntimeDeck } from "./runtime";
+import { createTimerStateForSlide, pauseTimerState, resetTimerState, tickTimerState } from "./meeting-timer";
+import { resolveRuntimeSlide, toRuntimeDeck, parseTextWithImages } from "./runtime";
+import type { SlideEntry } from "./types";
 import type { PresentationDeck } from "./viewer";
 
 const member = {
@@ -105,6 +107,8 @@ describe("presentation runtime deck", () => {
     expect(keynote?.editor.body).toContain("余啟銘");
     expect(keynote?.editor.textLayers[0]?.text).toBe("AI 實戰短講");
     expect(keynote?.editor.textLayers[1]?.text).toContain("余啟銘");
+    expect(keynote?.editor.timerEnabled).toBe(false);
+    expect(keynote?.editor.timerSeconds).toBeNull();
   });
 
   it("handles editor patch merge logic (override, fallback to db, and unset)", () => {
@@ -175,5 +179,67 @@ describe("presentation runtime deck", () => {
     expect(runtimeMissingGuest).not.toBeNull();
     expect(runtimeMissingGuest?.title).toBe("資料暫時無法取得");
     expect(runtimeMissingGuest?.editor.body).toBe("本週來賓\n\n請稍後再試");
+  });
+
+  it("preserves per-slide timer config in runtime editor state", () => {
+    const deck = makeDeck();
+    const entry: SlideEntry = {
+      type: "custom",
+      id: "custom-timer-slide",
+      visible: true,
+      editor: {
+        title: "30 秒短講",
+        body: "請開始",
+        timerEnabled: true,
+        timerSeconds: 30,
+      },
+    };
+
+    const runtime = resolveRuntimeSlide(entry, deck, 0);
+    expect(runtime?.editor.timerEnabled).toBe(true);
+    expect(runtime?.editor.timerSeconds).toBe(30);
+  });
+
+  it("keeps runtime deck content unchanged while timer state changes", () => {
+    const runtimeDeck = toRuntimeDeck(makeDeck());
+    const before = JSON.stringify(runtimeDeck);
+    const timer = createTimerStateForSlide("keynote-1", { timerEnabled: true, timerSeconds: 30 }, 1_000);
+
+    const next = tickTimerState(timer, 2_000);
+    const paused = pauseTimerState(next, 3_000);
+    resetTimerState(paused, 4_000);
+
+    expect(JSON.stringify(runtimeDeck)).toBe(before);
+  });
+});
+
+describe("parseTextWithImages", () => {
+  it("parses plain text only", () => {
+    const result = parseTextWithImages("Hello World\nThis is plain text.");
+    expect(result).toEqual([
+      { type: "text", content: "Hello World\nThis is plain text." }
+    ]);
+  });
+
+  it("parses text with single inline image block", () => {
+    const result = parseTextWithImages("Intro text\n![alt text](https://example.com/img.png)\nOutro text");
+    expect(result).toEqual([
+      { type: "text", content: "Intro text\n" },
+      { type: "image", content: "https://example.com/img.png" },
+      { type: "text", content: "\nOutro text" }
+    ]);
+  });
+
+  it("parses text with multiple images", () => {
+    const result = parseTextWithImages("![img1](https://example.com/1.png)\ntext middle\n![img2](https://example.com/2.png)");
+    expect(result).toEqual([
+      { type: "image", content: "https://example.com/1.png" },
+      { type: "text", content: "\ntext middle\n" },
+      { type: "image", content: "https://example.com/2.png" }
+    ]);
+  });
+
+  it("handles empty or edge cases gracefully", () => {
+    expect(parseTextWithImages("")).toEqual([]);
   });
 });

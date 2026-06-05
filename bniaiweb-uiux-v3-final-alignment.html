@@ -1,0 +1,1674 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bniaiweb UIUX V3 Final Alignment</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --surface-alt: #f8f8fa;
+      --sidebar: #f2f3f5;
+      --line: #d9dde3;
+      --line-strong: #c4cad2;
+      --text: #1f2933;
+      --muted: #6b7280;
+      --muted-strong: #4b5563;
+      --accent: #b3262d;
+      --accent-soft: #f7e7e8;
+      --accent-deep: #8f1f25;
+      --ok: #1f7a52;
+      --ok-soft: #e7f5ee;
+      --warn: #b7791f;
+      --warn-soft: #fff5e4;
+      --info: #285ea8;
+      --info-soft: #e8f1ff;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      --radius: 8px;
+      --font-display: "Avenir Next", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      --font-mono: "SFMono-Regular", "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    body.drawer-open {
+      overflow: hidden;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 276px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: var(--sidebar);
+      border-right: 1px solid var(--line);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow: auto;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #c63d45, #9f1f27);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    .brand-copy strong,
+    .page-title strong {
+      font-family: var(--font-display);
+      font-size: 18px;
+      letter-spacing: -0.02em;
+      display: block;
+    }
+
+    .brand-copy span,
+    .page-title span,
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .chapter-card,
+    .panel,
+    .metric-card,
+    .cta-card,
+    .table-card,
+    .agenda-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .chapter-card {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .chapter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .chapter-pill,
+    .status-pill,
+    .tag,
+    .role-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .chapter-pill {
+      color: var(--accent-deep);
+      background: var(--accent-soft);
+      border-color: #efc7c9;
+    }
+
+    .status-pill.ok {
+      color: var(--ok);
+      background: var(--ok-soft);
+      border-color: #c8e8d7;
+    }
+
+    .status-pill.warn {
+      color: var(--warn);
+      background: var(--warn-soft);
+      border-color: #f1dfba;
+    }
+
+    .status-pill.info {
+      color: var(--info);
+      background: var(--info-soft);
+      border-color: #cbdcf8;
+    }
+
+    .role-chip {
+      color: var(--muted-strong);
+      background: #fff;
+      border-color: var(--line);
+    }
+
+    .section-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0 6px;
+    }
+
+    .nav-group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav-item {
+      width: 100%;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: var(--line);
+      transform: translateY(-1px);
+    }
+
+    .nav-item.active {
+      background: #fff;
+      border-color: #e8c7ca;
+      color: var(--accent-deep);
+      box-shadow: 0 8px 18px rgba(179, 38, 45, 0.08);
+    }
+
+    .nav-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .nav-main span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .nav-badge {
+      padding: 2px 8px;
+      min-width: 28px;
+      border-radius: 999px;
+      background: #eef0f3;
+      color: var(--muted-strong);
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .nav-item.active .nav-badge {
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      display: grid;
+      gap: 10px;
+    }
+
+    .support-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 24px;
+      background: rgba(245, 246, 248, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(217, 221, 227, 0.92);
+    }
+
+    .topbar-left,
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .menu-button,
+    .ghost-button,
+    .primary-button,
+    .soft-button {
+      border-radius: 8px;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .menu-button {
+      display: none;
+      width: 42px;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .primary-button {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .soft-button {
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      border-color: #efc7c9;
+    }
+
+    .ghost-button:hover,
+    .soft-button:hover,
+    .primary-button:hover,
+    .menu-button:hover,
+    .segmented button:hover {
+      filter: brightness(0.99);
+    }
+
+    .segmented {
+      display: inline-flex;
+      padding: 4px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line);
+      gap: 4px;
+    }
+
+    .segmented button {
+      border: 0;
+      background: transparent;
+      min-height: 38px;
+      padding: 0 16px;
+      border-radius: 999px;
+      font-weight: 800;
+      color: var(--muted-strong);
+      cursor: pointer;
+    }
+
+    .segmented button.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(179, 38, 45, 0.18);
+    }
+
+    .search-chip {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      min-width: 220px;
+    }
+
+    .content {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .content-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric-card {
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .metric-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric-value {
+      font-family: var(--font-display);
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .metric-foot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted-strong);
+      font-size: 13px;
+    }
+
+    .icon-wrap,
+    .inline-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--surface-alt);
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      flex: 0 0 auto;
+    }
+
+    .cta-grid,
+    .two-col,
+    .three-col {
+      display: grid;
+      gap: 14px;
+    }
+
+    .cta-grid {
+      grid-template-columns: 1.3fr 1fr;
+    }
+
+    .two-col {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+
+    .three-col {
+      grid-template-columns: 1.15fr 0.8fr 0.8fr;
+    }
+
+    .cta-card,
+    .panel,
+    .table-card,
+    .agenda-card {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .cta-top,
+    .panel-top,
+    .table-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .cta-title,
+    .panel-title,
+    .table-title {
+      display: grid;
+      gap: 6px;
+    }
+
+    .cta-title strong,
+    .panel-title strong,
+    .table-title strong {
+      font-size: 18px;
+      letter-spacing: -0.02em;
+      font-family: var(--font-display);
+    }
+
+    .cta-actions,
+    .inline-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .list-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .list-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .list-copy strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .list-copy span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .progress-line {
+      height: 8px;
+      border-radius: 999px;
+      background: #edf0f3;
+      overflow: hidden;
+    }
+
+    .progress-line > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #d34a51, #b3262d);
+    }
+
+    .split-stat {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .sub-stat {
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface-alt);
+      display: grid;
+      gap: 6px;
+    }
+
+    .sub-stat strong {
+      font-size: 26px;
+      letter-spacing: -0.04em;
+      font-family: var(--font-display);
+    }
+
+    .sub-stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .timeline-time {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding-top: 4px;
+    }
+
+    .timeline-body {
+      border: 1px solid var(--line);
+      background: var(--surface-alt);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .timeline-body strong {
+      font-size: 14px;
+    }
+
+    .timeline-body span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      min-width: 640px;
+    }
+
+    thead {
+      background: #f7f8fa;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    tbody tr:hover {
+      background: #fcfcfd;
+    }
+
+    .cell-main {
+      display: grid;
+      gap: 3px;
+    }
+
+    .cell-main strong {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .cell-main span {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .mini-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .view {
+      display: none;
+      gap: 18px;
+    }
+
+    .view.active {
+      display: grid;
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 25;
+    }
+
+    .drawer-backdrop.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 1180px) {
+      .kpi-grid,
+      .cta-grid,
+      .two-col,
+      .three-col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 30;
+        width: min(320px, calc(100vw - 24px));
+        transform: translateX(-102%);
+        transition: transform 0.24s ease;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .menu-button {
+        display: inline-flex;
+      }
+
+      .topbar {
+        padding: 16px;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .search-chip {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar,
+      .topbar-right,
+      .content-header,
+      .header-actions,
+      .cta-actions,
+      .inline-actions {
+        align-items: stretch;
+      }
+
+      .topbar,
+      .content-header {
+        flex-direction: column;
+      }
+
+      .topbar-left,
+      .topbar-right,
+      .header-actions,
+      .cta-actions,
+      .inline-actions {
+        width: 100%;
+      }
+
+      .segmented,
+      .segmented button,
+      .ghost-button,
+      .primary-button,
+      .soft-button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .kpi-grid,
+      .cta-grid,
+      .two-col,
+      .three-col,
+      .split-stat {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-value {
+        font-size: 30px;
+      }
+
+      .timeline-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-lockup">
+        <div class="brand-mark">BNI</div>
+        <div class="brand-copy">
+          <strong>Bni華AI 系統</strong>
+          <span>分會營運入口與會員工作台</span>
+        </div>
+      </div>
+
+      <div class="chapter-card">
+        <div class="chapter-row">
+          <span class="chapter-pill">華 AI 分會</span>
+          <span class="status-pill ok">本週會議已排程</span>
+        </div>
+        <div class="chapter-row">
+          <div>
+            <strong>週三 06:45 報到 / 07:00 開始</strong>
+            <div class="subtle">台北市中山區實體會議 + 線上補件</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="section-label">Portal</div>
+        <button class="nav-item portal-switch active" data-portal="member">
+          <span class="nav-main">
+            <span class="icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M10 10.5c2.49 0 4.5-2.01 4.5-4.5S12.49 1.5 10 1.5 5.5 3.51 5.5 6 7.51 10.5 10 10.5Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M3.25 17c1.5-2.55 4-3.83 6.75-3.83S15.25 14.45 16.75 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span>會員入口</span>
+          </span>
+          <span class="nav-badge">週任務</span>
+        </button>
+        <button class="nav-item portal-switch" data-portal="admin">
+          <span class="nav-main">
+            <span class="icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M10 2.5 16 5.5V10c0 3.63-2.36 6.92-6 7.93C6.36 16.92 4 13.63 4 10V5.5L10 2.5Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M7.3 9.8 9 11.5l3.7-3.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span>幹部入口</span>
+          </span>
+          <span class="nav-badge">會務</span>
+        </button>
+      </div>
+
+      <div class="nav-group" id="memberNav"></div>
+      <div class="nav-group" id="adminNav" hidden></div>
+
+      <div class="sidebar-footer">
+        <div class="support-row">
+          <div>
+            <strong>AI 支援狀態</strong>
+            <div class="subtle">摘要、投稿潤稿、講稿整理</div>
+          </div>
+          <span class="status-pill info">正常</span>
+        </div>
+        <div class="support-row">
+          <span class="mini-note">最後同步</span>
+          <span class="mono mini-note">06:12</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-button" id="menuButton" aria-label="開啟選單">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div class="page-title">
+            <strong id="topbarTitle">會員入口總覽</strong>
+            <span id="topbarSubtitle">本週任務、引薦與一對一進度一次看完</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="segmented" role="tablist" aria-label="入口切換">
+            <button class="portal-switch active" data-portal="member" role="tab" aria-selected="true">會員</button>
+            <button class="portal-switch" data-portal="admin" role="tab" aria-selected="false">幹部</button>
+          </div>
+          <div class="search-chip">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M13.5 13.5 17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            搜尋會員、引薦、簡報、會議紀錄
+          </div>
+          <span class="role-chip">本週會議週期：2026 W23</span>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="view active" id="memberView">
+          <div class="content-header">
+            <div>
+              <div class="section-label">Member Portal</div>
+              <h1 style="margin:6px 0 8px;font-size:30px;letter-spacing:-0.04em;">先完成本週任務，再追蹤引薦與一對一</h1>
+              <div class="subtle">以會員每週實際操作順序收斂：投稿、報到、引薦更新、1-to-1、活動與訓練。</div>
+            </div>
+            <div class="header-actions">
+              <button class="soft-button">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                新增本週投稿
+              </button>
+              <button class="primary-button">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M4 5.5h12v9H4z" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M7 3.5v4M13 3.5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                送出週報
+              </button>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <article class="metric-card">
+              <div class="metric-meta">
+                <span>本週任務完成率</span>
+                <span class="icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10.5 8 14.5 16 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+              </div>
+              <div class="metric-value">4 / 6</div>
+              <div class="progress-line"><span style="width:66%;"></span></div>
+              <div class="metric-foot"><span class="status-pill warn">尚缺 2 項</span><span>1 對 1 紀錄、出席確認</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-meta">
+                <span>本月引薦金額</span>
+                <span class="icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M6.5 6.5h4a2 2 0 1 1 0 4h-1a2 2 0 1 0 0 4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <div class="metric-value mono">NT$ 168K</div>
+              <div class="metric-foot"><span class="status-pill ok">較上週 +18%</span><span>有效引薦 6 件</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-meta">
+                <span>1-to-1 進度</span>
+                <span class="icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 3.2c3.76 0 6.8 3.04 6.8 6.8S13.76 16.8 10 16.8 3.2 13.76 3.2 10 6.24 3.2 10 3.2Z" stroke="currentColor" stroke-width="1.5"/><path d="M10 6.4v3.8l2.6 1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <div class="metric-value">2 / 3</div>
+              <div class="metric-foot"><span class="status-pill info">剩 1 場待安排</span><span>本週目標週五前完成</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-meta">
+                <span>簡報與訓練</span>
+                <span class="icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 4.5h12v8H4z" stroke="currentColor" stroke-width="1.5"/><path d="M7.5 15.5h5M10 12.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <div class="metric-value">2</div>
+              <div class="metric-foot"><span class="status-pill ok">皆已釋出</span><span>本週講稿 + 新人訓練包</span></div>
+            </article>
+          </div>
+
+          <div class="cta-grid">
+            <article class="cta-card">
+              <div class="cta-top">
+                <div class="cta-title">
+                  <strong>本週提交中心</strong>
+                  <span>把會員每週最常做的動作集中在一張卡，不再四處找入口。</span>
+                </div>
+                <span class="status-pill warn">截止倒數 18 小時</span>
+              </div>
+              <div class="split-stat">
+                <div class="sub-stat">
+                  <strong>週報草稿</strong>
+                  <span>已寫 72%，尚缺本週學習收穫</span>
+                </div>
+                <div class="sub-stat">
+                  <strong>60 秒簡報</strong>
+                  <span>已上傳 v2，等待幹部審核</span>
+                </div>
+              </div>
+              <div class="inline-actions">
+                <button class="primary-button">完成週報並送出</button>
+                <button class="ghost-button">查看投稿規範</button>
+              </div>
+            </article>
+
+            <article class="cta-card">
+              <div class="cta-top">
+                <div class="cta-title">
+                  <strong>本週提醒</strong>
+                  <span>把真正要處理的事情排在前面。</span>
+                </div>
+              </div>
+              <div class="list">
+                <div class="list-row">
+                  <span class="status-pill warn">待辦</span>
+                  <div class="list-copy">
+                    <strong>補 1 筆 1-to-1 紀錄</strong>
+                    <span>與王怡君的會後備註尚未提交，會影響本週追蹤完整度。</span>
+                  </div>
+                  <span class="mono mini-note">今天</span>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill info">提醒</span>
+                  <div class="list-copy">
+                    <strong>更新引薦後續狀態</strong>
+                    <span>3 件引薦超過 7 天未更新，建議在週會前補齊。</span>
+                  </div>
+                  <span class="mono mini-note">18:00</span>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill ok">已排</span>
+                  <div class="list-copy">
+                    <strong>新人訓練線上場</strong>
+                    <span>週四 20:00，自動帶入你的出席名單與學習紀錄。</span>
+                  </div>
+                  <span class="mono mini-note">週四</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="two-col">
+            <article class="table-card">
+              <div class="table-top">
+                <div class="table-title">
+                  <strong>引薦與 1-to-1 追蹤</strong>
+                  <span>先看卡關項，再看價值與下一步，避免只留流水帳。</span>
+                </div>
+                <div class="inline-actions">
+                  <button class="ghost-button">新增引薦</button>
+                  <button class="ghost-button">安排 1-to-1</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>對象</th>
+                      <th>進度</th>
+                      <th>價值 / 目標</th>
+                      <th>下一步</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="cell-main">
+                          <strong>李佩珊 × 張建成</strong>
+                          <span>品牌設計 ↔ 貿易採購</span>
+                        </div>
+                      </td>
+                      <td><span class="status-pill ok">已媒合</span></td>
+                      <td class="mono">NT$ 80K / 追蹤 6 月案</td>
+                      <td>週五前確認報價是否送出</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="cell-main">
+                          <strong>王怡君 1-to-1</strong>
+                          <span>法律顧問 / 深聊轉介紹策略</span>
+                        </div>
+                      </td>
+                      <td><span class="status-pill warn">待補紀錄</span></td>
+                      <td>本月目標 3 場中的第 2 場</td>
+                      <td>補上 GAINS 與下次引薦名單</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="cell-main">
+                          <strong>林冠宇 × 陳映慈</strong>
+                          <span>系統整合 ↔ 行銷自動化</span>
+                        </div>
+                      </td>
+                      <td><span class="status-pill info">待回覆</span></td>
+                      <td class="mono">潛在線索 2 家</td>
+                      <td>週會後追一次雙方可約時段</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-top">
+                <div class="panel-title">
+                  <strong>會員資訊入口</strong>
+                  <span>把最常找的檔案與人脈入口放在右側固定區。</span>
+                </div>
+              </div>
+              <div class="list">
+                <div class="list-row">
+                  <span class="icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M6 3.5h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.5"/><path d="M7 7.5h6M7 10.5h6M7 13.5h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  </span>
+                  <div class="list-copy">
+                    <strong>個人資料</strong>
+                    <span>名片、專業分類、聯絡方式、可引薦對象</span>
+                  </div>
+                  <button class="ghost-button">編輯</button>
+                </div>
+                <div class="list-row">
+                  <span class="icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 5.5h12v9H4z" stroke="currentColor" stroke-width="1.5"/><path d="M4 8.5h12" stroke="currentColor" stroke-width="1.5"/></svg>
+                  </span>
+                  <div class="list-copy">
+                    <strong>會員名錄</strong>
+                    <span>依分類、委員會角色、貢獻度快速篩選</span>
+                  </div>
+                  <button class="ghost-button">查看</button>
+                </div>
+                <div class="list-row">
+                  <span class="icon-wrap">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M5 6.5h10M5 10h10M5 13.5h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 13.5 16 15.5 18 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                  <div class="list-copy">
+                    <strong>AI 支援</strong>
+                    <span>潤稿、摘要、講稿整理、會後 follow-up 建議</span>
+                  </div>
+                  <button class="ghost-button">打開</button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="three-col">
+            <article class="agenda-card">
+              <div class="panel-title">
+                <strong>本週活動</strong>
+                <span>會議、訪客交流與分會外活動</span>
+              </div>
+              <div class="timeline">
+                <div class="timeline-row">
+                  <div class="timeline-time">Wed 06:45</div>
+                  <div class="timeline-body">
+                    <strong>例會報到與晨會流程</strong>
+                    <span>先簽到，再檢查 60 秒簡報與來賓名單。</span>
+                  </div>
+                </div>
+                <div class="timeline-row">
+                  <div class="timeline-time">Thu 20:00</div>
+                  <div class="timeline-body">
+                    <strong>新人訓練線上場</strong>
+                    <span>導入引薦紀錄規範與 1-to-1 寫法。</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="agenda-card">
+              <div class="panel-title">
+                <strong>訓練與簡報</strong>
+                <span>不做資料倉庫，而是保留本週必讀</span>
+              </div>
+              <div class="list">
+                <div class="list-row">
+                  <span class="status-pill ok">已發布</span>
+                  <div class="list-copy">
+                    <strong>本週講稿摘要</strong>
+                    <span>3 分鐘版與 60 秒版都可下載</span>
+                  </div>
+                  <span class="mono mini-note">v3</span>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill info">新上架</span>
+                  <div class="list-copy">
+                    <strong>訪客接待 SOP</strong>
+                    <span>給新任幹部快速上手</span>
+                  </div>
+                  <span class="mono mini-note">PDF</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="agenda-card">
+              <div class="panel-title">
+                <strong>AI 支援紀錄</strong>
+                <span>避免 AI 功能搶主畫面，只做任務輔助</span>
+              </div>
+              <div class="list">
+                <div class="list-row">
+                  <span class="status-pill info">草稿</span>
+                  <div class="list-copy">
+                    <strong>本週週報潤稿</strong>
+                    <span>已整理成 BNI 語氣，待你確認</span>
+                  </div>
+                  <span class="mono mini-note">2 分鐘前</span>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill ok">完成</span>
+                  <div class="list-copy">
+                    <strong>來賓 follow-up 訊息</strong>
+                    <span>已輸出兩版：正式 / 親和</span>
+                  </div>
+                  <span class="mono mini-note">昨日</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="adminView">
+          <div class="content-header">
+            <div>
+              <div class="section-label">Admin Portal</div>
+              <h2 style="margin:6px 0 8px;font-size:30px;letter-spacing:-0.04em;">先掃描本週會務，再處理投稿、簡報與資料品質</h2>
+              <div class="subtle">維持幹部實際營運節奏：例會準備、投稿審核、簡報發布、會員資料品質與名單匯入。</div>
+            </div>
+            <div class="header-actions">
+              <button class="soft-button">匯入會員名單</button>
+              <button class="primary-button">發布本週會議包</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <article class="metric-card">
+              <div class="metric-meta">
+                <span>本週會議就緒度</span>
+                <span class="icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M10 4v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <div class="metric-value">86%</div>
+              <div class="metric-foot"><span class="status-pill warn">來賓名單未鎖版</span><span>其餘流程皆已完成</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-meta">
+                <span>投稿審核</span>
+                <span class="icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 4.5h12v11H4z" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h6M7 11h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <div class="metric-value">9 / 12</div>
+              <div class="metric-foot"><span class="status-pill warn">3 件待修正</span><span>含 1 件缺封面圖</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-meta">
+                <span>簡報發布</span>
+                <span class="icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 5h12v8H4z" stroke="currentColor" stroke-width="1.5"/><path d="M10 13v3M7.5 16h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <div class="metric-value">2 / 3</div>
+              <div class="metric-foot"><span class="status-pill info">講者簡報待最後確認</span><span>週會包今晚 21:00 發佈</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-meta">
+                <span>會員資料品質</span>
+                <span class="icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="6.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 6.8v3.7M10 13.4h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <div class="metric-value">7</div>
+              <div class="metric-foot"><span class="status-pill warn">需補齊欄位</span><span>專業分類與可引薦描述缺漏</span></div>
+            </article>
+          </div>
+
+          <div class="cta-grid">
+            <article class="cta-card">
+              <div class="cta-top">
+                <div class="cta-title">
+                  <strong>本週營運總覽</strong>
+                  <span>會前 24 小時最重要的三件事：來賓名單、投稿審核、簡報包發布。</span>
+                </div>
+                <span class="status-pill info">例會 D-1</span>
+              </div>
+              <div class="list">
+                <div class="list-row">
+                  <span class="status-pill warn">待確認</span>
+                  <div class="list-copy">
+                    <strong>來賓名單 4 / 5 完成</strong>
+                    <span>尚缺 1 位介紹人連絡資訊，會影響座位與迎賓分配。</span>
+                  </div>
+                  <button class="ghost-button">補資料</button>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill warn">待處理</span>
+                  <div class="list-copy">
+                    <strong>簡報 1 件未過規格</strong>
+                    <span>封面比例錯誤，建議直接退回並附修正範例。</span>
+                  </div>
+                  <button class="ghost-button">查看</button>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill ok">完成</span>
+                  <div class="list-copy">
+                    <strong>主持流程與司儀稿</strong>
+                    <span>已整合成單一會議包，供主持幹部與計時幹部同步。</span>
+                  </div>
+                  <button class="ghost-button">開啟</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="cta-card">
+              <div class="cta-top">
+                <div class="cta-title">
+                  <strong>幹部快動作</strong>
+                  <span>高頻行政動作不再藏在深層設定。</span>
+                </div>
+              </div>
+              <div class="inline-actions">
+                <button class="primary-button">發布本週簡報</button>
+                <button class="ghost-button">匯入來賓名單</button>
+                <button class="ghost-button">寄送提醒</button>
+                <button class="ghost-button">下載出席表</button>
+              </div>
+              <div class="split-stat">
+                <div class="sub-stat">
+                  <strong>資料匯入</strong>
+                  <span>最近一次成功：06:02 / 43 筆</span>
+                </div>
+                <div class="sub-stat">
+                  <strong>自動提醒</strong>
+                  <span>今晚 20:30 對未投稿者發送</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="two-col">
+            <article class="table-card">
+              <div class="table-top">
+                <div class="table-title">
+                  <strong>投稿與簡報發布狀態</strong>
+                  <span>把審核、修正、發布放在同一個掃描區，不切三個頁面。</span>
+                </div>
+                <div class="inline-actions">
+                  <button class="ghost-button">投稿規格</button>
+                  <button class="ghost-button">發布紀錄</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>項目</th>
+                      <th>狀態</th>
+                      <th>負責人</th>
+                      <th>備註</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="cell-main">
+                          <strong>本週 60 秒簡報包</strong>
+                          <span>12 位會員 / 9 位已通過</span>
+                        </div>
+                      </td>
+                      <td><span class="status-pill warn">3 件待修正</span></td>
+                      <td>教育統籌 Mia</td>
+                      <td>1 件比例錯誤，2 件缺 CTA</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="cell-main">
+                          <strong>主題講者簡報</strong>
+                          <span>週會主講內容與講者介紹頁</span>
+                        </div>
+                      </td>
+                      <td><span class="status-pill info">待最後確認</span></td>
+                      <td>節目統籌 Ken</td>
+                      <td>等講者最終版檔案</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="cell-main">
+                          <strong>新人訓練包</strong>
+                          <span>講義、簽到、1-to-1 指南</span>
+                        </div>
+                      </td>
+                      <td><span class="status-pill ok">已發布</span></td>
+                      <td>會員委員 Amy</td>
+                      <td>已同步到訓練專區</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-top">
+                <div class="panel-title">
+                  <strong>資料品質與名單維護</strong>
+                  <span>分開看會員資料、來賓名單與匯入紀錄。</span>
+                </div>
+              </div>
+              <div class="list">
+                <div class="list-row">
+                  <span class="status-pill warn">7 筆缺漏</span>
+                  <div class="list-copy">
+                    <strong>會員資料欄位待補</strong>
+                    <span>多集中在「可引薦對象」與「委員會角色」未填。</span>
+                  </div>
+                  <button class="ghost-button">開啟</button>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill info">5 位來賓</span>
+                  <div class="list-copy">
+                    <strong>本週來賓名單</strong>
+                    <span>1 位尚未填完整聯絡資訊，需追介紹人。</span>
+                  </div>
+                  <button class="ghost-button">查看</button>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill ok">成功</span>
+                  <div class="list-copy">
+                    <strong>會員 CSV 匯入</strong>
+                    <span>43 筆更新、0 筆衝突，保留備註欄。</span>
+                  </div>
+                  <button class="ghost-button">紀錄</button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="three-col">
+            <article class="agenda-card">
+              <div class="panel-title">
+                <strong>會議節奏板</strong>
+                <span>用時間軸掃描例會營運是否到位</span>
+              </div>
+              <div class="timeline">
+                <div class="timeline-row">
+                  <div class="timeline-time">06:45</div>
+                  <div class="timeline-body">
+                    <strong>報到與來賓接待</strong>
+                    <span>名牌、座位、來賓介紹人確認完成。</span>
+                  </div>
+                </div>
+                <div class="timeline-row">
+                  <div class="timeline-time">07:18</div>
+                  <div class="timeline-body">
+                    <strong>60 秒簡報輪播</strong>
+                    <span>依發布版本自動排序，避免現場切錯。</span>
+                  </div>
+                </div>
+                <div class="timeline-row">
+                  <div class="timeline-time">08:20</div>
+                  <div class="timeline-body">
+                    <strong>會後資料整理</strong>
+                    <span>出席、來賓、引薦、見證稿一次收斂。</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="agenda-card">
+              <div class="panel-title">
+                <strong>訓練與活動</strong>
+                <span>教育與會員成長由同一區承接</span>
+              </div>
+              <div class="list">
+                <div class="list-row">
+                  <span class="status-pill info">本週</span>
+                  <div class="list-copy">
+                    <strong>新人訓練</strong>
+                    <span>報名 11 / 出席預估 9</span>
+                  </div>
+                  <span class="mono mini-note">Thu</span>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill ok">已排</span>
+                  <div class="list-copy">
+                    <strong>分會外交流活動</strong>
+                    <span>已上架活動頁與提醒訊息</span>
+                  </div>
+                  <span class="mono mini-note">Sat</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="agenda-card">
+              <div class="panel-title">
+                <strong>AI 與匯入紀錄</strong>
+                <span>AI 放在營運輔助，不壓過主要會務</span>
+              </div>
+              <div class="list">
+                <div class="list-row">
+                  <span class="status-pill info">摘要</span>
+                  <div class="list-copy">
+                    <strong>週會講者摘要完成</strong>
+                    <span>同步給教育統籌與主持稿</span>
+                  </div>
+                  <span class="mono mini-note">20:14</span>
+                </div>
+                <div class="list-row">
+                  <span class="status-pill ok">匯入</span>
+                  <div class="list-copy">
+                    <strong>CSV 成功保留備註欄</strong>
+                    <span>避免會員備註被塞進錯欄位</span>
+                  </div>
+                  <span class="mono mini-note">06:02</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const portalMeta = {
+      member: {
+        title: "會員入口總覽",
+        subtitle: "本週任務、引薦與一對一進度一次看完"
+      },
+      admin: {
+        title: "幹部入口總覽",
+        subtitle: "會議營運、投稿與資料品質集中掃描"
+      }
+    };
+
+    const navConfig = {
+      member: [
+        { label: "總覽", badge: "今日", active: true },
+        { label: "本週提交", badge: "2" },
+        { label: "個人資料" },
+        { label: "會員名錄" },
+        { label: "一對一" },
+        { label: "活動" },
+        { label: "訓練" },
+        { label: "AI 支援" }
+      ],
+      admin: [
+        { label: "總覽", badge: "例會", active: true },
+        { label: "投稿審核", badge: "3" },
+        { label: "簡報發布", badge: "1" },
+        { label: "會員資料", badge: "7" },
+        { label: "來賓管理" },
+        { label: "主講與節目" },
+        { label: "匯入紀錄" },
+        { label: "設定" },
+        { label: "訓練" },
+        { label: "活動" }
+      ]
+    };
+
+    const sidebar = document.getElementById("sidebar");
+    const drawerBackdrop = document.getElementById("drawerBackdrop");
+    const menuButton = document.getElementById("menuButton");
+    const topbarTitle = document.getElementById("topbarTitle");
+    const topbarSubtitle = document.getElementById("topbarSubtitle");
+    const memberView = document.getElementById("memberView");
+    const adminView = document.getElementById("adminView");
+    const memberNav = document.getElementById("memberNav");
+    const adminNav = document.getElementById("adminNav");
+    const portalButtons = Array.from(document.querySelectorAll(".portal-switch"));
+    const portalStoreKey = "bniaiweb:portal";
+
+    function navIcon(index) {
+      const icons = [
+        '<path d="M4 10h12M10 4v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+        '<path d="M4 5h12v10H4z" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+        '<path d="M10 10.5c2.49 0 4.5-2.01 4.5-4.5S12.49 1.5 10 1.5 5.5 3.51 5.5 6 7.51 10.5 10 10.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M3.25 17c1.5-2.55 4-3.83 6.75-3.83S15.25 14.45 16.75 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+        '<path d="M4 5.5h12v9H4z" stroke="currentColor" stroke-width="1.5"/><path d="M4 8.5h12" stroke="currentColor" stroke-width="1.5"/>',
+        '<path d="M10 3.2c3.76 0 6.8 3.04 6.8 6.8S13.76 16.8 10 16.8 3.2 13.76 3.2 10 6.24 3.2 10 3.2Z" stroke="currentColor" stroke-width="1.5"/><path d="M10 6.4v3.8l2.6 1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+        '<path d="M4 4.5h12v11H4z" stroke="currentColor" stroke-width="1.5"/><path d="M7 8h6M7 11h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+        '<path d="M4 5h12v8H4z" stroke="currentColor" stroke-width="1.5"/><path d="M10 13v3M7.5 16h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+        '<path d="M6 3.5h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.5"/><path d="M7 7.5h6M7 10.5h6M7 13.5h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
+      ];
+      return icons[index % icons.length];
+    }
+
+    function renderNav(container, title, items) {
+      container.innerHTML = "";
+      const label = document.createElement("div");
+      label.className = "section-label";
+      label.textContent = title;
+      container.appendChild(label);
+
+      items.forEach((item, index) => {
+        const button = document.createElement("button");
+        button.className = "nav-item" + (item.active ? " active" : "");
+        button.type = "button";
+        button.innerHTML = `
+          <span class="nav-main">
+            <span class="icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">${navIcon(index)}</svg>
+            </span>
+            <span>${item.label}</span>
+          </span>
+          ${item.badge ? `<span class="nav-badge">${item.badge}</span>` : ""}
+        `;
+        button.addEventListener("click", () => {
+          Array.from(container.querySelectorAll(".nav-item")).forEach((node) => node.classList.remove("active"));
+          button.classList.add("active");
+          if (window.innerWidth <= 900) closeDrawer();
+        });
+        container.appendChild(button);
+      });
+    }
+
+    function setPortal(portal) {
+      const isMember = portal === "member";
+      memberView.classList.toggle("active", isMember);
+      adminView.classList.toggle("active", !isMember);
+      memberNav.hidden = !isMember;
+      adminNav.hidden = isMember;
+      topbarTitle.textContent = portalMeta[portal].title;
+      topbarSubtitle.textContent = portalMeta[portal].subtitle;
+
+      portalButtons.forEach((button) => {
+        const active = button.dataset.portal === portal;
+        button.classList.toggle("active", active);
+        if (button.getAttribute("role") === "tab") {
+          button.setAttribute("aria-selected", active ? "true" : "false");
+        }
+      });
+
+      try {
+        localStorage.setItem(portalStoreKey, portal);
+      } catch (_) {}
+      closeDrawer();
+    }
+
+    function openDrawer() {
+      sidebar.classList.add("open");
+      drawerBackdrop.classList.add("visible");
+      document.body.classList.add("drawer-open");
+    }
+
+    function closeDrawer() {
+      sidebar.classList.remove("open");
+      drawerBackdrop.classList.remove("visible");
+      document.body.classList.remove("drawer-open");
+    }
+
+    renderNav(memberNav, "Member navigation", navConfig.member);
+    renderNav(adminNav, "Admin navigation", navConfig.admin);
+
+    portalButtons.forEach((button) => {
+      button.addEventListener("click", () => setPortal(button.dataset.portal));
+    });
+
+    menuButton.addEventListener("click", () => {
+      if (sidebar.classList.contains("open")) closeDrawer();
+      else openDrawer();
+    });
+    drawerBackdrop.addEventListener("click", closeDrawer);
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 900) closeDrawer();
+    });
+
+    try {
+      setPortal(localStorage.getItem(portalStoreKey) || "member");
+    } catch (_) {
+      setPortal("member");
+    }
+  </script>
+</body>
+</html>

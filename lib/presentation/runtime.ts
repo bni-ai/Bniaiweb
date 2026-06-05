@@ -101,12 +101,21 @@ function resolveEditorState(
     ? editor.textLayers
     : defaultTextLayers(resolvedTitle, resolvedBody, backgroundImageUrl);
 
+  const imageLayers = editor?.imageLayers || [];
+  const timerEnabled = editor?.timerEnabled === true;
+  const timerSeconds = timerEnabled && typeof editor?.timerSeconds === "number" && Number.isFinite(editor.timerSeconds) && editor.timerSeconds > 0
+    ? Math.round(editor.timerSeconds)
+    : null;
+
   return {
     title: resolvedTitle,
     body: resolvedBody,
     backgroundImageUrl,
     fontSize: resolvedFontSize,
     textLayers,
+    imageLayers,
+    timerEnabled,
+    timerSeconds,
   };
 }
 
@@ -323,4 +332,29 @@ export function toRuntimeDeck(deck: PresentationDeck): PresentationRuntimeDeck {
     chapterName: deck.chapterName,
     slides,
   };
+}
+
+export function parseTextWithImages(text: string): { type: "text" | "image"; content: string }[] {
+  if (!text) return [];
+
+  const result: { type: "text" | "image"; content: string }[] = [];
+  const regex = /!\[.*?\]\((.*?)\)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    const textBefore = text.slice(lastIndex, match.index);
+    if (textBefore) {
+      result.push({ type: "text", content: textBefore });
+    }
+    result.push({ type: "image", content: match[1] });
+    lastIndex = regex.lastIndex;
+  }
+
+  const textAfter = text.slice(lastIndex);
+  if (textAfter) {
+    result.push({ type: "text", content: textAfter });
+  }
+
+  return result;
 }

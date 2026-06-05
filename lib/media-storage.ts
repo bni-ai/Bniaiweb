@@ -1,6 +1,6 @@
 const MEDIA_BUCKET = "bniai-media";
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 type BucketClient = {
   storage: {
@@ -28,13 +28,14 @@ function sanitizeFileName(name: string) {
 function extensionFromFile(file: File) {
   if (file.type === "image/jpeg") return ".jpg";
   if (file.type === "image/png") return ".png";
+  if (file.type === "image/webp") return ".webp";
   const match = file.name.match(/\.[a-z0-9]+$/i);
   return match ? match[0].toLowerCase() : "";
 }
 
 export function assertImageFile(file: File, label: string) {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    throw new Error(`${label} 只接受 JPG 或 PNG`);
+    throw new Error(`${label} 只接受 JPG、PNG 或 WebP`);
   }
   if (file.size > MAX_IMAGE_BYTES) {
     throw new Error("檔案大小不可超過 5MB");
@@ -72,6 +73,14 @@ export function buildMemberProductPath(memberId: string, file: File) {
 
 export function buildKeynoteProductPath(talkId: string, file: File) {
   return `keynotes/${talkId}/${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
+}
+
+export function buildPresentationBackgroundPath(presentationId: string, slideKey: string, file: File) {
+  return `presentations/${presentationId}/${slideKey}-${sanitizeFileName(file.name)}`;
+}
+
+export function buildLayerImagePath(presentationId: string, layerId: string, file: File) {
+  return `presentations/${presentationId}/layers/${layerId}-${sanitizeFileName(file.name)}`;
 }
 
 export { MEDIA_BUCKET };

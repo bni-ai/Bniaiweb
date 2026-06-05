@@ -11,12 +11,23 @@ import type {
 } from "../../lib/presentation/types";
 import { Avatar, BulletList, InfoCard, Label, SectionTitle, StatCard, TwoColumn, clampParagraph, slideCanvasClass } from "./shared";
 
+const guestVisitStatusLabels: Record<string, string> = {
+  confirmed: "已確認",
+  completed: "已完成",
+  cancelled: "已取消",
+  pending: "待確認",
+};
+
+function getGuestVisitStatusLabel(status: string) {
+  return guestVisitStatusLabels[status] || status;
+}
+
 export function CoverSlide({ chapterName, weekDate, meetingTime }: CoverSlideProps) {
   return (
     <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="cover">
       <div className="flex h-full flex-col justify-between px-10 py-10">
         <div className="space-y-6">
-          <Label>BNI PRESENTATION</Label>
+          <Label>BNI 例會簡報</Label>
           <div className="space-y-4">
             <h1 className="max-w-3xl text-5xl font-black tracking-tight text-slate-900">{chapterName}</h1>
             <p className="text-2xl font-semibold text-[#dc2626]">第 {weekDate} 週例會簡報</p>
@@ -24,9 +35,9 @@ export function CoverSlide({ chapterName, weekDate, meetingTime }: CoverSlidePro
           </div>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
-          <StatCard label="Chapter" value={chapterName} />
-          <StatCard label="Week" value={weekDate} />
-          <StatCard label="Meeting Time" value={meetingTime} />
+          <StatCard label="分會" value={chapterName} />
+          <StatCard label="週次" value={weekDate} />
+          <StatCard label="例會時間" value={meetingTime} />
         </div>
       </div>
     </section>
@@ -39,7 +50,7 @@ export function AgendaSlide({ chapterName, weekDate }: AgendaSlideProps) {
       <SectionTitle eyebrow="例會流程" title="本週例會議程" subtitle={`${chapterName}｜${weekDate}`} />
       <div className="grid flex-1 gap-6 px-10 py-8 md:grid-cols-2">
         <InfoCard title="上半場">
-          <BulletList items={["開場與分會公告", "會員每週 Brief", "來賓介紹與 15 秒內容", "8 分鐘短講"]} />
+          <BulletList items={["開場與分會公告", "會員每週簡報", "來賓介紹與 15 秒內容", "8 分鐘短講"]} />
         </InfoCard>
         <InfoCard title="下半場">
           <BulletList items={["表揚與成果回顧", "VP 報告與營運指標", "幹部提醒與後續行動", "開放交流與一對一安排"]} />
@@ -145,7 +156,7 @@ export function GuestSlide({ guest, visit, referrer }: GuestSlideProps) {
                 <p>公司：{guest.company || "待補"}</p>
                 <p>專業：{guest.specialty || "待補"}</p>
                 <p>第 {visit.visit_number} 次參訪</p>
-                <p>狀態：{visit.status}</p>
+                <p>狀態：{getGuestVisitStatusLabel(visit.status)}</p>
               </div>
             </InfoCard>
             <InfoCard title="15 秒自我介紹">
@@ -244,7 +255,7 @@ export function ClosingSlide({ chapterName, weekDate }: ClosingSlideProps) {
     <section className={slideCanvasClass} data-slide-canvas="true" data-slide-type="closing">
       <div className="flex h-full flex-col justify-between px-10 py-10">
         <div className="space-y-6">
-          <Label>BNI HUA AI</Label>
+          <Label>BNI 華 AI</Label>
           <div className="space-y-5">
             <h2 className="text-6xl font-black tracking-tight text-slate-900">簡報結束</h2>
             <p className="max-w-4xl text-2xl font-semibold leading-10 text-[#dc2626]">{chapterName}｜{weekDate}</p>
@@ -252,9 +263,9 @@ export function ClosingSlide({ chapterName, weekDate }: ClosingSlideProps) {
           </div>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
-          <StatCard label="Next" value="一對一" helper="約定後續會談" />
-          <StatCard label="Follow Up" value="引薦" helper="確認轉介對象" />
-          <StatCard label="Guest" value="追蹤" helper="協助來賓加入流程" />
+          <StatCard label="下一步" value="一對一" helper="約定後續會談" />
+          <StatCard label="後續追蹤" value="引薦" helper="確認轉介對象" />
+          <StatCard label="來賓" value="追蹤" helper="協助來賓加入流程" />
         </div>
       </div>
     </section>

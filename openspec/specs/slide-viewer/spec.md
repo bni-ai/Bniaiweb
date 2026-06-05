@@ -7,98 +7,824 @@ TBD - created by archiving change 'presentation-engine'. Update Purpose after ar
 ## Requirements
 
 ### Requirement: Slide viewer
-The system SHALL expose a public presentation route that renders published slide decks in fullscreen without application chrome. The viewer MUST render one active slide at a time inside a fixed 1920x1080 canvas and provide keyboard and button navigation.
+The system SHALL expose a public presentation route that renders published slide decks in fullscreen without application chrome. The viewer MUST render one active slide at a time inside a fixed 1920x1080 canvas. The viewer MUST render image elements with their stored position, size, border radius, shadow, and object-fit settings. The viewer MUST also render inline image blocks within text layers.
 
-#### Scenario: Viewer opens a published presentation
-- **WHEN** a browser requests `/presentation/[week-date]` for a published presentation record
-- **THEN** the system MUST render the stored visible slides in order inside the fullscreen presentation frame
+#### Scenario: Viewer renders a slide with image elements
+- **WHEN** the viewer renders a slide containing an image element at x=720, y=360 with width=480, height=360
+- **THEN** the image MUST appear at that exact position and size on the canvas
 
-#### Scenario: Viewer renders a single active slide
-- **WHEN** a browser opens `/presentation/2026-06-01` for a deck with three visible slides
-- **THEN** the viewer MUST show slide `1 / 3` and MUST NOT render all three slides as a vertical long page
+#### Scenario: Viewer renders inline images in text layers
+- **WHEN** the viewer renders a text layer containing "Hello\n![product](url)\nWorld"
+- **THEN** the viewer MUST display "Hello", followed by the image as a block-level element, followed by "World"
 
-##### Example: active slide state
-- **GIVEN** runtime deck slides are `[cover, keynote, team]`
-- **WHEN** the viewer first loads
-- **THEN** active index is `0`, displayed page label is `1 / 3`, and only the cover slide is active
-
-#### Scenario: Viewer supports keyboard navigation
-- **WHEN** a viewer presses ArrowRight or Space
-- **THEN** the viewer MUST advance to the next slide until the final slide
-
-##### Example:
-- **GIVEN** active page label is `1 / 3`
-- **WHEN** the viewer presses ArrowRight
-- **THEN** active page label becomes `2 / 3`
-
-#### Scenario: Viewer supports previous navigation
-- **WHEN** a viewer presses ArrowLeft
-- **THEN** the viewer MUST move to the previous slide until the first slide
-
-##### Example:
-- **GIVEN** active page label is `2 / 3`
-- **WHEN** the viewer presses ArrowLeft
-- **THEN** active page label becomes `1 / 3`
-
-#### Scenario: Viewer requests fullscreen
-- **WHEN** a viewer clicks the fullscreen control
-- **THEN** the viewer MUST request fullscreen on the presentation runtime root without blocking slide navigation if fullscreen is unavailable
-
-##### Example:
-- **GIVEN** fullscreen API is unavailable in the browser
-- **WHEN** the viewer clicks `全螢幕`
-- **THEN** the viewer remains on the active slide and navigation controls remain usable
-
-#### Scenario: Viewer requests a missing presentation
-- **WHEN** a browser requests a week-date route that has no published presentation
-- **THEN** the system MUST return a not-found response instead of rendering an empty deck
-
-##### Example:
-- **GIVEN** no published row exists for week `2026-07-01`
-- **WHEN** browser opens `/presentation/2026-07-01`
-- **THEN** server returns not-found page
-
-#### Scenario: Viewer requests an unpublished presentation
-- **WHEN** a browser requests a week-date route whose presentation status is not published
-- **THEN** the system MUST return a not-found response instead of exposing the draft deck
-
-##### Example:
-- **GIVEN** presentation for `2026-06-15` exists with `status='draft'`
-- **WHEN** browser opens `/presentation/2026-06-15`
-- **THEN** viewer is blocked with not-found response
-
-#### Scenario: Viewer encounters malformed slide entries
-- **WHEN** the stored slide_order contains an unknown type or invalid entry shape
-- **THEN** the system MUST block rendering and reject the malformed presentation data before any slide component is rendered
-
-##### Example:
-- **GIVEN** `slide_order` contains `{ "type": "unknown", "id": "x" }`
-- **WHEN** viewer tries to render the deck
-- **THEN** render is rejected and no slide component mounts
+#### Scenario: Viewer handles broken image URLs
+- **WHEN** an image element references a URL that returns 404
+- **THEN** the viewer MUST display a gray placeholder with "圖片無法載入" text instead of a broken image icon
 
 <!-- @trace
-source: presentation-slide-engine-redesign
-updated: 2026-06-03
+source: presentation-image-layers
+updated: 2026-06-04
 code:
-  - .opencode/skills/spectra-apply/SKILL.md
-  - .opencode/commands/spectra-ingest.md
-  - .opencode/skills/spectra-audit/SKILL.md
-  - .opencode/commands/spectra-debug.md
-  - .opencode/skills/spectra-drift/SKILL.md
-  - .opencode/commands/spectra-ask.md
+  - .augment/commands/spectra-apply.md
+  - huashu-design-master/assets/sfx/impact/brand-stamp.mp3
+  - open-slide-main/packages/core/src/app/components/inspector/save-bar.tsx
+  - open-slide-main/packages/core/src/cli/dev.ts
+  - .augment/skills/spectra-commit/SKILL.md
+  - .augment/skills/spectra-debug/SKILL.md
+  - open-slide-main/biome.json
+  - huashu-design-master/assets/director-notes-samples/launch-film-30s-sample.md
+  - huashu-design-master/assets/sfx/ui/tap-finger.mp3
+  - huashu-design-master/assets/sfx/transition/swipe-horizontal.mp3
+  - huashu-design-master/assets/showcases/website-saas/saas-pentagram.png
+  - open-slide-main/packages/core/src/editing/comments.ts
+  - open-slide-main/packages/core/src/app/lib/use-click-page-navigation.ts
+  - lib/chapter-settings.ts
+  - open-slide-main/apps/web/postcss.config.mjs
+  - open-slide-main/apps/web/content/docs/cli/build.mdx
+  - open-slide-main/packages/core/package.json
+  - open-slide-main/apps/web/public/assets/vercel-dark.svg
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-conditional-render.md
+  - open-slide-main/apps/web/public/assets/claude.svg
+  - open-slide-main/apps/web/public/assets/zed-light.svg
+  - open-slide-main/packages/core/src/app/components/image-placeholder.tsx
+  - huashu-design-master/demos/w1-brand-protocol.html
+  - lib/member-form.ts
+  - open-slide-main/apps/demo/slides/open-slide-launch/index.tsx
+  - open-slide-main/packages/core/src/app/components/themes/themes-gallery.tsx
+  - huashu-design-master/assets/showcases/website-devdocs/devdocs-takram.png
+  - open-slide-main/.changeset/config.json
+  - open-slide-main/packages/cli/template/slides/getting-started/assets/claude.svg
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-hydration-no-flicker.md
+  - lib/actions/guest-portal.ts
+  - open-slide-main/apps/web/components/landing/agents.tsx
+  - open-slide-main/packages/core/src/app/components/ui/badge.tsx
+  - lib/supabase/server.ts
+  - huashu-design-master/assets/showcases/website-saas/saas-takram.html
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/patterns-explicit-variants.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-index-maps.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-memo.md
+  - huashu-design-master/references/animation-pitfalls.md
+  - open-slide-main/packages/core/src/app/routes/presenter.tsx
+  - open-slide-main/packages/core/src/vite/routes/comments.ts
+  - open-slide-main/LICENSE
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/_sections.md
+  - lib/presentation/viewer.tsx
+  - huashu-design-master/references/animation-best-practices.md
+  - huashu-design-master/assets/sfx/feedback/success-chime.mp3
+  - open-slide-main/packages/cli/src/package-manager.ts
+  - open-slide-main/packages/core/src/app/lib/design-presets.ts
+  - open-slide-main/apps/web/app/(home)/landing.css
+  - .opencode/commands/spectra-archive.md
+  - open-slide-main/packages/core/src/app/components/pptx-progress-toast.tsx
+  - tsconfig.json
+  - open-slide-main/packages/core/src/app/lib/design.ts
+  - open-slide-main/apps/web/content/docs/skills/apply-comments.mdx
+  - open-slide-main/apps/web/public/assets/codex-light.svg
+  - open-slide-main/packages/core/src/editing/slide-ops.ts
+  - huashu-design-master/assets/sfx/ui/click-soft.mp3
+  - huashu-design-master/references/multi-perspective-parallel-case-study.md
+  - open-slide-main/packages/core/src/app/components/slide-transition-layer.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-serialization.md
+  - open-slide-main/packages/core/src/app/styles.css
+  - huashu-design-master/scripts/convert-formats.sh
+  - open-slide-main/apps/web/components/landing/theme-toggle.tsx
+  - app/(member)/dashboard/one-on-one/[id]/video/page.tsx
+  - huashu-design-master/assets/showcases/website-homepage/homepage-pentagram.html
+  - huashu-design-master/assets/bgm-ad.mp3
+  - lib/presentation/runtime.ts
+  - open-slide-main/packages/cli/template/CLAUDE.md
+  - open-slide-main/apps/demo/.claude/skills/current-slide
+  - open-slide-main/packages/cli/template/.claude/skills/create-theme
+  - huashu-design-master/scripts/narrate-pipeline.mjs
+  - open-slide-main/packages/core/src/app/components/ui/popover.tsx
+  - components/layout/bni-portal-shell.tsx
+  - huashu-design-master/demos/w2-junior-designer-en.html
+  - open-slide-main/apps/demo/slides/slide-transitions-maximal/index.tsx
+  - open-slide-main/apps/demo/.agents/skills/slide-authoring
+  - huashu-design-master/assets/sfx/ui/toggle-on.mp3
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/_sections.md
+  - open-slide-main/packages/core/src/app/components/sidebar/sidebar-footer.tsx
+  - app/(admin)/admin/members/page.tsx
+  - huashu-design-master/assets/sfx/feedback/error-tone.mp3
+  - open-slide-main/apps/web/public/assets/screenshots/open-slide-cover.webp
+  - components/presentation/canvas-editor.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-resource-hints.md
+  - open-slide-main/packages/cli/template/tsconfig.json
+  - open-slide-main/packages/core/tsdown.config.ts
+  - open-slide-main/packages/core/src/app/components/ui/button.tsx
+  - open-slide-main/packages/core/src/vite/routes/update.ts
+  - open-slide-main/apps/web/components/landing/how-it-works.tsx
+  - .augment/skills/spectra-discuss/SKILL.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-lazy-state-init.md
+  - app/(admin)/admin/members/member-form.tsx
+  - app/(admin)/admin/members/new/page.tsx
+  - open-slide-main/apps/web/content/docs/reference/config.mdx
+  - open-slide-main/apps/web/app/(home)/page.tsx
+  - open-slide-main/packages/core/src/app/components/ui/label.tsx
+  - huashu-design-master/assets/sfx/terminal/command-execute.mp3
+  - open-slide-main/apps/web/public/assets/windsurf-dark.svg
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-dedup-props.md
+  - open-slide-main/packages/core/src/app/components/sidebar/icon-picker.tsx
+  - open-slide-main/apps/demo/.claude/skills/create-theme
+  - open-slide-main/packages/core/src/app/components/themes/theme-detail.tsx
+  - open-slide-main/packages/cli/src/cli.ts
+  - open-slide-main/packages/core/src/app/components/slide-canvas.tsx
+  - app/auth/email-link/route.ts
+  - huashu-design-master/assets/showcases/website-homepage/homepage-takram.html
+  - open-slide-main/packages/core/src/app/lib/use-prefers-reduced-motion.ts
+  - middleware.ts
+  - open-slide-main/packages/core/src/app/components/ui/input.tsx
+  - huashu-design-master/assets/sfx/container/modal-open.mp3
+  - open-slide-main/packages/core/src/vite/loc-tags-plugin.ts
+  - open-slide-main/apps/web/content/docs/core-feature/inspector.mdx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-hoist-jsx.md
+  - open-slide-main/packages/core/src/app/components/panel/panel-fields.tsx
+  - open-slide-main/apps/demo/slides/vercel-ai-sdk/index.tsx
+  - open-slide-main/packages/cli/template/slides/getting-started/assets/zeabur.svg
+  - open-slide-main/packages/cli/package.json
+  - open-slide-main/.claude/skills/frontend-design
+  - open-slide-main/CONTRIBUTING.md
+  - open-slide-main/apps/web/public/assets/windsurf-light.svg
+  - huashu-design-master/assets/browser_window.jsx
+  - package.json
+  - huashu-design-master/assets/showcases/cover/cover-pentagram.html
+  - open-slide-main/packages/core/src/app/components/present/use-pointer-near-bottom.ts
+  - huashu-design-master/assets/showcases/website-ai-nav/ainav-takram.png
+  - open-slide-main/packages/cli/template/.agents/skills/create-slide/SKILL.md
+  - open-slide-main/packages/core/src/app/lib/use-agent-socket.ts
+  - open-slide-main/packages/core/src/app/components/ui/separator.tsx
+  - open-slide-main/apps/web/app/docs/layout.tsx
+  - lib/auth/shell-identity.ts
+  - app/(member)/dashboard/events/page.tsx
+  - open-slide-main/packages/core/src/app/lib/export-pdf.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-move-effect-to-event.md
+  - open-slide-main/apps/demo/slides/harness-engineering/index.tsx
+  - open-slide-main/packages/core/src/cli/run.ts
+  - open-slide-main/packages/core/src/app/components/ui/tabs.tsx
+  - open-slide-main/packages/core/src/app/lib/inspector/use-editor.ts
+  - open-slide-main/apps/demo/slides/open-slide-on-replit/assets/openslide-home.webp
+  - huashu-design-master/references/design-context.md
+  - .augment/skills/spectra-propose/SKILL.md
+  - huashu-design-master/references/verification.md
+  - app/(member)/dashboard/one-on-one/page.tsx
+  - huashu-design-master/assets/showcases/website-ai-writing/aiwriting-build.html
+  - .opencode/commands/spectra-discuss.md
+  - .augment/skills/spectra-ingest/SKILL.md
+  - open-slide-main/apps/web/components/landing/demo-slide/assets/vercel.svg
+  - open-slide-main/apps/demo/.agents/skills/create-slide
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-hoist-static-io.md
+  - open-slide-main/packages/core/src/app/lib/export-pptx.ts
+  - huashu-design-master/assets/bgm-tutorial.mp3
+  - huashu-design-master/assets/sfx/keyboard/type-fast.mp3
+  - app/(admin)/admin/import/import-client.tsx
+  - open-slide-main/apps/web/components/landing/nav.tsx
+  - huashu-design-master/demos/c2-slides-pptx-en.html
+  - open-slide-main/packages/cli/template/netlify.toml
+  - huashu-design-master/demos/c4-tweaks.html
+  - huashu-design-master/assets/sfx/impact/drop-thud.mp3
+  - open-slide-main/packages/core/src/app/main.tsx
+  - open-slide-main/turbo.json
+  - open-slide-main/packages/core/skills/slide-authoring/SKILL.md
+  - open-slide-main/packages/core/src/app/components/present/laser-pointer.tsx
+  - open-slide-main/packages/core/src/app/components/thumbnail-rail.tsx
+  - open-slide-main/.github/ISSUE_TEMPLATE/feature_request.yml
+  - open-slide-main/apps/web/content/docs/reference/image-placeholder.mdx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/async-api-routes.md
+  - open-slide-main/apps/web/content/docs/meta.json
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-hydration-suppress-warning.md
+  - huashu-design-master/references/react-setup.md
+  - huashu-design-master/README.zh.md
+  - huashu-design-master/demos/hero-animation-v10-en.html
+  - open-slide-main/apps/demo/slides/slide-transitions/index.tsx
+  - open-slide-main/apps/web/components/landing/footer.tsx
+  - huashu-design-master/demos/c3-motion-design.html
+  - open-slide-main/SECURITY.md
+  - huashu-design-master/assets/showcases/cover/cover-pentagram.png
+  - open-slide-main/apps/demo/slides/nextjs-ppr-cache/assets/vercel.svg
+  - open-slide-main/apps/web/content/docs/flow/meta.json
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/bundle-preload.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-simple-expression-in-memo.md
+  - huashu-design-master/test-prompts.json
+  - app/(guest)/guest/page.tsx
+  - open-slide-main/packages/cli/template/vercel.json
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-svg-precision.md
+  - open-slide-main/packages/core/src/app/components/sidebar/mobile-pill.tsx
+  - open-slide-main/apps/web/public/assets/zeabur-light.svg
+  - open-slide-main/packages/core/src/app/components/panel/save-card.tsx
+  - .augment/commands/spectra-propose.md
+  - open-slide-main/packages/core/src/app/components/inspector/inspect-overlay.tsx
+  - .opencode/skills/spectra-archive/SKILL.md
+  - huashu-design-master/assets/sfx/keyboard/space-tap.mp3
+  - open-slide-main/packages/core/src/app/index.html
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-derived-state.md
+  - .opencode/commands/spectra-commit.md
+  - huashu-design-master/assets/sfx/ui/click.mp3
+  - open-slide-main/packages/cli/template/.claude/skills/current-slide
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-parallel-fetching.md
+  - huashu-design-master/assets/showcases/website-ai-nav/ainav-build.html
+  - open-slide-main/apps/web/lib/shared.ts
+  - open-slide-main/packages/cli/template/.claude/skills/slide-authoring
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/react19-no-forwardref.md
+  - app/(member)/dashboard/contacts-circle/page.tsx
+  - components/presentation/editor-slide-frame.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-tosorted-immutable.md
+  - open-slide-main/apps/demo/.claude/skills/slide-authoring
+  - open-slide-main/packages/core/skills/apply-comments/SKILL.md
+  - open-slide-main/apps/web/app/llms.mdx/docs/[[...slug]]/route.ts
+  - open-slide-main/packages/core/src/app/lib/inspector/fiber.ts
+  - huashu-design-master/assets/sfx/container/stack-collapse.mp3
+  - app/(auth)/login/page.tsx
+  - huashu-design-master/demos/voiceover-demo/script.md
+  - .augment/commands/spectra-debug.md
+  - huashu-design-master/scripts/mix-voiceover.sh
+  - open-slide-main/packages/core/src/app/lib/locale-store.ts
   - .opencode/commands/spectra-apply.md
+  - open-slide-main/packages/core/src/files/folders.ts
+  - open-slide-main/packages/cli/scripts/sync-template-skills.mjs
+  - open-slide-main/apps/demo/slides/open-slide-on-replit/assets/replit-agent-home.webp
+  - open-slide-main/.agents/skills/vercel-react-best-practices/SKILL.md
+  - huashu-design-master/assets/ios_frame.jsx
+  - open-slide-main/packages/core/tsconfig.json
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/patterns-children-over-render-props.md
+  - .opencode/commands/spectra-ask.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-after-nonblocking.md
+  - open-slide-main/apps/web/lib/layout.shared.tsx
+  - open-slide-main/apps/demo/.agents/skills/apply-comments
+  - open-slide-main/packages/core/skills/create-slide/SKILL.md
+  - open-slide-main/vitest.config.ts
+  - huashu-design-master/assets/showcases/ppt/ppt-pentagram.png
+  - open-slide-main/packages/core/src/vite/routes/edit.ts
+  - open-slide-main/packages/core/src/app/components/present/progress-bar.tsx
+  - .opencode/skills/spectra-propose/SKILL.md
+  - open-slide-main/apps/web/content/docs/getting-started.mdx
+  - open-slide-main/packages/core/src/app/routes/home.tsx
+  - open-slide-main/packages/core/src/locale/types.ts
+  - open-slide-main/packages/core/src/app/components/ui/context-menu.tsx
+  - huashu-design-master/assets/narration_stage.jsx
+  - huashu-design-master/assets/sfx/keyboard/type.mp3
+  - app/(auth)/reset-password/page.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/async-parallel.md
+  - open-slide-main/packages/core/src/app/lib/folders.ts
+  - huashu-design-master/assets/bgm-educational-alt.mp3
+  - app/presentation/layout.tsx
+  - open-slide-main/packages/cli/tsconfig.json
+  - huashu-design-master/demos/voiceover-demo/什么是token.html
+  - lib/actions/members.ts
+  - open-slide-main/packages/core/src/app/components/inspector/image-crop-dialog.tsx
+  - huashu-design-master/assets/showcases/website-saas/saas-build.html
+  - open-slide-main/packages/core/src/app/components/present/use-touch-swipe.ts
+  - open-slide-main/packages/core/src/editing/babel-walk.ts
+  - components/ui/button.tsx
+  - open-slide-main/packages/core/src/editing/revert-asset.ts
+  - app/(member)/layout.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/async-dependencies.md
+  - open-slide-main/apps/web/components/landing/demo-slide/assets/opencode.svg
+  - lib/actions/presentations.ts
+  - lib/presentation/slide-order.ts
+  - huashu-design-master/assets/sfx/terminal/cursor-blink.mp3
+  - open-slide-main/AGENTS.md
+  - open-slide-main/packages/cli/template/.claude/skills/apply-comments
+  - open-slide-main/packages/core/src/app/components/theme-toggle.tsx
+  - huashu-design-master/assets/showcases/cover/cover-takram.png
+  - huashu-design-master/assets/animations.jsx
+  - open-slide-main/packages/core/src/vite/api-plugin.ts
+  - huashu-design-master/assets/deck_stage.js
+  - open-slide-main/packages/core/src/cli/build.ts
+  - lib/actions/member-portal.ts
+  - lib/supabase/client.ts
+  - huashu-design-master/references/cinematic-patterns.md
+  - open-slide-main/apps/demo/slides/open-slide-on-replit/assets/init-command.webp
+  - open-slide-main/packages/core/components.json
+  - open-slide-main/CLAUDE.md
+  - huashu-design-master/assets/showcases/website-saas/saas-pentagram.html
+  - open-slide-main/packages/core/env.d.ts
+  - huashu-design-master/assets/bgm-educational.mp3
+  - open-slide-main/packages/core/src/files/assets.ts
+  - open-slide-main/apps/web/public/assets/codex-dark.svg
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/async-suspense-boundaries.md
+  - open-slide-main/apps/web/content/docs/index.mdx
+  - open-slide-main/apps/demo/slides/vercel-labs-2026/index.tsx
+  - open-slide-main/packages/core/src/locale/en.ts
+  - open-slide-main/apps/demo/.claude/skills/create-slide
+  - open-slide-main/packages/core/src/app/lib/use-locale.ts
+  - open-slide-main/apps/web/package.json
+  - open-slide-main/apps/web/app/llms-full.txt/route.ts
+  - open-slide-main/packages/core/src/cli/sync.ts
+  - huashu-design-master/assets/sfx/feedback/notification-pop.mp3
+  - huashu-design-master/assets/showcases/infographic/infographic-pentagram.html
+  - open-slide-main/apps/demo/README.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/async-defer-await.md
+  - open-slide-main/apps/demo/.agents/skills/current-slide/SKILL.md
+  - open-slide-main/packages/core/src/index.ts
+  - huashu-design-master/assets/deck_index.html
+  - open-slide-main/apps/demo/tsconfig.json
+  - open-slide-main/apps/web/public/assets/vercel-light.svg
+  - app/auth/signup/route.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-defer-reads.md
+  - huashu-design-master/demos/w1-brand-protocol-en.html
+  - open-slide-main/apps/demo/slides/claude-code-intro/index.tsx
+  - open-slide-main/apps/demo/themes/sticker-pop.md
+  - huashu-design-master/assets/showcases/ppt/ppt-pentagram.html
+  - huashu-design-master/assets/showcases/infographic/infographic-takram.png
+  - open-slide-main/apps/web/README.md
+  - open-slide-main/packages/core/src/app/components/pdf-progress-toast.tsx
+  - huashu-design-master/assets/showcases/website-ai-writing/aiwriting-takram.png
+  - open-slide-main/packages/core/src/app/components/present/overview-grid.tsx
+  - .augment/commands/spectra-discuss.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-no-shared-module-state.md
+  - app/globals.css
+  - app/(admin)/admin/submission/page.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-use-ref-transient-values.md
+  - open-slide-main/.github/workflows/ci.yml
+  - open-slide-main/apps/web/app/og/docs/[...slug]/route.tsx
+  - huashu-design-master/assets/showcases/INDEX.md
+  - huashu-design-master/demos/c3-motion-design-en.html
+  - huashu-design-master/assets/design_canvas.jsx
+  - open-slide-main/apps/web/components/landing/demo-slide/assets/zeabur.svg
+  - open-slide-main/.agents/skills/web-design-guidelines/SKILL.md
+  - open-slide-main/CODE_OF_CONDUCT.md
+  - open-slide-main/apps/web/app/opengraph-image.png
+  - open-slide-main/packages/cli/template/.agents/skills/apply-comments/SKILL.md
+  - open-slide-main/apps/web/content/docs/skills/meta.json
+  - huashu-design-master/assets/showcases/infographic/infographic-pentagram.png
+  - open-slide-main/packages/core/src/locale/zh-cn.ts
+  - open-slide-main/packages/cli/src/index.ts
+  - open-slide-main/apps/web/lib/github.ts
+  - open-slide-main/packages/core/src/app/components/panel/panel-shell.tsx
+  - open-slide-main/apps/web/content/docs/flow/create-slide.mdx
+  - open-slide-main/packages/core/src/app/components/ui/card.tsx
+  - open-slide-main/apps/web/content/docs/reference/locale.mdx
+  - open-slide-main/packages/cli/CHANGELOG.md
+  - open-slide-main/packages/cli/template/slides/getting-started/index.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/advanced-use-latest.md
+  - open-slide-main/apps/web/content/docs/cli/init.mdx
+  - open-slide-main/apps/web/components/landing/faq.tsx
+  - app/(admin)/admin/settings/page.tsx
+  - open-slide-main/apps/web/instrumentation-client.ts
+  - app/auth/forgot-password/route.ts
+  - open-slide-main/apps/web/public/assets/screenshots/assets-manager.webp
+  - open-slide-main/apps/demo/open-slide.config.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-length-check-first.md
+  - open-slide-main/apps/demo/themes/replit.demo.tsx
+  - open-slide-main/apps/demo/themes/replit.md
+  - huashu-design-master/references/launch-film-director-notes.md
+  - open-slide-main/packages/core/src/app/components/player.tsx
+  - open-slide-main/packages/core/src/app/routes/slide.tsx
+  - huashu-design-master/assets/sfx/container/card-snap.mp3
+  - open-slide-main/packages/core/src/locale/index.ts
+  - open-slide-main/apps/demo/slides/material-design-2014/index.tsx
+  - open-slide-main/apps/web/app/layout.tsx
+  - open-slide-main/README.md
+  - app/auth/callback/route.ts
+  - huashu-design-master/assets/showcases/website-ai-writing/aiwriting-pentagram.html
+  - open-slide-main/apps/web/components/landing/demo-slide/assets/claude.svg
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/async-cheap-condition-before-await.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-auth-actions.md
+  - huashu-design-master/references/scene-templates.md
+  - lib/presentation/types.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/advanced-effect-event-deps.md
+  - .augment/skills/spectra-apply/SKILL.md
+  - huashu-design-master/assets/sfx/container/card-flip.mp3
+  - app/(admin)/admin/keynote/page.tsx
+  - .augment/skills/spectra-ask/SKILL.md
+  - open-slide-main/apps/demo/slides/ssh-explained/index.tsx
+  - huashu-design-master/demos/md-html-narration/script.md
+  - open-slide-main/apps/web/app/(home)/layout.tsx
+  - open-slide-main/apps/demo/netlify.toml
+  - open-slide-main/apps/web/content/docs/skills/slide-authoring.mdx
+  - open-slide-main/apps/demo/slides/image-placeholder-demo/index.tsx
+  - open-slide-main/apps/web/content/docs/cli/preview.mdx
+  - huashu-design-master/assets/sfx/progress/complete-done.mp3
+  - open-slide-main/apps/demo/themes/sticker-pop.demo.tsx
+  - huashu-design-master/assets/showcases/website-devdocs/devdocs-pentagram.html
+  - open-slide-main/packages/core/skills/create-theme/SKILL.md
+  - open-slide-main/packages/core/src/app/favicon.ico
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/client-passive-event-listeners.md
+  - .opencode/skills/spectra-audit/SKILL.md
+  - open-slide-main/apps/demo/slides/raycast-api/index.tsx
+  - huashu-design-master/references/critique-guide.md
+  - huashu-design-master/assets/showcases/website-saas/saas-build.png
+  - huashu-design-master/assets/sfx/transition/whoosh.mp3
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-no-inline-components.md
+  - open-slide-main/apps/web/components/landing/hero-docs-link.tsx
+  - huashu-design-master/scripts/export_deck_stage_pdf.mjs
+  - open-slide-main/packages/core/src/app/components/style-panel/design-provider.tsx
+  - huashu-design-master/assets/sfx/magic/transform.mp3
+  - open-slide-main/apps/web/components/landing/demo-slide/index.tsx
+  - app/(member)/dashboard/gains/page.tsx
+  - app/(admin)/admin/presentations/[id]/preview/page.tsx
+  - open-slide-main/packages/core/src/app/components/inspector/comment-widget.tsx
+  - huashu-design-master/assets/showcases/website-devdocs/devdocs-pentagram.png
+  - open-slide-main/packages/cli/template/slides/getting-started/assets/openai.svg
+  - app/(admin)/admin/members/[id]/page.tsx
+  - open-slide-main/packages/cli/tsdown.config.ts
+  - open-slide-main/packages/cli/template/slides/getting-started/assets/gemini.svg
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/client-swr-dedup.md
+  - huashu-design-master/assets/android_frame.jsx
+  - huashu-design-master/demos/w3-fallback-advisor.html
+  - open-slide-main/.agents/skills/frontend-design/SKILL.md
+  - open-slide-main/apps/web/content/docs/core-feature/themes.mdx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/client-localstorage-schema.md
+  - open-slide-main/apps/demo/slides/open-slide-on-replit/assets/replit-features-result.webp
+  - open-slide-main/apps/web/content/docs/cli/meta.json
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-cache-react.md
+  - open-slide-main/packages/core/src/app/components/present/control-bar.tsx
+  - open-slide-main/packages/core/src/app/components/ui/toggle-group.tsx
+  - open-slide-main/packages/core/src/vite/routes/slides.ts
+  - huashu-design-master/assets/showcases/website-devdocs/devdocs-takram.html
+  - app/auth/reset-password/route.ts
+  - open-slide-main/packages/core/src/vite/routes/svgl.ts
+  - open-slide-main/apps/web/public/assets/cursor-dark.svg
+  - open-slide-main/apps/web/app/favicon.ico
+  - open-slide-main/apps/web/content/docs/cli/sync-skills.mdx
+  - open-slide-main/apps/web/app/sitemap.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-memo-with-default-value.md
+  - huashu-design-master/references/animations.md
+  - open-slide-main/apps/web/components/landing/demo-slide/assets/openai.svg
+  - open-slide-main/apps/web/content/docs/core-feature/assets-manager.mdx
+  - huashu-design-master/assets/sfx/progress/loading-tick.mp3
+  - huashu-design-master/assets/showcases/infographic/infographic-build.png
+  - open-slide-main/apps/web/content/docs/skills/overview.mdx
+  - huashu-design-master/demos/c1-ios-prototype-en.html
+  - open-slide-main/packages/core/src/app/app.tsx
+  - open-slide-main/apps/web/public/assets/zeabur-dark.svg
+  - open-slide-main/apps/web/proxy.ts
+  - open-slide-main/apps/web/content/docs/flow/iterate.mdx
+  - open-slide-main/packages/core/src/app/lib/export-html.ts
+  - huashu-design-master/assets/showcases/ppt/ppt-build.png
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-cache-function-results.md
+  - open-slide-main/packages/core/src/app/lib/themes.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-usetransition-loading.md
+  - huashu-design-master/references/sfx-library.md
+  - huashu-design-master/assets/sfx/magic/sparkle.mp3
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/state-lift-state.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/bundle-defer-third-party.md
+  - app/(admin)/admin/training/page.tsx
+  - open-slide-main/apps/web/components/mdx.tsx
+  - open-slide-main/apps/web/components/landing/get-started.tsx
+  - open-slide-main/apps/demo/slides/open-slide-on-replit/assets/replit-deploy.webp
+  - .opencode/skills/spectra-discuss/SKILL.md
+  - app/(member)/dashboard/page.tsx
+  - huashu-design-master/demos/c1-ios-prototype.html
+  - app/(member)/dashboard/training/page.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-derived-state-no-effect.md
+  - open-slide-main/apps/web/app/docs/[[...slug]]/page.tsx
+  - open-slide-main/packages/cli/template/assets/.gitkeep
+  - open-slide-main/apps/web/source.config.ts
+  - app/(auth)/error/page.tsx
+  - .augment/commands/spectra-commit.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/bundle-conditional.md
+  - open-slide-main/packages/core/src/app/components/inspector/inspector-provider.tsx
+  - open-slide-main/packages/core/src/app/routes/themes.tsx
+  - open-slide-main/packages/core/src/vite/config.ts
+  - open-slide-main/apps/demo/themes/aurora.demo.tsx
+  - open-slide-main/apps/web/app/api/search/route.ts
+  - huashu-design-master/assets/showcases/website-ai-nav/ainav-takram.html
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-script-defer-async.md
+  - huashu-design-master/references/apple-gallery-showcase.md
+  - open-slide-main/apps/web/content/docs/skills/create-theme.mdx
+  - huashu-design-master/assets/showcases/website-homepage/homepage-build.png
+  - open-slide-main/packages/core/src/app/components/inspector/asset-picker-dialog.tsx
+  - open-slide-main/packages/core/src/vite/notes-plugin.ts
+  - .opencode/skills/spectra-drift/SKILL.md
+  - huashu-design-master/assets/sfx/keyboard/delete-key.mp3
+  - huashu-design-master/assets/showcases/ppt/ppt-build.html
+  - huashu-design-master/assets/showcases/cover/cover-build.png
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-cache-lru.md
+  - huashu-design-master/demos/c5-infographic-en.html
+  - open-slide-main/packages/cli/template/slides/getting-started/assets/opencode.svg
+  - huashu-design-master/LICENSE
+  - huashu-design-master/demos/c6-expert-review-en.html
+  - lib/media-storage.ts
+  - .cursorrules
+  - open-slide-main/packages/core/src/app/components/sidebar/folder-item.tsx
+  - open-slide-main/apps/web/components/landing/demo-slide/assets/gemini.svg
+  - app/(auth)/signup/page.tsx
+  - open-slide-main/apps/web/content/docs/reference/slide-meta.mdx
+  - huashu-design-master/assets/sfx/impact/logo-reveal.mp3
+  - open-slide-main/.agents/skills/vercel-composition-patterns/metadata.json
+  - huashu-design-master/assets/sfx/magic/ai-process.mp3
+  - open-slide-main/packages/cli/template/slides/getting-started/assets/vercel.svg
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/advanced-init-once.md
+  - components/presentation/reveal-runtime.tsx
+  - open-slide-main/packages/core/src/vite/themes-plugin.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/bundle-dynamic-imports.md
+  - open-slide-main/packages/core/src/app/components/sidebar/sidebar.tsx
+  - open-slide-main/packages/core/src/app/lib/use-wheel-page-navigation.ts
+  - open-slide-main/packages/core/src/app/components/ui/tooltip.tsx
+  - open-slide-main/packages/core/src/cli/bin.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-flatmap-filter.md
+  - huashu-design-master/assets/bgm-tutorial-alt.mp3
+  - open-slide-main/packages/cli/template/themes/.gitkeep
+  - huashu-design-master/references/slide-decks.md
+  - open-slide-main/packages/core/src/app/components/present/use-presenter-channel.ts
+  - huashu-design-master/assets/sfx/transition/slide-in.mp3
+  - components/slides/index.tsx
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/architecture-avoid-boolean-props.md
+  - huashu-design-master/assets/sfx/progress/generate-start.mp3
+  - open-slide-main/packages/core/CHANGELOG.md
+  - open-slide-main/.github/FUNDING.yml
+  - huashu-design-master/assets/showcases/cover/cover-takram.html
+  - open-slide-main/apps/demo/slides/.folders.json
+  - open-slide-main/packages/core/src/app/components/history-provider.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-batch-dom-css.md
+  - huashu-design-master/assets/sfx/feedback/achievement.mp3
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-cache-storage.md
+  - open-slide-main/packages/core/src/app/components/style-panel/style-panel.tsx
+  - huashu-design-master/assets/showcases/website-ai-nav/ainav-pentagram.png
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/advanced-event-handler-refs.md
+  - open-slide-main/apps/web/app/llms.txt/route.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-early-exit.md
+  - open-slide-main/apps/web/content/docs/core-feature/export.mdx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-request-idle-callback.md
+  - huashu-design-master/assets/sfx/ui/focus.mp3
+  - huashu-design-master/assets/showcases/website-homepage/homepage-pentagram.png
+  - huashu-design-master/assets/banner.svg
+  - open-slide-main/.agents/skills/frontend-design/LICENSE.txt
+  - app/(admin)/admin/events/page.tsx
+  - open-slide-main/apps/web/components/landing/inline-slide-player.tsx
+  - open-slide-main/apps/web/content/docs/skills/create-slide.mdx
+  - huashu-design-master/assets/personal-asset-index.example.json
+  - open-slide-main/.agents/skills/vercel-react-best-practices/metadata.json
+  - app/(admin)/admin/presentation/page.tsx
+  - open-slide-main/packages/cli/src/init.ts
   - .opencode/skills/spectra-ask/SKILL.md
   - .opencode/skills/spectra-debug/SKILL.md
-  - .opencode/skills/spectra-discuss/SKILL.md
+  - open-slide-main/apps/web/components/landing/inspector.tsx
+  - open-slide-main/apps/web/public/assets/cursor-light.svg
+  - huashu-design-master/scripts/export_deck_pdf.mjs
+  - open-slide-main/pnpm-workspace.yaml
+  - huashu-design-master/assets/bgm-tech.mp3
+  - huashu-design-master/README.md
+  - open-slide-main/packages/core/src/app/components/style-panel/use-design.ts
+  - open-slide-main/packages/core/src/vite/current-plugin.ts
+  - huashu-design-master/references/voiceover-pipeline.md
+  - bniaiweb-uiux-v3-final-alignment.html
+  - open-slide-main/.agents/skills/vercel-composition-patterns/SKILL.md
+  - open-slide-main/apps/web/content/docs/cli/overview.mdx
+  - open-slide-main/apps/web/public/assets/opencode-light.svg
+  - open-slide-main/.agents/skills/vercel-composition-patterns/README.md
+  - open-slide-main/packages/core/src/app/components/ui/textarea.tsx
+  - huashu-design-master/demos/w3-fallback-advisor-en.html
+  - huashu-design-master/assets/sfx/transition/dissolve.mp3
+  - open-slide-main/.claude/skills/vercel-composition-patterns
+  - huashu-design-master/references/editable-pptx.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-hoist-regexp.md
+  - open-slide-main/apps/web/content/docs/core-feature/present-mode.mdx
+  - open-slide-main/packages/core/src/vite/routes/context.ts
+  - huashu-design-master/references/workflow.md
+  - lib/presentation/workbench.ts
+  - open-slide-main/apps/web/next.config.mjs
+  - huashu-design-master/SKILL.md
+  - huashu-design-master/assets/showcases/website-ai-writing/aiwriting-build.png
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-min-max-loop.md
+  - open-slide-main/packages/core/src/app/components/present/jump-input.tsx
+  - .vercelignore
+  - open-slide-main/packages/core/skills/current-slide/SKILL.md
+  - huashu-design-master/demos/c2-slides-pptx.html
+  - huashu-design-master/assets/sfx/transition/whoosh-fast.mp3
+  - app/(admin)/layout.tsx
+  - huashu-design-master/references/hero-animation-case-study.md
+  - components/ui/card.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-animate-svg-wrapper.md
+  - open-slide-main/packages/core/bin.js
+  - lib/member-import.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-split-combined-hooks.md
+  - open-slide-main/packages/cli/template/.agents/skills/current-slide/SKILL.md
+  - .augment/skills/spectra-audit/SKILL.md
+  - open-slide-main/packages/core/src/vite/design-plugin.ts
+  - open-slide-main/.agents/skills/vercel-composition-patterns/AGENTS.md
+  - app/(marketing)/layout.tsx
+  - open-slide-main/apps/web/tsconfig.json
+  - huashu-design-master/demos/c5-infographic.html
+  - open-slide-main/apps/web/lib/source.ts
+  - open-slide-main/packages/core/src/app/components/ui/dropdown-menu.tsx
+  - open-slide-main/apps/web/content/docs/core-feature/meta.json
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-set-map-lookups.md
+  - open-slide-main/packages/cli/template/AGENTS.md
+  - open-slide-main/apps/demo/slides/nextjs-ppr-cache/assets/next-js.svg
+  - open-slide-main/apps/web/components/landing/copy-command.tsx
+  - open-slide-main/packages/core/src/app/components/asset-view.tsx
+  - open-slide-main/packages/cli/template/.agents/skills/slide-authoring/SKILL.md
+  - open-slide-main/packages/core/src/app/lib/page-context.tsx
+  - huashu-design-master/assets/showcases/infographic/infographic-takram.html
+  - open-slide-main/apps/web/public/assets/zed-dark.svg
+  - open-slide-main/packages/core/src/locale/zh-tw.ts
+  - open-slide-main/packages/core/src/locale/ja.ts
+  - huashu-design-master/assets/macos_window.jsx
+  - open-slide-main/apps/web/content/docs/reference/meta.json
+  - open-slide-main/apps/demo/slides/open-slide-on-replit/index.tsx
+  - open-slide-main/packages/core/src/app/lib/utils.ts
+  - .augment/skills/spectra-drift/SKILL.md
+  - open-slide-main/packages/core/src/app/lib/print-ready.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/bundle-barrel-imports.md
+  - huashu-design-master/assets/showcases/website-devdocs/devdocs-build.png
+  - huashu-design-master/scripts/add-music.sh
+  - open-slide-main/packages/cli/template/package.json
+  - open-slide-main/.agents/skills/vercel-react-best-practices/README.md
+  - open-slide-main/apps/web/components/landing/live-demo.tsx
+  - open-slide-main/apps/web/content/docs/cli/dev.mdx
+  - open-slide-main/package.json
+  - open-slide-main/packages/cli/template/slides/getting-started/assets/cloudflare.svg
+  - components/landing/hero.tsx
+  - open-slide-main/apps/web/public/assets/screenshots/inspector.webp
+  - open-slide-main/packages/cli/template/slides/.folders.json
+  - huashu-design-master/assets/showcases/website-homepage/homepage-takram.png
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/bundle-analyzable-paths.md
+  - open-slide-main/.github/workflows/release.yml
+  - app/auth/logout/route.ts
+  - open-slide-main/.claude/skills/vercel-react-best-practices
+  - open-slide-main/packages/core/src/app/components/present/blackout-overlay.tsx
+  - huashu-design-master/assets/sfx/terminal/output-appear.mp3
+  - huashu-design-master/assets/showcases/ppt/ppt-takram.html
+  - open-slide-main/packages/core/src/cli/preview.ts
+  - huashu-design-master/assets/showcases/infographic/infographic-build.html
+  - huashu-design-master/assets/showcases/website-saas/saas-takram.png
+  - supabase/migrations/011_auth_self_service_registration_and_approval.sql
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-content-visibility.md
+  - open-slide-main/packages/core/src/app/components/language-toggle.tsx
+  - open-slide-main/.github/ISSUE_TEMPLATE/bug_report.yml
+  - lib/auth/access-control.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-functional-setstate.md
+  - app/(guest)/layout.tsx
+  - app/(admin)/admin/page.tsx
+  - open-slide-main/apps/web/components/landing/demo-slide/assets/cloudflare.svg
+  - open-slide-main/apps/web/public/assets/opencode-dark.svg
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/state-context-interface.md
+  - open-slide-main/packages/core/src/app/lib/sdk.ts
+  - open-slide-main/packages/core/src/app/lib/use-is-mobile.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rendering-activity.md
+  - open-slide-main/apps/demo/themes/bright-sans.demo.tsx
   - .opencode/commands/spectra-audit.md
-  - .opencode/commands/spectra-discuss.md
-  - .opencode/skills/spectra-ingest/SKILL.md
-  - .opencode/skills/spectra-propose/SKILL.md
-  - .cursorrules
-  - .opencode/commands/spectra-archive.md
+  - .opencode/commands/spectra-debug.md
+  - open-slide-main/packages/core/src/app/lib/inspector/use-notes.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/AGENTS.md
+  - open-slide-main/packages/core/src/app/routes/home-shell.tsx
+  - .opencode/commands/spectra-ingest.md
   - .opencode/commands/spectra-drift.md
-  - .opencode/skills/spectra-archive/SKILL.md
+  - huashu-design-master/assets/showcases/ppt/ppt-takram.png
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/server-parallel-nested-fetching.md
+  - open-slide-main/packages/core/src/vite/routes/watchers.ts
+  - lib/auth/login.ts
+  - open-slide-main/.claude/skills/web-design-guidelines
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/_template.md
+  - .augment/commands/spectra-audit.md
+  - open-slide-main/packages/core/src/app/lib/slides.ts
+  - open-slide-main/packages/core/src/app/components/ui/sonner.tsx
+  - open-slide-main/apps/demo/slides/open-slide-anatomy/index.tsx
+  - open-slide-main/packages/core/src/app/components/ui/slider.tsx
+  - lib/auth/identity.ts
+  - open-slide-main/packages/core/src/app/lib/transition.ts
+  - open-slide-main/apps/demo/slides/open-slide-launch/assets/open-slide.png
+  - huashu-design-master/assets/showcases/website-devdocs/devdocs-build.html
+  - huashu-design-master/assets/showcases/website-ai-writing/aiwriting-takram.html
+  - open-slide-main/packages/core/src/vite/open-slide-plugin.ts
+  - app/auth/password-login/route.ts
+  - app/(admin)/admin/presentations/[id]/page.tsx
+  - open-slide-main/apps/web/components/landing/hero.tsx
+  - open-slide-main/packages/cli/src/git.ts
+  - open-slide-main/apps/demo/slides/open-slide-on-replit/assets/create-slide-skill.webp
+  - open-slide-main/packages/core/src/app/components/ui/dialog.tsx
+  - open-slide-main/apps/demo/.agents/skills/create-theme
+  - open-slide-main/apps/web/public/open-slide.png
   - .opencode/skills/spectra-commit/SKILL.md
-  - .opencode/commands/spectra-commit.md
+  - huashu-design-master/demos/md-html-narration/md-html-demo.html
+  - lib/supabase/types.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-combine-iterations.md
+  - open-slide-main/packages/core/src/vite/routes/folders.ts
+  - huashu-design-master/assets/showcases/website-homepage/homepage-build.html
+  - components/layout/bni-icons.tsx
+  - AGENTS.md
+  - .augment/commands/spectra-ingest.md
+  - open-slide-main/packages/core/src/config.ts
+  - huashu-design-master/references/design-styles.md
+  - open-slide-main/packages/core/src/locale/format.ts
+  - .opencode/skills/spectra-ingest/SKILL.md
+  - huashu-design-master/scripts/tts-doubao.mjs
+  - open-slide-main/.github/ISSUE_TEMPLATE/config.yml
+  - open-slide-main/packages/cli/README.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/_template.md
+  - open-slide-main/packages/core/src/vite/routes/assets.ts
+  - open-slide-main/apps/web/app/robots.ts
+  - open-slide-main/apps/demo/slides/raycast-api/assets/raycast.svg
+  - huashu-design-master/demos/w2-junior-designer.html
+  - lib/access-control.ts
+  - app/(guest)/guest/prepare/page.tsx
+  - huashu-design-master/demos/c4-tweaks-en.html
+  - huashu-design-master/references/content-guidelines.md
+  - open-slide-main/packages/core/src/app/components/ui/scroll-area.tsx
+  - huashu-design-master/scripts/render-video.js
+  - app/presentation/[week-date]/page.tsx
+  - open-slide-main/packages/core/src/app/routes/assets.tsx
+  - open-slide-main/packages/core/src/app/lib/assets.ts
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/js-cache-property-access.md
+  - open-slide-main/apps/demo/themes/bright-sans.md
+  - open-slide-main/apps/demo/vercel.json
   - .opencode/commands/spectra-propose.md
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-transitions.md
+  - .augment/skills/spectra-archive/SKILL.md
+  - huashu-design-master/scripts/export_deck_pptx.mjs
+  - open-slide-main/packages/core/src/app/components/ui/progress.tsx
+  - open-slide-main/apps/demo/slides/nextjs-ppr-cache/index.tsx
+  - app/(member)/dashboard/report/page.tsx
+  - .augment/commands/spectra-drift.md
+  - open-slide-main/packages/core/src/app/virtual.d.ts
+  - open-slide-main/packages/core/src/app/components/present/use-idle.ts
+  - open-slide-main/skills-lock.json
+  - open-slide-main/apps/web/content/docs/skills/current-slide.mdx
+  - open-slide-main/apps/web/lib/cn.ts
+  - open-slide-main/packages/core/src/app/components/inspector/inspector-panel.tsx
+  - .augment/commands/spectra-archive.md
+  - app/(member)/dashboard/ai/page.tsx
+  - open-slide-main/packages/core/src/app/components/notes-drawer.tsx
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-use-deferred-value.md
+  - .spectra.yaml
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/client-event-listeners.md
+  - huashu-design-master/assets/showcases/website-ai-nav/ainav-pentagram.html
+  - open-slide-main/apps/web/components/landing/assets.tsx
+  - open-slide-main/packages/core/README.md
+  - .opencode/skills/spectra-apply/SKILL.md
+  - components/member/gains-form.tsx
+  - huashu-design-master/scripts/verify.py
+  - app/(member)/dashboard/profile/page.tsx
+  - huashu-design-master/assets/sfx/keyboard/enter.mp3
+  - huashu-design-master/scripts/render-narration.sh
+  - huashu-design-master/assets/showcases/website-ai-writing/aiwriting-pentagram.png
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/state-decouple-implementation.md
+  - open-slide-main/apps/web/public/assets/gemini.svg
+  - open-slide-main/packages/core/src/app/lib/inspector/use-comments.ts
+  - .augment/commands/spectra-ask.md
+  - huashu-design-master/assets/showcases/website-ai-nav/ainav-build.png
+  - open-slide-main/packages/core/src/editing/edit-ops.ts
+  - components/slides/deck-runtime.tsx
+  - open-slide-main/apps/web/public/assets/cloudflare.svg
+  - open-slide-main/apps/demo/package.json
+  - open-slide-main/packages/core/src/app/components/present/help-overlay.tsx
+  - app/(admin)/admin/guests/page.tsx
+  - huashu-design-master/references/audio-design-rules.md
+  - open-slide-main/apps/web/components/landing/anatomy.tsx
+  - huashu-design-master/references/video-export.md
+  - open-slide-main/packages/core/src/app/components/ui/select.tsx
+  - open-slide-main/apps/demo/themes/aurora.md
+  - open-slide-main/packages/core/src/app/components/ui/toggle.tsx
+  - open-slide-main/packages/core/src/vite/index.ts
+  - huashu-design-master/scripts/html2pptx.js
+  - open-slide-main/.changeset/README.md
+  - open-slide-main/apps/demo/slides/llm-fundamentals/index.tsx
+  - open-slide-main/packages/cli/template/.agents/skills/create-theme/SKILL.md
+  - huashu-design-master/references/tweaks-system.md
+  - open-slide-main/.agents/skills/vercel-composition-patterns/rules/architecture-compound-components.md
+  - open-slide-main/packages/cli/template/README.md
+  - app/(auth)/forgot-password/page.tsx
+  - huashu-design-master/demos/c6-expert-review.html
+  - open-slide-main/packages/cli/template/open-slide.config.ts
+  - open-slide-main/apps/web/app/global.css
+  - huashu-design-master/assets/showcases/cover/cover-build.html
+  - huashu-design-master/assets/sfx/impact/logo-reveal-v2.mp3
+  - open-slide-main/packages/core/src/http/request-guard.ts
+  - open-slide-main/packages/cli/template/.claude/skills/create-slide
+  - open-slide-main/packages/core/src/app/lib/use-slide-module.ts
+  - open-slide-main/apps/web/content/docs/reference/slide-transitions.mdx
+  - open-slide-main/apps/demo/.claude/skills/apply-comments
+  - open-slide-main/.agents/skills/vercel-react-best-practices/rules/rerender-dependencies.md
+  - huashu-design-master/assets/sfx/ui/hover-subtle.mp3
+  - public/templates/member-import-sample.csv
+tests:
+  - lib/member-import.test.ts
+  - open-slide-main/packages/core/src/app/lib/utils.test.ts
+  - lib/auth/password-login.test.ts
+  - lib/media-storage.test.ts
+  - lib/supabase/server.test.ts
+  - lib/access-control.test.ts
+  - lib/auth/login.test.ts
+  - e2e/auth-login.spec.ts
+  - lib/actions/members.test.ts
+  - lib/actions/presentations.test.ts
+  - lib/actions/guest-portal.test.ts
+  - open-slide-main/packages/core/src/vite/loc-tags-plugin.test.ts
+  - open-slide-main/packages/core/src/editing/revert-asset.test.ts
+  - open-slide-main/packages/core/src/files/assets.test.ts
+  - app/auth/forgot-password/route.test.ts
+  - open-slide-main/packages/cli/src/init.test.ts
+  - lib/presentation/runtime.test.ts
+  - open-slide-main/packages/core/src/app/lib/inspector/fiber.test.ts
+  - lib/auth/callback.test.ts
+  - lib/supabase/client.test.ts
+  - open-slide-main/packages/core/src/http/request-guard.test.ts
+  - app/auth/signup/route.test.ts
+  - open-slide-main/packages/core/src/files/folders.test.ts
+  - e2e/admin-member.spec.ts
+  - lib/ui-v3-alignment.test.ts
+  - open-slide-main/packages/core/src/vite/design-plugin.test.ts
+  - open-slide-main/packages/cli/src/package-manager.test.ts
+  - open-slide-main/packages/core/src/app/lib/sdk.test.ts
+  - lib/presentation/workbench.test.ts
+  - open-slide-main/packages/core/src/editing/slide-ops.test.ts
+  - lib/auth/access-control.test.ts
+  - open-slide-main/packages/core/src/editing/comments.test.ts
+  - open-slide-main/packages/core/src/cli/run.test.ts
+  - app/auth/reset-password/route.test.ts
+  - lib/presentation/slide-order.test.ts
+  - open-slide-main/packages/core/src/editing/edit-ops.test.ts
+  - open-slide-main/packages/core/src/vite/notes-plugin.test.ts
 -->

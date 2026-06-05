@@ -42,6 +42,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const currentPath = (await headers()).get("x-current-path") || "";
   
   const isWorkspace = /^\/admin\/presentations\/[^/]+$/.test(currentPath);
+  const isPresentationSurface = isWorkspace || currentPath === "/admin/presentation";
   const contentClassName = isWorkspace ? "od-content is-workspace" : undefined;
 
   return (
@@ -50,7 +51,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       identity={identity}
       mode="admin"
       navGroups={navGroups}
+      showTopbarSearch
+      showTopbarUser={!isPresentationSurface}
       subtitle="例會準備、投稿審核、簡報發布與資料品質"
+      topbarSearchAction="/admin/search"
+      topbarSearchPlaceholder="搜尋會員、來賓、簡報"
       title="幹部入口總覽"
       contentClassName={contentClassName}
     >

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
-import { DeckRuntime } from "../../../components/slides/deck-runtime";
+import { RevealRuntime } from "../../../components/presentation/reveal-runtime";
 import { toRuntimeDeck } from "../../../lib/presentation/runtime";
 import { getPublishedPresentationDeck } from "../../../lib/presentation/viewer";
 import { createServerClient } from "../../../lib/supabase/server";
@@ -37,5 +37,5 @@ export default async function PresentationWeekPage({ params }: Props) {
   const runtimeDeck = toRuntimeDeck(deck);
   if (runtimeDeck.slides.length === 0) notFound();
 
-  return <DeckRuntime deck={runtimeDeck} />;
+  return <RevealRuntime deck={runtimeDeck} />;
 }

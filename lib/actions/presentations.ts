@@ -9,7 +9,7 @@ import { parseSlideOrder } from "../presentation/slide-order";
 import type { SlideEntry, SlideTextLayer } from "../presentation/types";
 import { buildPresentationDeck, getPresentationDeckById } from "../presentation/viewer";
 import { buildWorkbenchSlideOrder } from "../presentation/workbench";
-import { assertImageFile, buildPresentationBackgroundPath, ensureMediaBucket, uploadImageFile } from "../media-storage";
+import { assertImageFile, buildLayerImagePath, buildPresentationBackgroundPath, ensureMediaBucket, uploadImageFile } from "../media-storage";
 import { asJson, createAdminClient, getChapter, parseWeekDate, requireText } from "./admin-common";
 
 const FIXED_SLIDE_TYPES = new Set<SlideEntry["type"]>(["cover", "agenda", "team", "closing"]);
@@ -166,8 +166,9 @@ export async function publishPresentationAction(formData: FormData) {
   let parsed;
   try {
     parsed = parseSlideOrder(presentation.slide_order as never);
-  } catch (err: any) {
-    throw new Error(`發布失敗，簡報排版格式不正確：${err.message}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`發布失敗，簡報排版格式不正確：${msg}`);
   }
 
   if (parsed.length === 0) {
@@ -333,4 +334,36 @@ export async function deletePresentationAction(formData: FormData) {
   if (error) throw error;
   revalidatePath("/admin/presentations");
   redirect("/admin/presentations");
+}
+
+export async function uploadLayerImageAction(presentationId: string, file: File): Promise<{ id: string; imageUrl: string }> {
+  const supabase = createAdminClient();
+  const chapter = await getChapter();
+
+  // 驗證簡報存在且屬於該分會
+  const { data: presentation, error: getError } = await supabase
+    .from("presentations" as never)
+    .select("id")
+    .eq("id", presentationId as never)
+    .eq("chapter_id", chapter.id as never)
+    .single();
+
+  if (getError || !presentation) {
+    throw new Error("找不到該簡報，或無存取權限");
+  }
+
+  // 驗證檔案大小與格式
+  assertImageFile(file, "圖片元素");
+
+  const layerId = crypto.randomUUID();
+  const storagePath = buildLayerImagePath(presentationId, layerId, file);
+
+  // 確保 bucket 存在並上傳
+  await ensureMediaBucket(supabase);
+  const imageUrl = await uploadImageFile(supabase, file, storagePath);
+
+  return {
+    id: layerId,
+    imageUrl,
+  };
 }

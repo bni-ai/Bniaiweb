@@ -2,6 +2,8 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { filterGuestContentItems, selectCurrentGuestVisit } from "../guest-portal";
 import { createServerClient } from "../supabase/server";
@@ -73,7 +75,7 @@ export async function getCurrentGuestContext() {
 
   const { data: visits, error: visitsError } = await supabase
     .from("guest_visits" as never)
-    .select("id, week_date, visit_number, status, self_intro")
+    .select("id, week_date, visit_number, status, self_intro, feedback")
     .eq("guest_id", (guest as any).id as never)
     .order("week_date", { ascending: false });
   if (visitsError) throw visitsError;
@@ -101,4 +103,28 @@ export async function getLimitedGuestMemberDirectory() {
     specialty_description: string | null;
     company_name: string | null;
   }>;
+}
+
+export async function submitGuestFeedbackAction(formData: FormData) {
+  const context = await getCurrentGuestContext();
+  if (!context || context.isPending || !context.visit?.id) {
+    throw new Error("目前沒有可提交回饋的參訪資料");
+  }
+
+  const feedback = String(formData.get("feedback") || "").trim();
+  if (!feedback) {
+    throw new Error("請先填寫會後回饋");
+  }
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("guest_visits" as never)
+    .update({ feedback } as never)
+    .eq("id", context.visit.id as never);
+
+  if (error) throw error;
+
+  revalidatePath("/guest");
+  revalidatePath("/guest/feedback");
+  redirect("/guest/feedback?saved=1");
 }

@@ -230,14 +230,14 @@ export function buildImportPreview(
     if (!payload.member_number) errors.push("會員編號不可空白");
     if (!payload.chinese_name) errors.push("中文姓名不可空白");
     if (payload.member_number && !/^\d+$/.test(payload.member_number)) errors.push("會員編號必須為數字");
-    if (payload.email && !isValidEmail(payload.email)) errors.push("Email 格式不正確");
+    if (payload.email && !isValidEmail(payload.email)) errors.push("會員 Email 格式不正確");
     if (payload.industry_experience_years !== null && payload.industry_experience_years !== undefined && !Number.isFinite(payload.industry_experience_years)) {
       errors.push("產業年資必須為數字");
     }
-    if (payload.role && !VALID_ROLES.has(payload.role)) errors.push("角色必須是 member / officer / president");
+    if (payload.role && !VALID_ROLES.has(payload.role)) errors.push("角色必須是會員、幹部或主席");
     if (payload.position && !VALID_POSITIONS.has(payload.position)) errors.push("職掌不在允許列表中");
     if (payload.committee && !VALID_COMMITTEES.has(payload.committee)) errors.push("委員會不在允許列表中");
-    if (mapping.email && !payload.email) errors.push("Email 欄位不可空白");
+    if (mapping.email && !payload.email) errors.push("會員 Email 欄位不可空白");
 
     const duplicateReasons: Array<"email" | "member_number"> = [];
     const byEmail = payload.email ? existingByEmail.get(payload.email) : undefined;
@@ -246,10 +246,10 @@ export function buildImportPreview(
     if (byEmail) duplicateReasons.push("email");
     if (byNumber) duplicateReasons.push("member_number");
     if (byEmail && byNumber && byEmail.id !== byNumber.id) {
-      errors.push("Email 與會員編號對應到不同既有會員，請先整理來源資料");
+      errors.push("會員 Email 與會員編號對應到不同既有會員，請先整理來源資料");
     }
     if (!duplicateMember && !payload.email) {
-      errors.push("新增會員必須提供 Email");
+      errors.push("新增會員必須提供會員 Email");
     }
 
     return {

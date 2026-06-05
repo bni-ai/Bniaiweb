@@ -1,35 +1,39 @@
-# Spectra 專案設定
-# 參考: https://github.com/spectra-app/spectra
+# Spectra application config
+# See: https://github.com/spectra-app/spectra
 
-# OpenSpec 目錄路徑（相對於專案根目錄）
-# 變更此設定後，需要重建向量搜尋索引。
+# OpenSpec directory path (relative to project root)
+# Changing this requires rebuilding the vector search index.
 # spec_dir: docs/specs
 
-# AI 產生 artifacts 使用的語言
+# Language for AI-generated artifacts
 locale: tw
 
-# 工作流程開關
-# tdd: 預設先測試再實作
-# audit: 啟用稽核檢查
-# parallel_tasks: 允許可並行任務加上 [P] 標記
+# Workflow toggles
 tdd: true
 audit: true
 parallel_tasks: true
 
-# Claude slash 指令（設 true 會額外產生 /spectra:X 指令）
-# claude_slash_commands: true
+# Claude slash commands (set true to also generate /spectra:X commands)
+claude_slash_commands: true
 
-# 啟用 git worktree（隔離變更分支）
+# Enable git worktree support for isolated change branches
 worktree: true
 
-# 自訂 git worktree 目錄
+# Custom git worktrees directory
 # worktrees_dir: .spectra/worktrees
 
-# Claude Code skill 的 effort 等級（low/medium/high/xhigh/max）
-# claude_effort:
-#   apply: high
+# Claude Code skill effort levels (low/medium/high/xhigh/max)
+claude_effort:
+  apply: xhigh
+  archive: low
+  ask: low
+  audit: xhigh
+  debug: xhigh
+  discuss: medium
+  ingest: xhigh
+  propose: xhigh
 
-# 要產生 instruction files 的 AI 工具
+# AI tools to generate instruction files for
 # tools:
 #   - claude
 #   - cursor

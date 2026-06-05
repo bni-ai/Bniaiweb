@@ -1,21 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, getChapter } from "../../../lib/actions/admin-common";
-import { createRouteHandlerClient } from "../../../lib/supabase/server";
+import { isMemberInviteValid } from "../../../lib/auth/member-invite";
+import { copyResponseCookies, createRouteHandlerClient } from "../../../lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name, company, phone, specialty } = await request.json();
+    const { inviteToken, email, password, name, company, phone, specialty } = await request.json();
 
-    if (!email || !password || !name) {
+    if (!inviteToken || !email || !password || !name) {
       return NextResponse.json(
-        { error: "請填寫 Email、密碼與姓名。" },
+        { error: "邀請連結無效或已過期。" },
         { status: 400 }
       );
     }
 
     const adminClient = createAdminClient();
+    const { data: inviteData, error: inviteError } = await adminClient
+      .from("member_invites" as never)
+      .select("id, email, token, used_at, expires_at")
+      .eq("token", inviteToken as never)
+      .maybeSingle();
+    const invite = inviteData as { id: string; email: string; token: string; used_at: string | null; expires_at: string } | null;
 
-    // 檢查 members 是否已存在該 email
+    if (inviteError || !isMemberInviteValid(invite, email)) {
+      return NextResponse.json(
+        { error: "邀請連結無效或已過期。" },
+        { status: 400 }
+      );
+    }
+    if (!invite) {
+      return NextResponse.json(
+        { error: "邀請連結無效或已過期。" },
+        { status: 400 }
+      );
+    }
+
     const { data: existingMember, error: memberError } = await adminClient
       .from("members" as never)
       .select("id")
@@ -36,7 +55,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 檢查 guests 是否已存在該 email
     const { data: existingGuest, error: guestError } = await adminClient
       .from("guests" as never)
       .select("id")
@@ -57,10 +75,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 進行 Supabase Auth 註冊
     const response = NextResponse.next();
     const supabase = createRouteHandlerClient(request, response);
-    
+
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -75,31 +92,44 @@ export async function POST(request: NextRequest) {
 
     const chapter = await getChapter();
 
-    // 寫入 guests 資料表
     const { error: insertError } = await adminClient
-      .from("guests" as never)
+      .from("members" as never)
       .insert({
-        id: signUpData.user.id,
         chapter_id: chapter.id,
-        name,
+        auth_uid: signUpData.user.id,
         email,
-        company: company || null,
-        phone: phone || null,
-        specialty: specialty || null,
+        chinese_name: name,
+        line_name: phone || null,
+        company_name: company || null,
+        specialty_title: specialty || null,
+        role: "pending_member",
+        is_active: true,
       } as never)
       .select()
       .single();
 
     if (insertError) {
       return NextResponse.json(
-        { error: "建立來賓資料失敗，請聯絡管理員。" },
+        { error: "建立會員申請資料失敗，請聯絡管理員。" },
         { status: 500 }
       );
     }
 
-    // 設定 cookie 並回傳 redirect 目的地
+    const { error: updateInviteError } = await adminClient
+      .from("member_invites" as never)
+      .update({ used_at: new Date().toISOString() } as never)
+      .eq("id", invite.id as never);
+
+    if (updateInviteError) {
+      return NextResponse.json(
+        { error: "更新邀請狀態失敗，請聯絡管理員。" },
+        { status: 500 }
+      );
+    }
+
     const redirectResponse = NextResponse.json({ redirectTo: "/guest" });
-    redirectResponse.cookies.set("sb-role", "guest", {
+    copyResponseCookies(response, redirectResponse);
+    redirectResponse.cookies.set("sb-role", "pending_member", {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",

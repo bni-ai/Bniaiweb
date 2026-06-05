@@ -37,7 +37,8 @@ vi.mock("./admin-common", () => ({
   requireText: (formData: FormData, name: string) => {
     return (formData.get(name) as string) || "";
   },
-  asJson: (val: any) => val,
+  asJson: (val: unknown) => val,
+  getChapter: () => Promise.resolve({ id: "chapter-123" }),
 }));
 
 import {
@@ -46,6 +47,7 @@ import {
   deleteSlideAction,
   duplicateSlideAction,
   publishPresentationAction,
+  uploadLayerImageAction,
 } from "./presentations";
 
 describe("presentations server actions", () => {
@@ -83,7 +85,7 @@ describe("presentations server actions", () => {
       await expect(duplicateSlideAction(formData)).rejects.toThrow("Redirect to /admin/presentations/presentation-123");
 
       expect(mockSupabase.update).toHaveBeenCalled();
-      const updateArg = mockSupabase.update.mock.calls[0][0] as any;
+      const updateArg = mockSupabase.update.mock.calls[0][0] as { slide_order: unknown[] };
       expect(updateArg.slide_order).toHaveLength(4);
       expect(updateArg.slide_order[3]).toEqual({
         type: "member",
@@ -115,7 +117,9 @@ describe("presentations server actions", () => {
       await expect(duplicateSlideAction(formData)).rejects.toThrow("Redirect to /admin/presentations/presentation-123");
 
       expect(mockSupabase.update).toHaveBeenCalled();
-      const updateArg = mockSupabase.update.mock.calls[0][0] as any;
+      const updateArg = mockSupabase.update.mock.calls[0][0] as {
+        slide_order: { type: string; visible: boolean; editor: Record<string, unknown>; id?: string }[];
+      };
       expect(updateArg.slide_order).toHaveLength(3);
       expect(updateArg.slide_order[2].type).toBe("custom");
       expect(updateArg.slide_order[2].visible).toBe(true);
@@ -143,7 +147,9 @@ describe("presentations server actions", () => {
       await expect(addBlankSlideAction(formData)).rejects.toThrow("Redirect to /admin/presentations/presentation-123");
 
       expect(mockSupabase.update).toHaveBeenCalled();
-      const updateArg = mockSupabase.update.mock.calls[0][0] as any;
+      const updateArg = mockSupabase.update.mock.calls[0][0] as {
+        slide_order: { type: string; visible: boolean; editor: { textLayers: { id: string }[] } }[];
+      };
       expect(updateArg.slide_order).toHaveLength(2);
       expect(updateArg.slide_order[1].type).toBe("custom");
       expect(updateArg.slide_order[1].visible).toBe(true);
@@ -176,7 +182,7 @@ describe("presentations server actions", () => {
       await expect(deleteSlideAction(formData)).rejects.toThrow("Redirect to /admin/presentations/presentation-123");
 
       expect(mockSupabase.update).toHaveBeenCalled();
-      const updateArg = mockSupabase.update.mock.calls[0][0] as any;
+      const updateArg = mockSupabase.update.mock.calls[0][0] as { slide_order: unknown[] };
       expect(updateArg.slide_order).toHaveLength(2);
       expect(updateArg.slide_order).toEqual([{ type: "cover" }, { type: "closing" }]);
     });
@@ -288,6 +294,52 @@ describe("presentations server actions", () => {
       });
 
       await expect(publishPresentationAction(formData)).rejects.toThrow("簡報至少需要包含一張投影片。");
+    });
+  });
+
+  describe("uploadLayerImageAction", () => {
+    it("successfully uploads a layer image and returns image details", async () => {
+      mockSupabase.single.mockResolvedValueOnce({
+        data: { id: "presentation-123", chapter_id: "chapter-123" },
+        error: null,
+      });
+
+      const mockStorageBucket = {
+        upload: vi.fn().mockResolvedValue({ error: null }),
+        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: "https://cdn.example.com/mock-image.png" } }),
+      };
+      mockSupabase.storage = {
+        listBuckets: vi.fn().mockResolvedValue({ data: [{ id: "bniai-media", name: "bniai-media" }], error: null }),
+        createBucket: vi.fn().mockResolvedValue({ error: null }),
+        from: vi.fn().mockReturnValue(mockStorageBucket),
+      } as unknown as typeof mockSupabase.storage;
+
+      const file = new File([""], "photo.png", { type: "image/png" });
+      const result = await uploadLayerImageAction("presentation-123", file);
+
+      expect(result.id).toBeDefined();
+      expect(result.imageUrl).toBe("https://cdn.example.com/mock-image.png");
+      expect(mockStorageBucket.upload).toHaveBeenCalled();
+    });
+
+    it("rejects invalid file type", async () => {
+      mockSupabase.single.mockResolvedValueOnce({
+        data: { id: "presentation-123", chapter_id: "chapter-123" },
+        error: null,
+      });
+
+      const file = new File([""], "test.gif", { type: "image/gif" });
+      await expect(uploadLayerImageAction("presentation-123", file)).rejects.toThrow("只接受 JPG、PNG 或 WebP");
+    });
+
+    it("rejects oversized file", async () => {
+      mockSupabase.single.mockResolvedValueOnce({
+        data: { id: "presentation-123", chapter_id: "chapter-123" },
+        error: null,
+      });
+
+      const oversizedFile = new File([new ArrayBuffer(6 * 1024 * 1024)], "large.png", { type: "image/png" });
+      await expect(uploadLayerImageAction("presentation-123", oversizedFile)).rejects.toThrow("檔案大小不可超過 5MB");
     });
   });
 });

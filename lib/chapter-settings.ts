@@ -42,5 +42,5 @@ export function isLateBriefSubmission(weekDate: string, submittedAtIso: string, 
 }
 
 export function buildReminderMessage(memberName: string, weekDate: string) {
-  return `${memberName}，提醒你尚未完成 ${weekDate} 當週 Brief，請在例會前補上本週我有 / 本週我要。`;
+  return `${memberName}，提醒你尚未完成 ${weekDate} 當週每週簡報，請在例會前補上本週我有 / 本週我要。`;
 }

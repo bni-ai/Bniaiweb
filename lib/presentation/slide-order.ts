@@ -1,5 +1,5 @@
 import type { Json } from "../supabase/types";
-import type { SlideEditorPatch, SlideEntry, SlideFontSize, SlideTextAlign, SlideTextLayer } from "./types";
+import type { SlideEditorPatch, SlideEntry, SlideFontSize, SlideImageLayer, SlideTextAlign, SlideTextLayer } from "./types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -19,6 +19,18 @@ function isTextAlign(value: unknown): value is SlideTextAlign {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function isBorderRadius(value: unknown): value is 0 | 8 | 16 | 999 {
+  return value === 0 || value === 8 || value === 16 || value === 999;
+}
+
+function isShadow(value: unknown): value is "none" | "sm" | "md" {
+  return value === "none" || value === "sm" || value === "md";
+}
+
+function isObjectFit(value: unknown): value is "cover" | "contain" {
+  return value === "cover" || value === "contain";
 }
 
 function parseTextLayers(value: unknown): SlideTextLayer[] | undefined {
@@ -62,6 +74,45 @@ function parseTextLayers(value: unknown): SlideTextLayer[] | undefined {
   });
 }
 
+function parseImageLayers(value: unknown): SlideImageLayer[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) {
+    throw new Error("slide_order editor.imageLayers 格式不正確");
+  }
+
+  return value.map((layer, index) => {
+    if (!isRecord(layer)) {
+      throw new Error(`slide_order editor.imageLayers[${index}] 格式不正確`);
+    }
+
+    if (
+      typeof layer.id !== "string" ||
+      typeof layer.imageUrl !== "string" ||
+      !isFiniteNumber(layer.x) ||
+      !isFiniteNumber(layer.y) ||
+      !isFiniteNumber(layer.width) ||
+      !isFiniteNumber(layer.height) ||
+      !isBorderRadius(layer.borderRadius) ||
+      !isShadow(layer.shadow) ||
+      !isObjectFit(layer.objectFit)
+    ) {
+      throw new Error(`slide_order editor.imageLayers[${index}] 欄位格式不正確`);
+    }
+
+    return {
+      id: layer.id,
+      imageUrl: layer.imageUrl,
+      x: layer.x,
+      y: layer.y,
+      width: layer.width,
+      height: layer.height,
+      borderRadius: layer.borderRadius,
+      shadow: layer.shadow,
+      objectFit: layer.objectFit,
+    };
+  });
+}
+
 function parseEditor(value: unknown): SlideEditorPatch | undefined {
   if (value === undefined) return undefined;
   if (!isRecord(value)) {
@@ -87,6 +138,17 @@ function parseEditor(value: unknown): SlideEditorPatch | undefined {
   }
   if ("textLayers" in value) {
     next.textLayers = value.textLayers === null ? null : parseTextLayers(value.textLayers);
+  }
+  if ("imageLayers" in value) {
+    next.imageLayers = value.imageLayers === null ? null : parseImageLayers(value.imageLayers);
+  }
+  if ("timerEnabled" in value) {
+    if (!isBoolean(value.timerEnabled)) throw new Error("slide_order editor.timerEnabled 格式不正確");
+    next.timerEnabled = value.timerEnabled;
+  }
+  if ("timerSeconds" in value) {
+    if (value.timerSeconds !== null && !isFiniteNumber(value.timerSeconds)) throw new Error("slide_order editor.timerSeconds 格式不正確");
+    next.timerSeconds = value.timerSeconds as number | null;
   }
   if ("dataOverride" in value && value.dataOverride !== undefined) {
     if (!isRecord(value.dataOverride)) throw new Error("slide_order editor.dataOverride 格式不正確");

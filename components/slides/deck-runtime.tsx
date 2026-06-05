@@ -1,56 +1,54 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type {
-  AgendaSlideProps,
-  AwardSlideProps,
-  ClosingSlideProps,
-  CoverSlideProps,
-  GuestSlideProps,
-  KeynoteSlideProps,
-  MemberSlideProps,
-  PresentationRuntimeDeck,
-  PresentationRuntimeSlide,
-  TeamSlideProps,
-  VPReportSlideProps,
-} from "../../lib/presentation/types";
-import { AgendaSlide, AwardSlide, ClosingSlide, CoverSlide, GuestSlide, KeynoteSlide, MemberSlide, TeamSlide, VPReportSlide } from ".";
+import {
+  createTimerStateForSlide,
+  pauseTimerState,
+  resetTimerState,
+  resumeTimerState,
+  tickTimerState,
+  type MeetingTimerState,
+} from "../../lib/presentation/meeting-timer";
+import type { PresentationRuntimeDeck, PresentationRuntimeSlide } from "../../lib/presentation/types";
+import { EditorSlideFrame } from "../presentation/editor-slide-frame";
 
 type DeckRuntimeProps = {
   deck: PresentationRuntimeDeck;
   mode?: "viewer" | "present";
 };
 
+type TimerSessionPayload = {
+  weekDate: string;
+  activeIndex: number;
+  timerState: MeetingTimerState;
+};
+
 const CANVAS_WIDTH = 1920;
 const CANVAS_HEIGHT = 1080;
+const TIMER_SESSION_PREFIX = "presentation-timer-session:";
 
-function formatElapsed(seconds: number) {
+function formatClock(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
 }
 
-function renderRuntimeSlide(slide: PresentationRuntimeSlide) {
-  switch (slide.type) {
-    case "cover":
-      return <CoverSlide {...(slide.payload as unknown as CoverSlideProps)} />;
-    case "agenda":
-      return <AgendaSlide {...(slide.payload as unknown as AgendaSlideProps)} />;
-    case "keynote":
-      return <KeynoteSlide {...(slide.payload as unknown as KeynoteSlideProps)} />;
-    case "member":
-      return <MemberSlide {...(slide.payload as unknown as MemberSlideProps)} />;
-    case "guest":
-      return <GuestSlide {...(slide.payload as unknown as GuestSlideProps)} />;
-    case "award":
-      return <AwardSlide {...(slide.payload as unknown as AwardSlideProps)} />;
-    case "vp_report":
-      return <VPReportSlide {...(slide.payload as unknown as VPReportSlideProps)} />;
-    case "team":
-      return <TeamSlide {...(slide.payload as unknown as TeamSlideProps)} />;
-    case "closing":
-      return <ClosingSlide {...(slide.payload as unknown as ClosingSlideProps)} />;
+function formatTimerLabel(timerState: MeetingTimerState) {
+  if (!timerState.timerEnabled) return null;
+  if (timerState.status === "overtime") {
+    return `+${formatClock(timerState.overtimeSeconds)}`;
+  }
+  const value = typeof timerState.remainingSeconds === "number" ? timerState.remainingSeconds : 0;
+  return formatClock(value);
+}
+
+function parseTimerSession(raw: string | null): TimerSessionPayload | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as TimerSessionPayload;
+  } catch {
+    return null;
   }
 }
 
@@ -92,21 +90,106 @@ function ScaledSlideStage({ slide, testId }: { slide: PresentationRuntimeSlide; 
             transformOrigin: "top left",
           }}
         >
-          {renderRuntimeSlide(slide)}
+          <EditorSlideFrame slide={slide} />
         </div>
       </div>
     </div>
   );
 }
 
+function PresentationTimerOverlay({
+  mode,
+  timerState,
+  onPause,
+  onReset,
+  onResume,
+}: {
+  mode: "viewer" | "present";
+  timerState: MeetingTimerState;
+  onPause: () => void;
+  onResume: () => void;
+  onReset: () => void;
+}) {
+  const label = formatTimerLabel(timerState);
+  if (!label) return null;
+
+  return (
+    <div className="fixed right-4 top-4 z-30 flex flex-col items-end gap-3" data-testid={mode === "present" ? "present-timer-overlay" : "viewer-timer-overlay"}>
+      <div
+        className={`flex h-28 w-28 items-center justify-center rounded-full border-4 bg-black/70 text-center shadow-2xl ${
+          timerState.status === "overtime" ? "border-red-400 text-red-200" : "border-white/60 text-white"
+        }`}
+      >
+        <div className="px-2">
+          <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/60">Timer</div>
+          <div className="mt-1 text-3xl font-black tabular-nums" data-testid={mode === "present" ? "present-timer" : "viewer-slide-timer"}>
+            {label}
+          </div>
+        </div>
+      </div>
+      {mode === "present" ? (
+        <div className="flex items-center gap-2 rounded-full bg-black/65 px-3 py-2 text-xs font-semibold text-white shadow-xl">
+          {timerState.isRunning ? (
+            <button className="rounded-full border border-white/20 px-3 py-1.5" data-testid="present-timer-pause" onClick={onPause} type="button">
+              暫停
+            </button>
+          ) : (
+            <button className="rounded-full border border-white/20 px-3 py-1.5" data-testid="present-timer-resume" onClick={onResume} type="button">
+              繼續
+            </button>
+          )}
+          <button className="rounded-full bg-white/15 px-3 py-1.5" data-testid="present-timer-reset" onClick={onReset} type="button">
+            重置
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function DeckRuntime({ deck, mode = "viewer" }: DeckRuntimeProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const rootRef = useRef<HTMLDivElement>(null);
   const slides = deck.slides;
+  const sessionStorageKey = `${TIMER_SESSION_PREFIX}${deck.weekDate}`;
+  const channelRef = useRef<BroadcastChannel | null>(null);
+  const skipViewerLocalSyncRef = useRef(false);
+  const activeIndexRef = useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isReady, setIsReady] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [timerState, setTimerState] = useState<MeetingTimerState>(() => createTimerStateForSlide(
+    slides[0]?.id || "slide-0",
+    {
+      timerEnabled: slides[0]?.editor.timerEnabled ?? false,
+      timerSeconds: slides[0]?.editor.timerSeconds ?? null,
+    },
+    Date.now(),
+  ));
   const activeSlide = slides[activeIndex] || null;
   const nextSlide = slides[activeIndex + 1] || null;
   const pageLabel = slides.length ? `${activeIndex + 1} / ${slides.length}` : "0 / 0";
+
+  const buildTimerStateForIndex = useCallback((index: number, updatedAt: number) => {
+    const slide = slides[index];
+    return createTimerStateForSlide(
+      slide?.id || `slide-${index}`,
+      {
+        timerEnabled: slide?.editor.timerEnabled ?? false,
+        timerSeconds: slide?.editor.timerSeconds ?? null,
+      },
+      updatedAt,
+    );
+  }, [slides]);
+
+  const publishTimerSession = useCallback((nextActiveIndex: number, nextTimerState: MeetingTimerState) => {
+    if (typeof window === "undefined" || mode !== "present") return;
+    const payload: TimerSessionPayload = {
+      weekDate: deck.weekDate,
+      activeIndex: nextActiveIndex,
+      timerState: nextTimerState,
+    };
+    window.localStorage.setItem(sessionStorageKey, JSON.stringify(payload));
+    channelRef.current?.postMessage(payload);
+  }, [deck.weekDate, mode, sessionStorageKey]);
 
   const controls = useMemo(() => ({
     previous: () => setActiveIndex((current) => Math.max(0, current - 1)),
@@ -114,6 +197,11 @@ export function DeckRuntime({ deck, mode = "viewer" }: DeckRuntimeProps) {
   }), [slides.length]);
 
   useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
+
+  useEffect(() => {
+    setIsReady(true);
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "ArrowRight" || event.key === " ") {
         event.preventDefault();
@@ -129,9 +217,79 @@ export function DeckRuntime({ deck, mode = "viewer" }: DeckRuntimeProps) {
   }, [controls]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setElapsedSeconds((current) => current + 1), 1000);
+    if (typeof window === "undefined") return undefined;
+
+    if ("BroadcastChannel" in window) {
+      channelRef.current = new BroadcastChannel(sessionStorageKey);
+    }
+
+    if (mode === "viewer") {
+      const applySessionPayload = (payload: TimerSessionPayload | null) => {
+        if (!payload || payload.weekDate !== deck.weekDate) return;
+        skipViewerLocalSyncRef.current = true;
+        setActiveIndex(payload.activeIndex);
+        setTimerState(payload.timerState);
+      };
+
+      applySessionPayload(parseTimerSession(window.localStorage.getItem(sessionStorageKey)));
+
+      const onStorage = (event: StorageEvent) => {
+        if (event.key !== sessionStorageKey) return;
+        applySessionPayload(parseTimerSession(event.newValue));
+      };
+
+      const onChannelMessage = (event: MessageEvent<TimerSessionPayload>) => {
+        applySessionPayload(event.data);
+      };
+
+      channelRef.current?.addEventListener("message", onChannelMessage);
+      window.addEventListener("storage", onStorage);
+      return () => {
+        channelRef.current?.removeEventListener("message", onChannelMessage);
+        window.removeEventListener("storage", onStorage);
+        channelRef.current?.close();
+        channelRef.current = null;
+      };
+    }
+
+    return () => {
+      channelRef.current?.close();
+      channelRef.current = null;
+    };
+  }, [deck.weekDate, mode, sessionStorageKey]);
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    if (mode === "present") {
+      const nextState = buildTimerStateForIndex(activeIndex, Date.now());
+      setTimerState(nextState);
+      publishTimerSession(activeIndex, nextState);
+      return;
+    }
+
+    if (skipViewerLocalSyncRef.current) {
+      skipViewerLocalSyncRef.current = false;
+      return;
+    }
+
+    const fallbackState = pauseTimerState(buildTimerStateForIndex(activeIndex, Date.now()), Date.now());
+    setTimerState(fallbackState);
+  }, [activeIndex, buildTimerStateForIndex, isReady, mode, publishTimerSession]);
+
+  useEffect(() => {
+    if (mode !== "present" || !timerState.isRunning || !timerState.timerEnabled) return;
+
+    const timer = window.setInterval(() => {
+      setTimerState((current) => {
+        const next = tickTimerState(current, Date.now());
+        publishTimerSession(activeIndexRef.current, next);
+        return next;
+      });
+    }, 1000);
+
     return () => window.clearInterval(timer);
-  }, []);
+  }, [mode, publishTimerSession, timerState.isRunning, timerState.timerEnabled]);
 
   const requestFullscreen = async () => {
     try {
@@ -143,7 +301,7 @@ export function DeckRuntime({ deck, mode = "viewer" }: DeckRuntimeProps) {
 
   if (!activeSlide) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#120808] p-6 text-white" data-testid="presentation-runtime">
+      <main className="flex min-h-screen items-center justify-center bg-[#120808] p-6 text-white" data-runtime-ready={isReady ? "true" : "false"} data-testid="presentation-runtime">
         <p>這份簡報沒有可播放的投影片。</p>
       </main>
     );
@@ -151,7 +309,26 @@ export function DeckRuntime({ deck, mode = "viewer" }: DeckRuntimeProps) {
 
   if (mode === "present") {
     return (
-      <main ref={rootRef} className="min-h-screen bg-[#0f0707] p-4 text-white" data-testid="present-mode">
+      <main ref={rootRef} className="min-h-screen bg-[#0f0707] p-4 text-white" data-runtime-ready={isReady ? "true" : "false"} data-testid="present-mode">
+        <PresentationTimerOverlay
+          mode="present"
+          onPause={() => {
+            const next = pauseTimerState(timerState, Date.now());
+            setTimerState(next);
+            publishTimerSession(activeIndex, next);
+          }}
+          onReset={() => {
+            const next = resetTimerState(timerState, Date.now());
+            setTimerState(next);
+            publishTimerSession(activeIndex, next);
+          }}
+          onResume={() => {
+            const next = resumeTimerState(timerState, Date.now());
+            setTimerState(next);
+            publishTimerSession(activeIndex, next);
+          }}
+          timerState={timerState}
+        />
         <div className="grid min-h-[calc(100vh-2rem)] gap-4 lg:grid-cols-[1fr_360px]">
           <section className="flex min-h-[60vh] flex-col rounded-[28px] bg-black/35 p-3">
             <div className="mb-3 flex items-center justify-between text-sm text-white/70">
@@ -161,9 +338,8 @@ export function DeckRuntime({ deck, mode = "viewer" }: DeckRuntimeProps) {
             <ScaledSlideStage slide={activeSlide} testId="active-slide" />
           </section>
           <aside className="grid gap-4 rounded-[28px] bg-white/10 p-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-white/50">Timer</p>
-              <p className="mt-2 text-4xl font-black tabular-nums" data-testid="present-timer">{formatElapsed(elapsedSeconds)}</p>
+            <div className="text-sm text-white/70">
+              {timerState.timerEnabled ? "此頁 timer 已啟用，可在右上角控制。" : "此頁未啟用 timer。"}
             </div>
             <div className="h-52 rounded-3xl bg-black/30 p-3">
               {nextSlide ? (
@@ -175,7 +351,7 @@ export function DeckRuntime({ deck, mode = "viewer" }: DeckRuntimeProps) {
               )}
             </div>
             <div className="rounded-3xl bg-white p-4 text-slate-900">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#b91c1c]">Speaker Notes</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#b91c1c]">講者備註</p>
               <p className="mt-3 text-sm leading-7" data-testid="speaker-notes">{activeSlide.notes}</p>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -193,7 +369,8 @@ export function DeckRuntime({ deck, mode = "viewer" }: DeckRuntimeProps) {
   }
 
   return (
-    <main ref={rootRef} className="flex min-h-screen flex-col bg-[#120808] p-4 text-white sm:p-6" data-testid="presentation-runtime">
+    <main ref={rootRef} className="flex min-h-screen flex-col bg-[#120808] p-4 text-white sm:p-6" data-runtime-ready={isReady ? "true" : "false"} data-testid="presentation-runtime">
+      <PresentationTimerOverlay mode="viewer" onPause={() => undefined} onReset={() => undefined} onResume={() => undefined} timerState={timerState} />
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-white/75">
         <div>
           <p className="font-semibold text-white">{deck.chapterName}</p>

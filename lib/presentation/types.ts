@@ -15,12 +15,27 @@ export type SlideTextLayer = {
   align: SlideTextAlign;
 };
 
+export type SlideImageLayer = {
+  id: string;
+  imageUrl: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  borderRadius: 0 | 8 | 16 | 999;
+  shadow: "none" | "sm" | "md";
+  objectFit: "cover" | "contain";
+};
+
 export type SlideEditorPatch = {
   title?: string | null;
   body?: string | null;
   backgroundImageUrl?: string | null;
   fontSize?: SlideFontSize | null;
   textLayers?: SlideTextLayer[] | null;
+  imageLayers?: SlideImageLayer[] | null;
+  timerEnabled?: boolean;
+  timerSeconds?: number | null;
   dataOverride?: Record<string, string | null>;
 };
 
@@ -52,6 +67,9 @@ export type PresentationRuntimeSlide = {
     backgroundImageUrl: string | null;
     fontSize: SlideFontSize;
     textLayers: SlideTextLayer[];
+    imageLayers: SlideImageLayer[];
+    timerEnabled: boolean;
+    timerSeconds: number | null;
   };
   payload: Record<string, unknown>;
 };

@@ -15,7 +15,7 @@ export default async function SubmissionPage({ searchParams }: { searchParams?: 
         <div>
           <p className="text-sm text-text-2">{weekDate}</p>
           <h1 className="text-3xl font-black">簡報提交狀況</h1>
-          <p className="mt-2 text-sm text-text-2">幹部可以在同一頁確認狀態、修訂內容、核准 Brief，並對未提交會員送出提醒。</p>
+          <p className="mt-2 text-sm text-text-2">幹部可以在同一頁確認狀態、修訂內容、核准每週簡報，並對未提交會員送出提醒。</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="rounded-full bg-[#fff1ea] px-4 py-2 text-sm font-semibold text-primary">{data.submittedCount}/{data.totalCount} 已提交</div>
@@ -25,7 +25,7 @@ export default async function SubmissionPage({ searchParams }: { searchParams?: 
           </form>
         </div>
       </div>
-      {params?.reminded ? <Card className="rounded-[20px] border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">已建立 {params.reminded} 筆 reminder 紀錄。</Card> : null}
+      {params?.reminded ? <Card className="rounded-[20px] border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">已建立 {params.reminded} 筆提醒紀錄。</Card> : null}
       <div className="grid gap-4 md:grid-cols-4">
         <Card className="rounded-[22px] p-4"><p className="text-sm text-text-2">已提交</p><p className="mt-3 text-3xl font-bold text-emerald-700">{data.submittedCount}</p></Card>
         <Card className="rounded-[22px] p-4"><p className="text-sm text-text-2">未提交</p><p className="mt-3 text-3xl font-bold text-primary">{data.totalCount - data.submittedCount}</p></Card>

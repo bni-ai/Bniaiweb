@@ -34,7 +34,7 @@ describe("member import helpers", () => {
       reasons: ["email", "member_number"],
     });
     expect(preview.rows[1].errors).toEqual(
-      expect.arrayContaining(["中文姓名不可空白", "會員編號必須為數字", "Email 格式不正確"]),
+      expect.arrayContaining(["中文姓名不可空白", "會員編號必須為數字", "會員 Email 格式不正確"]),
     );
     expect(preview.summary).toEqual({
       totalRows: 2,

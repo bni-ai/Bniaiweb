@@ -5,17 +5,25 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "./types";
 
-function requireEnv(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_KEY"): string {
-  const value = process.env[name];
+function requireSupabaseUrl(): string {
+  const value = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!value) {
-    throw new Error(`Missing Supabase env var: ${name}`);
+    throw new Error("Missing Supabase env var: NEXT_PUBLIC_SUPABASE_URL");
   }
   return value;
 }
 
-export function createBrowserClient(): SupabaseClient<Database> {
-  const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const supabaseAnonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+function requireSupabaseAnonKey(): string {
+  const value = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!value) {
+    throw new Error("Missing Supabase env var: NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  }
+  return value;
+}
 
+const supabaseUrl = requireSupabaseUrl();
+const supabaseAnonKey = requireSupabaseAnonKey();
+
+export function createBrowserClient(): SupabaseClient<Database> {
   return createSsrBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
 }

@@ -3,6 +3,13 @@ import { Card } from "../../../../components/ui/card";
 import { weekdayLabels } from "../../../../lib/one-on-one";
 import { createOneOnOneBookingAction, getOneOnOneDashboardData, saveMyAvailabilityAction, updateOneOnOneStatusAction } from "../../../../lib/actions/one-on-ones";
 
+const statusLabels = {
+  pending: "待確認",
+  confirmed: "已確認",
+  completed: "已完成",
+  cancelled: "已取消",
+} as const;
+
 function toDateTimeLocalValue(iso: string | null) {
   if (!iso) return "";
   const date = new Date(iso);
@@ -23,6 +30,10 @@ function isInVideoWindow(iso: string | null) {
   return now >= scheduledAt - 30 * 60 * 1000 && now <= scheduledAt + 90 * 60 * 1000;
 }
 
+function getStatusLabel(status: string) {
+  return statusLabels[status as keyof typeof statusLabels] || "未知狀態";
+}
+
 export default async function OneOnOnePage({ searchParams }: { searchParams?: Promise<{ invitee?: string; error?: string; saved?: string }> }) {
   const params = await searchParams;
   const { member, availability, bookings, members, selectedInviteeId } = await getOneOnOneDashboardData(params?.invitee);
@@ -32,15 +43,15 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
     { id: "new-1", member_id: "", day_of_week: 3, start_time: "", end_time: "" },
   ];
   const upcoming = bookings.filter((booking) => ["pending", "confirmed"].includes(booking.status)).slice(0, 3);
-  const videoReadyBooking = bookings.find((booking) => booking.status === "confirmed" && Boolean(booking.jitsi_room) && isInVideoWindow(booking.scheduled_at)) || null;
+  const availableVideoBooking = bookings.find((booking) => booking.status === "confirmed" && Boolean(booking.jitsi_room) && isInVideoWindow(booking.scheduled_at)) || null;
   const selectedInvitee = members.find((item) => item.id === selectedInviteeId) || null;
 
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-text-2">One-on-One</p>
+        <p className="text-sm text-text-2">一對一會談</p>
         <h1 className="text-3xl font-black">一對一預約</h1>
-        <p className="mt-2 text-sm text-text-2">先設定自己的可用時段，再針對其他會員建立預約。系統會自動產生 Jitsi 會議連結。</p>
+        <p className="mt-2 text-sm text-text-2">先設定自己的可用時段，再針對其他會員建立預約。系統會自動產生線上視訊會議連結。</p>
       </div>
       {params?.error ? (
         <Card className="rounded-[24px] border-red-200 bg-red-50 p-4 text-sm text-red-700">{params.error}</Card>
@@ -53,39 +64,39 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
         <div className="grid gap-4 p-5 lg:grid-cols-[1fr_0.75fr] lg:items-center">
           <div>
             <div className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-              Jitsi 線上視訊
+              線上視訊
             </div>
             <h2 className="mt-4 text-2xl font-black text-text-1">即將進行的一對一視訊</h2>
             <p className="mt-2 text-sm leading-6 text-text-2">
-              已確認的一對一會議，會在開始前 30 分鐘到結束後 90 分鐘顯示站內入口。這裡是驗收 Jitsi 流程的主要位置。
+              已確認的一對一會議，會在開始前 30 分鐘到結束後 90 分鐘顯示站內入口。這裡是視訊流程的主要入口。
             </p>
           </div>
-          {videoReadyBooking ? (
+          {availableVideoBooking ? (
             <div className="rounded-[24px] border border-emerald-200 bg-white p-4 shadow-[0_16px_36px_rgba(16,185,129,0.12)]">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold text-emerald-700">即將開始</p>
                   <p className="mt-1 text-lg font-bold text-text-1">
-                    {videoReadyBooking.inviter_id === member?.id ? videoReadyBooking.invitee_name : videoReadyBooking.inviter_name}
+                    {availableVideoBooking.inviter_id === member?.id ? availableVideoBooking.invitee_name : availableVideoBooking.inviter_name}
                   </p>
                   <p className="mt-1 text-sm text-text-2">
-                    {videoReadyBooking.scheduled_at ? toDateTimeLocalValue(videoReadyBooking.scheduled_at).replace("T", " ") : "未排程"} · Jitsi 線上視訊
+                    {availableVideoBooking.scheduled_at ? toDateTimeLocalValue(availableVideoBooking.scheduled_at).replace("T", " ") : "未排程"} · 線上視訊
                   </p>
                 </div>
-                <span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">Ready</span>
+                <span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">可進入</span>
               </div>
               <a
                 className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
-                href={`/dashboard/one-on-one/${videoReadyBooking.id}/video`}
+                href={`/dashboard/one-on-one/${availableVideoBooking.id}/video`}
               >
                 進入站內視訊入口
               </a>
             </div>
           ) : (
             <div className="rounded-[24px] border border-dashed border-emerald-200 bg-white/80 p-4">
-              <p className="font-semibold text-text-1">目前沒有可進入的 Jitsi 會議</p>
+              <p className="font-semibold text-text-1">目前沒有可進入的視訊會議</p>
               <p className="mt-2 text-sm leading-6 text-text-2">
-                請先建立預約，將狀態改為 confirmed，並把時間排在現在前後 30 分鐘內，就會在這裡看到「進入站內視訊入口」。
+                請先建立預約，將狀態改為已確認，並把時間排在現在前後 30 分鐘內，就會在這裡看到「進入站內視訊入口」。
               </p>
             </div>
           )}
@@ -96,7 +107,7 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">即將進行</h2>
-            <p className="text-sm text-text-2">確認後的會議會在時間窗口內顯示站內 Jitsi 入口。</p>
+            <p className="text-sm text-text-2">確認後的會議會在時間窗口內顯示站內視訊入口。</p>
           </div>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -108,11 +119,11 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">{counterparty.slice(-1)}</div>
                   <div>
                     <p className="font-semibold text-text-1">{counterparty}</p>
-                    <p className="text-xs text-text-2">{booking.scheduled_at ? toDateTimeLocalValue(booking.scheduled_at).replace("T", " ") : "未排程"} · Jitsi Meet</p>
+                    <p className="text-xs text-text-2">{booking.scheduled_at ? toDateTimeLocalValue(booking.scheduled_at).replace("T", " ") : "未排程"} · 線上視訊</p>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3">
-                  <span className="rounded bg-surface-2 px-2 py-1 text-xs text-text-2">{booking.status}</span>
+                  <span className="rounded bg-surface-2 px-2 py-1 text-xs text-text-2">{getStatusLabel(booking.status)}</span>
                   {booking.status === "confirmed" ? <a className="text-sm font-medium text-primary" href={`/dashboard/one-on-one/${booking.id}/video`}>進入會議</a> : null}
                 </div>
               </div>
@@ -185,7 +196,7 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">預約紀錄</h2>
-            <p className="text-sm text-text-2">可以確認、完成或取消既有預約，Jitsi 連結會保留同一組 room。</p>
+            <p className="text-sm text-text-2">可以確認、完成或取消既有預約，視訊連結會保留同一組會議代碼。</p>
           </div>
         </div>
         <div className="mt-4 space-y-3">
@@ -196,11 +207,11 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
                   <div>
                     <p className="text-sm text-text-2">對象：{booking.inviter_id === member?.id ? booking.invitee_name : booking.inviter_name}</p>
                     <p className="mt-1 text-lg font-semibold">{booking.scheduled_at ? toDateTimeLocalValue(booking.scheduled_at).replace("T", " ") : "未排程"}</p>
-                    <p className="mt-2 text-sm text-text-2">狀態：{booking.status}</p>
+                    <p className="mt-2 text-sm text-text-2">狀態：{getStatusLabel(booking.status)}</p>
                     {booking.notes ? <p className="mt-2 text-sm text-text-2">備註：{booking.notes}</p> : null}
                     {booking.jitsi_room ? (
                       <a className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline" href={`https://meet.jit.si/bni-huaai-${booking.jitsi_room}`} target="_blank">
-                        開啟 Jitsi：bni-huaai-{booking.jitsi_room}
+                        開啟線上視訊會議
                       </a>
                     ) : null}
                     {booking.status === "confirmed" ? (
@@ -215,7 +226,7 @@ export default async function OneOnOnePage({ searchParams }: { searchParams?: Pr
                         <input type="hidden" name="booking_id" value={booking.id} />
                         <input type="hidden" name="next_status" value={status} />
                         <Button type="submit" variant={booking.status === status ? "primary" : "secondary"} className="rounded-full px-4">
-                          {status}
+                          {getStatusLabel(status)}
                         </Button>
                       </form>
                     ))}

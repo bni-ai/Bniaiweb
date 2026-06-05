@@ -10,7 +10,7 @@ export function HeroSection() {
   return (
     <section className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-14 md:grid-cols-2 md:items-center">
       <div>
-        <p className="mb-2 text-sm text-text-2">Systematic Referral Growth</p>
+        <p className="mb-2 text-sm text-text-2">系統化商業引薦成長</p>
         <h1 className="mb-4 text-3xl font-bold text-text-1 md:text-4xl">BNI 華AI分會</h1>
         <p className="mb-6 text-text-2">用系統化商業推薦，讓每個人的事業持續成長。</p>
         <Button onClick={onLearnMore}>了解更多</Button>

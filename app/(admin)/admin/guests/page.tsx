@@ -23,7 +23,7 @@ export default async function GuestsPage({ searchParams }: { searchParams?: Prom
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">本頁來賓數</p><p className="mt-3 text-3xl font-bold">{visits.length}</p></Card>
         <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">可登入</p><p className="mt-3 text-3xl font-bold text-emerald-700">{loginReadyCount}</p></Card>
-        <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">待補 Email</p><p className="mt-3 text-3xl font-bold text-primary">{visits.length - loginReadyCount}</p></Card>
+        <Card className="rounded-[24px] p-5"><p className="text-sm text-text-2">待補來賓 Email</p><p className="mt-3 text-3xl font-bold text-primary">{visits.length - loginReadyCount}</p></Card>
       </div>
       <div className="flex gap-2">
         <a className="rounded-full border border-border px-4 py-2 text-sm" href={`/admin/guests?week=${baseWeek}`}>本週來賓</a>
@@ -46,7 +46,7 @@ export default async function GuestsPage({ searchParams }: { searchParams?: Prom
             <p className="mt-4 text-sm">{visit.self_intro || "尚未填 15 秒介紹"}</p>
             <div className="mt-4 rounded-2xl bg-surface-2 px-4 py-3 text-xs text-text-2">
               <p className="font-semibold text-text-1">來賓登入狀態：{visit.guests?.email ? "可登入" : "缺 email，尚不能登入"}</p>
-              <p className="mt-1">Email：{visit.guests?.email || "尚未填寫"}</p>
+              <p className="mt-1">來賓 Email：{visit.guests?.email || "尚未填寫"}</p>
             </div>
           </Card>
         ))}

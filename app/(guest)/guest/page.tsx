@@ -45,6 +45,12 @@ export default async function GuestHomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/guest/prepare" className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white">準備 15 秒介紹</Link>
               <Link href="/guest/content" className="rounded-full border border-white/25 px-5 py-3 text-sm font-semibold">看文章與影片</Link>
+              {!context ? (
+                <>
+                  <Link href="/guest/register" className="rounded-full border border-white/25 px-5 py-3 text-sm font-semibold">註冊來賓帳號</Link>
+                  <Link href="/login" className="rounded-full border border-white/25 px-5 py-3 text-sm font-semibold">來賓登入</Link>
+                </>
+              ) : null}
             </div>
           </div>
         )}
@@ -85,6 +91,25 @@ export default async function GuestHomePage() {
           </Card>
         ))}
       </section>
+
+      {context && !isPending ? (
+        <section className="grid gap-4 md:grid-cols-2">
+          <Card className="p-6">
+            <h2 className="text-xl font-bold">會後回饋</h2>
+            <p className="mt-3 text-sm leading-6 text-text-2">例會結束後，您可以在這裡留下參訪心得與下一步需求。</p>
+            <Link href="/guest/feedback" className="mt-4 inline-flex rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white">
+              前往會後回饋
+            </Link>
+          </Card>
+          <Card className="p-6">
+            <h2 className="text-xl font-bold">聯繫窗口</h2>
+            <p className="mt-3 text-sm leading-6 text-text-2">若您想認識其他會員，請先透過邀約人或指定聯繫窗口協助引介。</p>
+            <Link href="/guest/connections" className="mt-4 inline-flex rounded-full border border-border px-4 py-2 text-sm font-semibold text-text-1">
+              請聯繫人協助引介
+            </Link>
+          </Card>
+        </section>
+      ) : null}
     </div>
   );
 }

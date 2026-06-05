@@ -70,6 +70,14 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
+  const isOauthCodeFlow = Boolean(code) && !tokenHash;
+  if (isOauthCodeFlow && (destination.role === "guest" || destination.role === "pending_member")) {
+    redirectToError.searchParams.set("reason", "guest-oauth-disabled");
+    const response = NextResponse.redirect(redirectToError);
+    clearAuthCookies(request, response);
+    return response;
+  }
+
   const isRecovery = type === "recovery";
   const redirectUrl = isRecovery ? new URL("/reset-password", request.url) : new URL(destination.redirectTo, request.url);
   const response = NextResponse.redirect(redirectUrl);
