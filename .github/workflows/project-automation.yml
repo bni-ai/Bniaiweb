@@ -1,0 +1,96 @@
+name: Project Automation
+
+on:
+  issues:
+    types: [opened, closed, reopened]
+  pull_request:
+    types: [opened, closed, merged]
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v1.0.2
+        with:
+          project-url: https://github.com/orgs/bni-ai/projects/1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  update-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set status based on event
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const projectId = 'PVT_kwDOEPve0c4BZw_P';
+            const statusFieldId = await getStatusFieldId();
+            const itemId = await getProjectItemId();
+            if (!itemId || !statusFieldId) return;
+
+            let statusValue;
+            if (context.eventName === 'issues') {
+              if (context.payload.action === 'opened' || context.payload.action === 'reopened') {
+                statusValue = 'Todo';
+              } else if (context.payload.action === 'closed') {
+                statusValue = 'Done';
+              }
+            } else if (context.eventName === 'pull_request') {
+              if (context.payload.action === 'opened') {
+                statusValue = 'In Progress';
+              } else if (context.payload.pull_request.merged) {
+                statusValue = 'Done';
+              }
+            }
+
+            if (!statusValue) return;
+
+            const options = await getStatusOptions(statusFieldId);
+            const option = options.find(o => o.name === statusValue);
+            if (!option) return;
+
+            await github.graphql(`
+              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: { singleSelectOptionId: $optionId }
+                }) { projectV2Item { id } }
+              }
+            `, { projectId, itemId, fieldId: statusFieldId, optionId: option.id });
+
+            async function getStatusFieldId() {
+              const { organization } = await github.graphql(`
+                query { organization(login: "bni-ai") {
+                  projectV2(number: 1) {
+                    fields(first: 20) { nodes { ... on ProjectV2SingleSelectField { id name } } }
+                  }
+                }}
+              `);
+              return organization.projectV2.fields.nodes.find(f => f.name === 'Status')?.id;
+            }
+
+            async function getProjectItemId() {
+              const contentUrl = context.payload.issue?.node_id || context.payload.pull_request?.node_id;
+              if (!contentUrl) return null;
+              const { organization } = await github.graphql(`
+                query($id: ID!) { organization(login: "bni-ai") {
+                  projectV2(number: 1) {
+                    items(first: 50) { nodes { id content { ... on Issue { id } ... on PullRequest { id } } } }
+                  }
+                } node(id: $id) { id }
+              }`, { id: contentUrl });
+              return organization.projectV2.items.nodes.find(n => n.content?.id === contentUrl)?.id;
+            }
+
+            async function getStatusOptions(fieldId) {
+              const { organization } = await github.graphql(`
+                query { organization(login: "bni-ai") {
+                  projectV2(number: 1) {
+                    field(name: "Status") { ... on ProjectV2SingleSelectField { options { id name } } }
+                  }
+                }}
+              `);
+              return organization.projectV2.field.options || [];
+            }
